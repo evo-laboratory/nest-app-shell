@@ -1,6 +1,6 @@
 // * GDK Application Shell Default File
 import { isPromise } from 'util/types';
-import Logger from '@shared/winston-logger/winston.logger';
+import WinstonLogger from '@shared/winston-logger/winston.logger';
 
 export function MethodLogger() {
   return function (
@@ -16,19 +16,19 @@ export function MethodLogger() {
       const className = this.constructor?.name || '';
 
       function logSuccess() {
-        Logger.info(`Executed`, {
+        WinstonLogger.info(`Executed`, {
           contextName: className,
           methodName: key,
         });
       }
 
       function logFailed(error: any) {
-        Logger.error(error?.message || error || 'Unknown error', {
+        WinstonLogger.error(error?.message || error || 'Unknown error', {
           contextName: className,
           methodName: key,
         });
         if (!process.env.DISABLE_ERROR_META) {
-          Logger.error(
+          WinstonLogger.error(
             JSON.stringify(
               error.errorObject || error || { message: 'Unknown error' },
               null,
