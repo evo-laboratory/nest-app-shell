@@ -12,16 +12,16 @@ export class HttpLoggerMiddleware implements NestMiddleware {
       res.parsedBody = body;
       originalSend.call(this, body);
     };
-    WinstonLogger.http(`[ CONTROLLER ] ${req.method} ${req.baseUrl}${req.url}`);
+    WinstonLogger.http(`[Controller] ${req.method} ${req.baseUrl}${req.url}`);
     if (req.method !== 'GET' && process.env.STAGE === 'DEV') {
       WinstonLogger.debug(req.body);
     }
     res.on('finish', () => {
       const endMs: number = new Date().getTime();
       WinstonLogger.http(
-        `[ CONTROLLER-END ] ${req.method} ${req.baseUrl}${req.url} : [${
+        `[Controller] ${req.method} ${req.baseUrl}${req.url} - [${
           res.statusCode
-        }] Time: ${endMs - startMs} ms`,
+        }] Took time : ${endMs - startMs} ms`,
       );
     });
     next();
