@@ -1,16 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import SwaggerSetup from '@shared/swagger/swagger.setup';
+import SwaggerSetup, {
+  SWAGGER_DEFAULT_TITLE,
+} from '@shared/swagger/swagger.setup';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
 
 import { AppModule } from './app.module';
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const STAGE = process.env.STAGE || 'DEV';
 
-async function bootstrap() {
+async function Bootstrap() {
   const app = await NestFactory.create(AppModule);
   // * Setup Swagger
-  SwaggerSetup(app);
+  SwaggerSetup(app, {
+    title: process.env.APP_NAME || SWAGGER_DEFAULT_TITLE,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -18,9 +23,13 @@ async function bootstrap() {
     }),
   );
   await app.listen(PORT);
+  WinstonLogger.info(`${STAGE}`, {
+    contextName: 'Main',
+    methodName: 'Stage',
+  });
   WinstonLogger.info(`Server Listen on PORT: ${PORT}`, {
     contextName: 'Main',
-    methodName: bootstrap.name,
+    methodName: Bootstrap.name,
   });
 }
-bootstrap();
+Bootstrap();

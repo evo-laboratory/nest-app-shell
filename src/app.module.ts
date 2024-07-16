@@ -4,11 +4,13 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { HttpLoggerMiddleware } from '@shared/middlewares/http-logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
 @Module({
-  imports: [],
+  imports: [ConfigModule.forRoot()],
   controllers: [AppController],
   providers: [AppService],
 })
