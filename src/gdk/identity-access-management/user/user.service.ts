@@ -3,24 +3,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
-export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
-
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+export abstract class UserService {
+  abstract create(dto: CreateUserDto): Promise<CreateUserDto>;
+  abstract findAll(): Promise<CreateUserDto[]>;
+  abstract findById(id: string): Promise<CreateUserDto>;
+  abstract findOne(): Promise<CreateUserDto>;
+  abstract updateById(id: string, dto: UpdateUserDto): Promise<CreateUserDto>;
+  abstract removeById(id: string): Promise<CreateUserDto>;
 }
