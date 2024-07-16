@@ -8,9 +8,10 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpLoggerMiddleware } from '@shared/middlewares/http-logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { IdentityAccessManagementModule } from './gdk/identity-access-management/identity-access-management.module';
 
 @Module({
-  imports: [ConfigModule.forRoot()],
+  imports: [ConfigModule.forRoot(), IdentityAccessManagementModule],
   controllers: [AppController],
   providers: [AppService],
 })
