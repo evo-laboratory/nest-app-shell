@@ -4,7 +4,7 @@ import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
 
 @Injectable()
-export class UserPrismaService implements UserService {
+export class UserTypeOrmService implements UserService {
   create(dto: CreateUserDto): Promise<CreateUserDto> {
     throw new Error('Method not implemented.');
   }
