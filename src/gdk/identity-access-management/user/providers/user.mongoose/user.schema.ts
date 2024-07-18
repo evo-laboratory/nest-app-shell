@@ -1,18 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IUser } from '../../user.interface';
-import { ROLE } from '../../enums/role.enum';
 import { HydratedDocument } from 'mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
-import { USER_MODEL_NAME } from '../../user.static';
 import { EnumToArray } from '@shared/helper';
+import { IUser } from '../../user.interface';
+import { ROLE } from '../../enums/role.enum';
+import { USER_MODEL_NAME } from '../../user.static';
 
 export type UserDocument = HydratedDocument<User>;
-
 @Schema()
 export class User implements IUser {
   @Prop({ type: String, default: '', unique: true, required: true })
   authId: string;
-  @Prop({ type: String, default: '', required: true })
+  @Prop({ type: String, default: '', unique: true, required: true })
   email: string;
   firstName: string;
   @Prop({ type: String, default: '' })
