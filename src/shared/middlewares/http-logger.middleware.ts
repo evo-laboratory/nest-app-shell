@@ -12,7 +12,9 @@ export class HttpLoggerMiddleware implements NestMiddleware {
       res.parsedBody = body;
       originalSend.call(this, body);
     };
-    WinstonLogger.http(`[Controller] ${req.method} ${req.baseUrl}${req.url}`);
+    WinstonLogger.http(
+      `[Controller] ${req.method} ${req.baseUrl}${req.url} - Start`,
+    );
     if (req.method !== 'GET' && process.env.STAGE === 'DEV') {
       WinstonLogger.debug(req.body);
     }

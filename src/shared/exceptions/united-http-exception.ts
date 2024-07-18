@@ -28,6 +28,7 @@ export class UniteHttpException extends HttpException {
     }
     delete this.errorObject.contextName;
     delete this.errorObject.methodName;
+    delete this.errorObject.disableAutoLog;
   }
 
   private log(): void {
