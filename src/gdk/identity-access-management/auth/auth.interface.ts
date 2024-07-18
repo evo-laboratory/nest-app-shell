@@ -1,7 +1,7 @@
+import { Types } from 'mongoose';
 import { IUser } from '../user/user.interface';
 import { AUTH_CODE_USAGE, AUTH_PROVIDER } from './enums';
-import { Types } from 'mongoose';
-export interface IAuhActiveRefreshTokenItem {
+export interface IAuhTokenItem {
   tokenId: string;
   issuer: string;
   expiredAt: number;
@@ -14,5 +14,10 @@ export interface IAuth {
   userId: Types.ObjectId | IUser;
   password: string;
   codeExpiredAt: number;
-  activeTokenList: IAuhActiveRefreshTokenItem[];
+  activeRefreshTokenList: IAuhTokenItem[];
+  accessTokenHistoryList: IAuhTokenItem[]; // * Only tracks latest 100
+  isActive: boolean;
+  createdAt: number;
+  updatedAt: number;
+  lastSignInAt: number;
 }
