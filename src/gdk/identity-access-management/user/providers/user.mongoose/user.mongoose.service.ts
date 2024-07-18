@@ -8,6 +8,7 @@ import { USER_MODEL_NAME } from '../../user.static';
 import { ClientSession, Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
+import { MethodLogger } from '@shared/winston-logger';
 
 @Injectable()
 export class UserMongooseService implements UserService {
@@ -16,6 +17,7 @@ export class UserMongooseService implements UserService {
     private readonly UserModel: Model<User>,
   ) {}
 
+  @MethodLogger()
   public async create(
     dto: CreateUserDto,
     session?: ClientSession,
