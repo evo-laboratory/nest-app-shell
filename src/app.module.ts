@@ -5,11 +5,11 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { HttpLoggerMiddleware } from '@shared/middlewares/http-logger.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { IdentityAccessManagementModule } from './gdk/identity-access-management/identity-access-management.module';
-import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
