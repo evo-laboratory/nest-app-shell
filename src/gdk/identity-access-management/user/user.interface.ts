@@ -1,9 +1,6 @@
-import { Types } from 'mongoose';
 import { ROLE } from './enums/role.enum';
-import { IAuth } from '../auth/auth.interface';
-
 export interface IUser {
-  authId: Types.ObjectId | IAuth;
+  authId: string; // * We do not expect populate Auth from User, please use from Auth instead.
   email: string;
   firstName: string;
   lastName: string;
