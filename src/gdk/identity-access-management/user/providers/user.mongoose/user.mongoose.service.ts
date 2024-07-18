@@ -3,11 +3,31 @@ import { UserService } from '../../user.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
 import { IUser } from '../../user.interface';
+import { InjectModel } from '@nestjs/mongoose';
+import { USER_MODEL_NAME } from '../../user.static';
+import { ClientSession, Model } from 'mongoose';
+import { User, UserDocument } from './user.schema';
+import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 
 @Injectable()
 export class UserMongooseService implements UserService {
-  create(dto: CreateUserDto): Promise<IUser> {
-    throw new Error('Method not implemented.');
+  constructor(
+    @InjectModel(USER_MODEL_NAME)
+    private readonly UserModel: Model<User>,
+  ) {}
+
+  public async create(
+    dto: CreateUserDto,
+    session?: ClientSession,
+  ): Promise<IUser> {
+    try {
+      const newData: UserDocument = await new this.UserModel({
+        ...dto,
+      }).save({ session: session });
+      return newData;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   findAll(): Promise<IUser[]> {
     throw new Error('Method not implemented.');

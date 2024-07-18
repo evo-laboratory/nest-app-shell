@@ -2,25 +2,32 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
+import { IUser } from '../../user.interface';
 
 @Injectable()
 export class UserTypeOrmService implements UserService {
-  create(dto: CreateUserDto): Promise<CreateUserDto> {
+  create(dto: CreateUserDto): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  findAll(): Promise<CreateUserDto[]> {
+  findAll(): Promise<IUser[]> {
     throw new Error('Method not implemented.');
   }
-  findById(id: string): Promise<CreateUserDto> {
+  findById(id: string): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  findOne(): Promise<CreateUserDto> {
+  findByAuthId(id: string): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  updateById(id: string, dto: UpdateUserDto): Promise<CreateUserDto> {
+  findByEmail(id: string): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  removeById(id: string): Promise<CreateUserDto> {
+  findOne(): Promise<IUser> {
+    throw new Error('Method not implemented.');
+  }
+  updateById(id: string, dto: UpdateUserDto): Promise<IUser> {
+    throw new Error('Method not implemented.');
+  }
+  removeById(id: string): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
 }

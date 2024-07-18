@@ -7,11 +7,13 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
+import { GPI } from '@shared/statics';
 import { UserService } from './user.service';
+import { USER_API } from './user.static';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('user')
+@Controller(`${GPI}/${USER_API}`)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
