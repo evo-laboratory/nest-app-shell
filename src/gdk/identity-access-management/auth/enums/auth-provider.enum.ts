@@ -1,0 +1,5 @@
+export enum AUTH_PROVIDER {
+  FIREBASE = 'FIREBASE',
+  AWS_COGNITO = 'AWS_COGNITO',
+  LOCAL = 'LOCAL',
+}
