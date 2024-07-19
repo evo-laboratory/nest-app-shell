@@ -7,11 +7,11 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
+import { GPI } from '@shared/statics';
+import { AUTH_API } from './types/auth.static';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { GPI } from '@shared/statics';
-import { AUTH_API } from './auth.static';
 
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {

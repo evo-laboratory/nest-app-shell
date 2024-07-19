@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { IUser } from '@gdk-iam/user/types/user.interface';
 import { UserService } from '../../user.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
-import { IUser } from '../../user.interface';
-
 @Injectable()
 export class UserTypeOrmService implements UserService {
   create(dto: CreateUserDto): Promise<IUser> {

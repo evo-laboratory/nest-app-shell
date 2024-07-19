@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../../user.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
-import { IUser } from '../../user.interface';
 import { InjectModel } from '@nestjs/mongoose';
-import { USER_MODEL_NAME } from '../../user.static';
+import { USER_MODEL_NAME } from '../../types/user.static';
 import { ClientSession, Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import { MethodLogger } from '@shared/winston-logger';
+import { IUser } from '@gdk-iam/user/types/user.interface';
 
 @Injectable()
 export class UserMongooseService implements UserService {

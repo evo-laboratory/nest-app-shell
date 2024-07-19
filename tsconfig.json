@@ -19,7 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@shared/*": ["src/shared/*"],
-      "@gdk-iam/*": ["src/gdk/identity-access-management/"]
+      "@gdk-iam/*": ["src/gdk/identity-access-management/*"]
     }
   }
 }

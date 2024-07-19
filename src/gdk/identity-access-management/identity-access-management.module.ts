@@ -7,9 +7,10 @@ import { UserMongooseService } from './user/providers/user.mongoose/user.mongoos
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { AuthMongooseService } from './auth/providers/auth.mongoose/auth.mongoose.service';
+import { AuthModel } from './auth/providers/auth.mongoose/auth.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([UserModel])],
+  imports: [MongooseModule.forFeature([UserModel, AuthModel])],
   controllers: [UserController, AuthController],
   providers: [
     {

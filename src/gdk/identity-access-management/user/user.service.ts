@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { IUser } from './user.interface';
-
+import { IUser } from './types/user.interface';
 @Injectable()
 export abstract class UserService {
   abstract create(dto: CreateUserDto): Promise<IUser>;
