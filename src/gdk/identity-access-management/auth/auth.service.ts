@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { EmailSignUpDto } from './dto/email-signup.dto';
 
 @Injectable()
 export abstract class AuthService {
-  abstract emailSignUp(): void;
+  abstract emailSignUp(dto: EmailSignUpDto): void;
   abstract verifyAuth(): void;
   abstract emailVerification(): void;
   abstract emailPasswordSignIn(): void;
