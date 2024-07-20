@@ -10,6 +10,7 @@ import { HttpLoggerMiddleware } from '@shared/middlewares/http-logger.middleware
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { IdentityAccessManagementModule } from './gdk/identity-access-management/identity-access-management.module';
+import { MailModule } from './gdk/mail/mail.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { IdentityAccessManagementModule } from './gdk/identity-access-management
       },
     ),
     IdentityAccessManagementModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
