@@ -5,3 +5,8 @@ export interface ISendMail {
   text: string;
   html: string;
 }
+
+export interface ISendMailRes {
+  etag: string;
+  status: string;
+}
