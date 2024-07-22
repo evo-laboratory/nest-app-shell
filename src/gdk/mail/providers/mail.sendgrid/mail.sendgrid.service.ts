@@ -21,10 +21,9 @@ export class MailSendgridService implements MailService {
         html: dto.html,
       });
       const result = sent as unknown as ISendGridSendMailResItem[];
-      console.log(result);
       const mappedRes: ISendMailRes = {
-        status: 'ok',
-        etag: '12455',
+        mailId: result[0].headers['x-message-id'],
+        statusText: `${result[0].statusCode}`,
       };
       return mappedRes;
     } catch (error) {

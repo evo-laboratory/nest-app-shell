@@ -8,11 +8,13 @@ import {
   Delete,
 } from '@nestjs/common';
 import { GPI, V1 } from '@shared/statics';
+import { ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { USER_API } from './types/user.static';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+@ApiTags(USER_API)
 @Controller(`${GPI}/${USER_API}`)
 export class UserController {
   constructor(private readonly userService: UserService) {}

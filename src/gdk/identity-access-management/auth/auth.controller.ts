@@ -8,11 +8,12 @@ import {
   Delete,
 } from '@nestjs/common';
 import { GPI } from '@shared/statics';
+import { ApiTags } from '@nestjs/swagger';
 import { AUTH_API } from './types/auth.static';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-
+@ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

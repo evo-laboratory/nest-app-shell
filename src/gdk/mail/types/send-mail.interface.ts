@@ -7,6 +7,6 @@ export interface ISendMail {
 }
 
 export interface ISendMailRes {
-  etag: string;
-  status: string;
+  mailId: string;
+  statusText: string;
 }
