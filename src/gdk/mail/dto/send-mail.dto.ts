@@ -1,4 +1,4 @@
-import { ISendMail } from '@gdk-mail/types/send-mail.interface';
+import { ISendMail, ISendMailRes } from '@gdk-mail/types/send-mail.interface';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class SendMailDto implements ISendMail {
@@ -17,4 +17,9 @@ export class SendMailDto implements ISendMail {
 
   @IsString()
   html: string;
+}
+
+export class SendMailRes implements ISendMailRes {
+  mailId: string;
+  statusText: string;
 }
