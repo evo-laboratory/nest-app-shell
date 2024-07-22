@@ -26,7 +26,7 @@ export class UserMongooseService implements UserService {
       const newData: UserDocument = await new this.UserModel({
         ...dto,
       }).save({ session: session });
-      return newData;
+      return newData.toJSON();
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -40,8 +40,18 @@ export class UserMongooseService implements UserService {
   findByAuthId(authId: string): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  findByEmail(email: string): Promise<IUser> {
-    throw new Error('Method not implemented.');
+  public async findByEmail(email: string): Promise<IUser> {
+    try {
+      const user = await this.UserModel.findOne({
+        email: email,
+      });
+      if (user !== null) {
+        return user.toJSON();
+      }
+      return null;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   findOne(): Promise<IUser> {
     throw new Error('Method not implemented.');

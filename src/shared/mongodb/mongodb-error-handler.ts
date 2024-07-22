@@ -8,9 +8,9 @@ import {
 export function MongoDBErrorHandler(error: any) {
   const errorObj: IUnitedHttpException = {
     source: ERROR_SOURCE.MONGODB,
-    errorCode: ERROR_CODE.UNKNOWN,
-    statusCode: 500,
-    message: error.message,
+    errorCode: error.errorCode || ERROR_CODE.UNKNOWN,
+    statusCode: error.statusCode || 500,
+    message: error.message || 'no error message',
     errorMeta: error,
     disableAutoLog: true,
   };

@@ -7,20 +7,20 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { GPI } from '@shared/statics';
+import { GPI, V1 } from '@shared/statics';
 import { ApiTags } from '@nestjs/swagger';
-import { AUTH_API } from './types/auth.static';
+import { AUTH_API, EMAIL_SIGNUP_PATH } from './types/auth.static';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { EmailSignUpDto } from './dto/email-signup.dto';
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    // return this.authService.create(createAuthDto);
+  @Post(`${V1}/${EMAIL_SIGNUP_PATH}`)
+  create(@Body() dto: EmailSignUpDto) {
+    return this.authService.emailSignUp(dto);
   }
 
   @Get()

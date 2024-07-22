@@ -11,4 +11,5 @@ export interface IUnitedHttpException {
   contextName?: string;
   methodName?: string;
   disableAutoLog?: boolean;
+  processErrorMeta?: boolean;
 }

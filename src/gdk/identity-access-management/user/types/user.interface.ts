@@ -1,6 +1,6 @@
 import { ROLE } from './role.enum';
 export interface IUser {
-  authId: string; // * We do not expect populate Auth from User, please populate from Auth instead.
+  _id?: string;
   email: string;
   firstName: string;
   lastName: string;
