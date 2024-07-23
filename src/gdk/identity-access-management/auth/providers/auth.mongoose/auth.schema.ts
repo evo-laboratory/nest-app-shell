@@ -9,19 +9,24 @@ import { IAuth } from '@gdk-iam/auth/types/auth.interface';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types/user.static';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
 import { IUser } from '@gdk-iam/user/types/user.interface';
+import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enum';
 
 export type AuthDocument = HydratedDocument<Auth>;
 
 @Schema()
 export class Auth implements IAuth {
-  @Prop([
-    {
-      type: String,
-      enum: EnumToArray(AUTH_PROVIDER),
-      default: AUTH_PROVIDER.MONGOOSE,
-    },
-  ])
+  @Prop({
+    type: String,
+    enum: EnumToArray(AUTH_PROVIDER),
+    default: AUTH_PROVIDER.MONGOOSE,
+  })
   provider: AUTH_PROVIDER;
+  @Prop({
+    type: [String],
+    enum: EnumToArray(AUTH_SIGN_UP_METHOD),
+    default: AUTH_SIGN_UP_METHOD.EMAIL_PASSWORD,
+  })
+  signUpMethodList: AUTH_SIGN_UP_METHOD[];
   @Prop({ type: Types.ObjectId, ref: USER_MODEL_NAME, required: true })
   userId: Types.ObjectId | IUser;
   @Prop({ type: String, default: '' })
