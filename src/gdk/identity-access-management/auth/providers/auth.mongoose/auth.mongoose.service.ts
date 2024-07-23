@@ -144,7 +144,6 @@ export class AuthMongooseService implements AuthService {
     methodName?: string,
   ): IUnitedHttpException {
     const errorObj: IUnitedHttpException = {
-      isUnitedHttpException: true,
       source: ERROR_SOURCE.NESTJS,
       errorCode: code || ERROR_CODE.UNKNOWN,
       message: msg,

@@ -2,14 +2,15 @@ import {
   ERROR_CODE,
   ERROR_SOURCE,
   IUnitedHttpException,
+  UniteHttpException,
 } from '@shared/exceptions';
 
 export function MongoDBErrorHandler(error: any): IUnitedHttpException {
-  if (error.response && error.response.isUnitedHttpException) {
+  // * This checks if already is thrown UnitedHttpException
+  if (error instanceof UniteHttpException) {
     return error;
   }
   const errorObj: IUnitedHttpException = {
-    isUnitedHttpException: true,
     source: ERROR_SOURCE.MONGODB,
     errorCode: error.errorCode || ERROR_CODE.UNKNOWN,
     statusCode: error.statusCode || 500,
