@@ -25,7 +25,7 @@ export function MethodLogger() {
       function logFailed(error: any) {
         WinstonLogger.error(error?.message || error || 'Unknown error', {
           contextName: className,
-          methodName: key,
+          methodName: key || error.methodName,
         });
         if (!process.env.DISABLE_ERROR_META) {
           WinstonLogger.error(

@@ -2,11 +2,14 @@ import {
   ERROR_CODE,
   ERROR_SOURCE,
   IUnitedHttpException,
-  UniteHttpException,
 } from '@shared/exceptions';
 
-export function MongoDBErrorHandler(error: any) {
+export function MongoDBErrorHandler(error: any): IUnitedHttpException {
+  if (error.response && error.response.isUnitedHttpException) {
+    return error;
+  }
   const errorObj: IUnitedHttpException = {
+    isUnitedHttpException: true,
     source: ERROR_SOURCE.MONGODB,
     errorCode: error.errorCode || ERROR_CODE.UNKNOWN,
     statusCode: error.statusCode || 500,
@@ -17,5 +20,5 @@ export function MongoDBErrorHandler(error: any) {
   if (error._message && error._message.includes('validation failed')) {
     errorObj.errorCode = ERROR_CODE.SCHEMA_VALIDATE_FAILED;
   }
-  throw new UniteHttpException(errorObj);
+  return errorObj;
 }

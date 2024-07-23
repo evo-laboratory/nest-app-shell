@@ -19,8 +19,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post(`${V1}/${EMAIL_SIGNUP_PATH}`)
-  create(@Body() dto: EmailSignUpDto) {
-    return this.authService.emailSignUp(dto);
+  async create(@Body() dto: EmailSignUpDto) {
+    return await this.authService.emailSignUp(dto);
   }
 
   @Get()

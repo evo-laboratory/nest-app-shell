@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { MethodLogger } from '@shared/winston-logger';
 import { Auth } from './auth.schema';
-import mongoose, { ClientSession, Connection, Model } from 'mongoose';
+import { ClientSession, Connection, Model } from 'mongoose';
 import { strict as assert } from 'assert';
 import { UserService } from '@gdk-iam/user/user.service';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
@@ -17,6 +17,7 @@ import {
 } from '@shared/exceptions';
 import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
 import { IEmailSignUpRes } from '@gdk-iam/auth/types/email-signup.interface';
+import { CreateAuthDto } from '@gdk-iam/auth/dto/create-auth.dto';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -43,7 +44,7 @@ export class AuthMongooseService implements AuthService {
           ERROR_CODE.AUTH_EMAIL_EXIST,
           `${dto.email} already existed`,
           400,
-          this.emailSignUp.name,
+          'emailSignUp',
         );
         throw new UniteHttpException(error);
       }
@@ -64,7 +65,6 @@ export class AuthMongooseService implements AuthService {
         userId: newUser._id,
         password: dto.password,
         codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
-        codeExpiredAt: Date.now(),
       });
       assert.ok(newAuth, 'New Auth Created');
       await session.commitTransaction();
@@ -81,7 +81,6 @@ export class AuthMongooseService implements AuthService {
       // * Update new User.authId
       // * Complete session
     } catch (error) {
-      console.log(error);
       if (session.inTransaction()) {
         console.log('inTransaction');
         await session.abortTransaction();
@@ -130,7 +129,7 @@ export class AuthMongooseService implements AuthService {
     throw new Error('Method not implemented.');
   }
 
-  private create(dto) {
+  private create(dto: CreateAuthDto, hashPassword = true, resolveCode = true) {
     try {
       return dto;
     } catch (error) {
@@ -145,32 +144,14 @@ export class AuthMongooseService implements AuthService {
     methodName?: string,
   ): IUnitedHttpException {
     const errorObj: IUnitedHttpException = {
+      isUnitedHttpException: true,
       source: ERROR_SOURCE.NESTJS,
       errorCode: code || ERROR_CODE.UNKNOWN,
-      statusCode: statusCode || 500,
       message: msg,
-      errorMeta: {},
+      statusCode: statusCode || 500,
       contextName: 'AuthMongooseService',
       methodName: `${methodName}`,
     };
     return errorObj;
-  }
-
-  private throwError(
-    code: ERROR_CODE,
-    msg: string,
-    statusCode?: number,
-    methodName?: string,
-  ): void {
-    const errorObj: IUnitedHttpException = {
-      source: ERROR_SOURCE.NESTJS,
-      errorCode: code || ERROR_CODE.UNKNOWN,
-      statusCode: statusCode || 500,
-      message: msg,
-      errorMeta: {},
-      contextName: 'AuthMongooseService',
-      methodName: `${methodName}`,
-    };
-    throw new UniteHttpException(errorObj);
   }
 }

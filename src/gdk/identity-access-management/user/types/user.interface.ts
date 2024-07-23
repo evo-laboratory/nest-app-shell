@@ -1,6 +1,7 @@
+import { Types } from 'mongoose';
 import { ROLE } from './role.enum';
 export interface IUser {
-  _id?: string;
+  _id?: Types.ObjectId;
   email: string;
   firstName: string;
   lastName: string;
