@@ -18,6 +18,8 @@ import {
 import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
 import { IEmailSignUpRes } from '@gdk-iam/auth/types/email-signup.interface';
 import { CreateAuthDto } from '@gdk-iam/auth/dto/create-auth.dto';
+import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enum';
+import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -44,7 +46,19 @@ export class AuthMongooseService implements AuthService {
           ERROR_CODE.AUTH_EMAIL_EXIST,
           `${dto.email} already existed`,
           400,
-          'emailSignUp',
+          'emailSignUp.checkEmail',
+        );
+        throw new UniteHttpException(error);
+      }
+      const checkIdentifier = await this.AuthModel.findOne({
+        identifier: dto.email,
+      });
+      if (checkIdentifier !== null) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_EMAIL_EXIST,
+          `${dto.email} already existed`,
+          400,
+          'emailSignUp.checkIdentifier',
         );
         throw new UniteHttpException(error);
       }
@@ -60,13 +74,22 @@ export class AuthMongooseService implements AuthService {
           : `${dto.firstName} ${dto.lastName}`,
       });
       assert.ok(newUser, 'New User Created');
-      const newAuth = await this.create({
-        provider: AUTH_PROVIDER.MONGOOSE,
-        userId: newUser._id,
-        password: dto.password,
-        codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
-      });
+      const newAuth = await this.create(
+        {
+          identifier: dto.email,
+          signUpMethodList: [AUTH_SIGN_UP_METHOD.EMAIL_PASSWORD],
+          provider: AUTH_PROVIDER.MONGOOSE,
+          userId: newUser._id,
+          password: dto.password,
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        },
+        session,
+        true,
+        true,
+      );
       assert.ok(newAuth, 'New Auth Created');
+      // * Generate Code & SendEmail
+      // * Complete session
       await session.commitTransaction();
       await session.endSession();
       const res: IEmailSignUpRes = {
@@ -76,10 +99,6 @@ export class AuthMongooseService implements AuthService {
         provider: AUTH_PROVIDER.MONGOOSE,
       };
       return res;
-      // * Generate Code & SendEmail
-      // * Create new Auth
-      // * Update new User.authId
-      // * Complete session
     } catch (error) {
       if (session.inTransaction()) {
         console.log('inTransaction');
@@ -129,9 +148,29 @@ export class AuthMongooseService implements AuthService {
     throw new Error('Method not implemented.');
   }
 
-  private create(dto: CreateAuthDto, hashPassword = true, resolveCode = true) {
+  private async create(
+    dto: CreateAuthDto,
+    session?: ClientSession,
+    hashPassword = true,
+    resolveCode = true,
+  ): Promise<ICreateAuthResult> {
     try {
-      return dto;
+      if (hashPassword) {
+        // TODO
+      }
+      if (resolveCode) {
+        // TODO
+      }
+      const newAuth = await new this.AuthModel({
+        ...dto,
+      }).save({ session });
+      const result: ICreateAuthResult = {
+        identifier: newAuth.identifier,
+        code: newAuth.code,
+        codeUsage: newAuth.codeUsage,
+        codeExpiredAt: newAuth.codeExpiredAt,
+      };
+      return result;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

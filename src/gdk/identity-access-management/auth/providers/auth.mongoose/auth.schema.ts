@@ -15,6 +15,8 @@ export type AuthDocument = HydratedDocument<Auth>;
 
 @Schema()
 export class Auth implements IAuth {
+  @Prop({ type: String, default: '', unique: true, required: true })
+  identifier: string;
   @Prop({
     type: String,
     enum: EnumToArray(AUTH_PROVIDER),
@@ -39,6 +41,8 @@ export class Auth implements IAuth {
     },
   ])
   codeUsage: AUTH_CODE_USAGE;
+  @Prop({ type: String, default: '' })
+  code: string;
   @Prop({ type: Number, default: 0 })
   codeExpiredAt: number;
   @Prop({
