@@ -40,25 +40,25 @@ export class AuthMongooseService implements AuthService {
     }
     try {
       // * STEP 1. Check Email Existence(Both Auth And User)
-      const checkEmail = await this.userService.findByEmail(dto.email);
-      if (checkEmail !== null) {
+      const checkUserEmail = await this.userService.findByEmail(dto.email);
+      if (checkUserEmail !== null) {
         const error = this.buildError(
           ERROR_CODE.AUTH_EMAIL_EXIST,
           `${dto.email} already existed`,
           400,
-          'emailSignUp.checkEmail',
+          'emailSignUp.checkUserEmail',
         );
         throw new UniteHttpException(error);
       }
-      const checkIdentifier = await this.AuthModel.findOne({
+      const checkAuthIdentifier = await this.AuthModel.findOne({
         identifier: dto.email,
       });
-      if (checkIdentifier !== null) {
+      if (checkAuthIdentifier !== null) {
         const error = this.buildError(
           ERROR_CODE.AUTH_EMAIL_EXIST,
           `${dto.email} already existed`,
           400,
-          'emailSignUp.checkIdentifier',
+          'emailSignUp.checkAuthIdentifier',
         );
         throw new UniteHttpException(error);
       }
