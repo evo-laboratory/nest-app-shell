@@ -1,13 +1,8 @@
-import { AuthService } from '@gdk-iam/auth/auth.service';
-import { EmailSignUpDto } from '@gdk-iam/auth/dto/email-signup.dto';
-import { AUTH_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { MethodLogger } from '@shared/winston-logger';
-import { Auth } from './auth.schema';
 import { ClientSession, Connection, Model } from 'mongoose';
 import { strict as assert } from 'assert';
-import { UserService } from '@gdk-iam/user/user.service';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import {
   ERROR_CODE,
@@ -15,12 +10,17 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
+import { AuthService } from '@gdk-iam/auth/auth.service';
+import { EmailSignUpDto } from '@gdk-iam/auth/dto/email-signup.dto';
+import { AUTH_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
+import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
 import { IEmailSignUpRes } from '@gdk-iam/auth/types/email-signup.interface';
 import { CreateAuthDto } from '@gdk-iam/auth/dto/create-auth.dto';
 import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enum';
 import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
 
+import { Auth } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -148,6 +148,7 @@ export class AuthMongooseService implements AuthService {
     throw new Error('Method not implemented.');
   }
 
+  @MethodLogger()
   private async create(
     dto: CreateAuthDto,
     session?: ClientSession,
