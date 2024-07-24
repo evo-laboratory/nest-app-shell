@@ -4,6 +4,8 @@ import { IAuthVerify } from '../types/auth-verify.interface';
 
 export class ChangePasswordDto implements IAuthVerify {
   @IsString()
+  identifier: string;
+  @IsString()
   @Length(6)
   code: string;
   @IsEnum(AUTH_CODE_USAGE)

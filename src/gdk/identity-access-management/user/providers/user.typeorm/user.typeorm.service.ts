@@ -3,8 +3,15 @@ import { IUser } from '@gdk-iam/user/types/user.interface';
 import { UserService } from '../../user.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
+import { Types } from 'mongoose';
 @Injectable()
 export class UserTypeOrmService implements UserService {
+  updateEmailVerifiedById(
+    id: Types.ObjectId | string,
+    mongoSession?: any,
+  ): Promise<IUser> {
+    throw new Error('Method not implemented.');
+  }
   create(dto: CreateUserDto): Promise<IUser> {
     throw new Error('Method not implemented.');
   }

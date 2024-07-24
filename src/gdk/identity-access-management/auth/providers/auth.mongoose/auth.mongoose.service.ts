@@ -22,11 +22,11 @@ import { IEmailSignUpRes } from '@gdk-iam/auth/types/email-signup.interface';
 import { CreateAuthDto } from '@gdk-iam/auth/dto/create-auth.dto';
 import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enum';
 import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
-
-import { Auth } from './auth.schema';
 import { ISendMail } from '@gdk-mail/types/send-mail.interface';
 import { AuthVerifyDto } from '@gdk-iam/auth/dto/auth-verify.dto';
 import { AUTH_IDENTIFIER_TYPE } from '@gdk-iam/auth/types/auth-identifier-type';
+
+import { Auth } from './auth.schema';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -123,7 +123,6 @@ export class AuthMongooseService implements AuthService {
       return res;
     } catch (error) {
       if (session.inTransaction()) {
-        console.log('inTransaction');
         await session.abortTransaction();
         await session.endSession();
       }
@@ -131,8 +130,88 @@ export class AuthMongooseService implements AuthService {
     }
   }
   @MethodLogger()
-  public async verifyAuth(dto: AuthVerifyDto): Promise<boolean> {
-    return true;
+  public async verifyAuth(
+    dto: AuthVerifyDto,
+    session?: ClientSession,
+  ): Promise<boolean> {
+    if (!session) {
+      session = await this.connection.startSession();
+    }
+    try {
+      const currentTimeStamp = Date.now();
+      // * STEP 1. Get Current Auth
+      const auth = await this.AuthModel.findOne({ identifier: dto.identifier });
+      if (auth === null) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Identifier: ${dto.identifier} not exist`,
+          404,
+          'verifyAuth',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 2. Check if already verified
+      if (
+        dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY &&
+        auth.isIdentifierVerified
+      ) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED,
+          `Identifier: ${dto.identifier} already verified`,
+          401,
+          'verifyAuth',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 3. SIGN_UP_VERIFY
+      if (dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
+        const isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY;
+        const isCodeMatched = auth.code === dto.code;
+        const isNotExpired = currentTimeStamp > auth.codeExpiredAt;
+        const isValid = isMatchUsage && isCodeMatched && isNotExpired;
+        if (!isValid) {
+          return false;
+        }
+      }
+      // * Update Data
+      // * STEP A. Setup Transaction Session
+      session.startTransaction();
+      // * STEP B. Reset Auth State
+      const resetAuthState = await this.AuthModel.findByIdAndUpdate(
+        auth._id,
+        {
+          $set: {
+            codeExpiredAt: 0,
+            code: '',
+            codeUsage: AUTH_CODE_USAGE.NOT_SET,
+            updatedAt: Date.now(),
+          },
+        },
+        { session: session },
+      );
+      assert.ok(resetAuthState, 'Auth State Reset');
+      // * STEP C. Update User
+      if (
+        auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY &&
+        auth.identifierType === AUTH_IDENTIFIER_TYPE.EMAIL
+      ) {
+        const updatedUser = await this.userService.updateEmailVerifiedById(
+          `${auth.userId}`,
+          session,
+        );
+        assert.ok(updatedUser, 'User EmailVerified Updated');
+      }
+      // * STEP 6. Complete session
+      await session.commitTransaction();
+      await session.endSession();
+      return true;
+    } catch (error) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   emailVerification(): void {
     throw new Error('Method not implemented.');

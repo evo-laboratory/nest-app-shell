@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EmailSignUpDto } from './dto/email-signup.dto';
 import { IEmailSignUpRes } from './types/email-signup.interface';
 import { AuthVerifyDto } from './dto/auth-verify.dto';
+import { IUser } from '@gdk-iam/user/types/user.interface';
 
 @Injectable()
 export abstract class AuthService {
