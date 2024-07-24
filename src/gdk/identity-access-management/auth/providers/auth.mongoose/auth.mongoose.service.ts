@@ -10,10 +10,12 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
+import { MinToMilliseconds, RandomNumber } from '@shared/helper';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { EmailSignUpDto } from '@gdk-iam/auth/dto/email-signup.dto';
 import { AUTH_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
 import { UserService } from '@gdk-iam/user/user.service';
+import { EncryptService } from '@gdk-iam/encrypt/encrypt.service';
 import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
 import { IEmailSignUpRes } from '@gdk-iam/auth/types/email-signup.interface';
 import { CreateAuthDto } from '@gdk-iam/auth/dto/create-auth.dto';
@@ -21,6 +23,7 @@ import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enu
 import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
 
 import { Auth } from './auth.schema';
+
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -29,6 +32,7 @@ export class AuthMongooseService implements AuthService {
     @InjectModel(AUTH_MODEL_NAME)
     private readonly AuthModel: Model<Auth>,
     private readonly userService: UserService,
+    private readonly encryptService: EncryptService,
   ) {}
   @MethodLogger()
   public async emailSignUp(
@@ -65,16 +69,20 @@ export class AuthMongooseService implements AuthService {
       // * STEP 2. Setup Transaction Session
       session.startTransaction();
       // * STEP 3. Create New User
-      const newUser = await this.userService.create({
-        email: dto.email,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        displayName: dto.displayName
-          ? dto.displayName
-          : `${dto.firstName} ${dto.lastName}`,
-      });
+      const newUser = await this.userService.create(
+        {
+          email: dto.email,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          displayName: dto.displayName
+            ? dto.displayName
+            : `${dto.firstName} ${dto.lastName}`,
+        },
+        session,
+      );
       assert.ok(newUser, 'New User Created');
-      const newAuth = await this.create(
+      // * STEP 4. Create New Auth
+      const newAuth: ICreateAuthResult = await this.create(
         {
           identifier: dto.email,
           signUpMethodList: [AUTH_SIGN_UP_METHOD.EMAIL_PASSWORD],
@@ -88,8 +96,8 @@ export class AuthMongooseService implements AuthService {
         true,
       );
       assert.ok(newAuth, 'New Auth Created');
-      // * Generate Code & SendEmail
-      // * Complete session
+      // * STEP 5. Send Email
+      // * STEP 6. Complete session
       await session.commitTransaction();
       await session.endSession();
       const res: IEmailSignUpRes = {
@@ -156,20 +164,24 @@ export class AuthMongooseService implements AuthService {
     resolveCode = true,
   ): Promise<ICreateAuthResult> {
     try {
+      const code = RandomNumber();
+      const EXPIRE_MIN = process.env.CODE_EXPIRE_MIN || 3;
+      const expiredAt = Date.now() + MinToMilliseconds(EXPIRE_MIN);
+      let authPassword = dto.password;
       if (hashPassword) {
-        // TODO
-      }
-      if (resolveCode) {
-        // TODO
+        authPassword = await this.encryptService.hashPassword(authPassword);
       }
       const newAuth = await new this.AuthModel({
         ...dto,
+        password: authPassword,
+        code: resolveCode ? code : '',
+        codeExpiredAt: resolveCode ? expiredAt : 0,
       }).save({ session });
       const result: ICreateAuthResult = {
         identifier: newAuth.identifier,
         code: newAuth.code,
         codeUsage: newAuth.codeUsage,
-        codeExpiredAt: newAuth.codeExpiredAt,
+        codeExpiredAt: resolveCode ? expiredAt : 0,
       };
       return result;
     } catch (error) {

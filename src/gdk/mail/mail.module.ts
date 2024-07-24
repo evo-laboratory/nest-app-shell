@@ -11,5 +11,11 @@ import { MailController } from './mail.controller';
     },
   ],
   controllers: [MailController],
+  exports: [
+    {
+      provide: MailService,
+      useClass: MailSendgridService,
+    },
+  ],
 })
 export class MailModule {}

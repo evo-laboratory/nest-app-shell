@@ -72,3 +72,14 @@ export function ParseQueryStrToTypedList<T>(input: any): T[] {
     return [];
   }
 }
+
+export function MinToMilliseconds(min: number | string) {
+  const converted = Number(min);
+  if (typeof converted !== 'number') {
+    console.error(
+      `[ HELPER ][ MinToMilliseconds ] Input is not an valid number, returns 0 instead`,
+    );
+    return 0;
+  }
+  return converted * 60000;
+}

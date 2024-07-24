@@ -33,25 +33,23 @@ export class Auth implements IAuth {
   userId: Types.ObjectId | IUser;
   @Prop({ type: String, default: '' })
   password: string;
-  @Prop([
-    {
-      type: String,
-      enum: EnumToArray(AUTH_CODE_USAGE),
-      default: AUTH_CODE_USAGE.NOT_SET,
-    },
-  ])
+  @Prop({
+    type: String,
+    enum: EnumToArray(AUTH_CODE_USAGE),
+    default: AUTH_CODE_USAGE.NOT_SET,
+  })
   codeUsage: AUTH_CODE_USAGE;
   @Prop({ type: String, default: '' })
   code: string;
   @Prop({ type: Number, default: 0 })
   codeExpiredAt: number;
   @Prop({
-    type: AuthTokenItemSchema,
+    type: [AuthTokenItemSchema],
     default: [],
   })
   activeRefreshTokenList: IAuthTokenItem[];
   @Prop({
-    type: AuthTokenItemSchema,
+    type: [AuthTokenItemSchema],
     default: [],
   })
   accessTokenHistoryList: IAuthTokenItem[];
