@@ -53,8 +53,10 @@ export class Auth implements IAuth {
     default: [],
   })
   accessTokenHistoryList: IAuthTokenItem[];
-  @Prop({ type: Boolean, default: false })
+  @Prop({ type: Boolean, default: true })
   isActive: boolean;
+  @Prop({ type: Boolean, default: false })
+  isIdentifierVerified: boolean;
   @Prop({ type: Number, default: Date.now() })
   createdAt: number;
   @Prop({ type: Number, default: Date.now() })

@@ -4,6 +4,7 @@ import { ISendGridSendMailResItem } from '@gdk-mail/types/sendgrid.interface';
 import { Injectable } from '@nestjs/common';
 import * as SendGrid from '@sendgrid/mail';
 import { ClientResponse } from '@sendgrid/mail';
+import { MethodLogger } from '@shared/winston-logger';
 
 @Injectable()
 export class MailSendgridService implements MailService {
@@ -11,6 +12,7 @@ export class MailSendgridService implements MailService {
   constructor() {
     SendGrid.setApiKey(process.env.SENDGRID_API_KEY);
   }
+  @MethodLogger()
   public async send(dto: ISendMail): Promise<ISendMailRes> {
     try {
       const sent: [ClientResponse, object] = await SendGrid.send({
