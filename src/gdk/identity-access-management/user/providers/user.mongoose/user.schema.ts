@@ -33,6 +33,5 @@ export class User implements IUser {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-UserSchema.index({ authId: 1 });
 UserSchema.index({ email: 1 });
 export const UserModel = MongoModelBuilder(USER_MODEL_NAME, UserSchema);

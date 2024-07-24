@@ -34,8 +34,14 @@ export class UserMongooseService implements UserService {
   findAll(): Promise<IUser[]> {
     throw new Error('Method not implemented.');
   }
-  findById(id: string): Promise<IUser> {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async findById(id: string): Promise<IUser> {
+    try {
+      const user = await this.UserModel.findById(id);
+      return user;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   findByAuthId(authId: string): Promise<IUser> {
     throw new Error('Method not implemented.');

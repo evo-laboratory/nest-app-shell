@@ -6,9 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { GPI, V1 } from '@shared/statics';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   AUTH_API,
   EMAIL_SIGNUP_PATH,
@@ -16,19 +17,22 @@ import {
 } from './types/auth.static';
 import { AuthService } from './auth.service';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { EmailSignUpDto } from './dto/email-signup.dto';
-import { AuthVerifyDto } from './dto/auth-verify.dto';
+import { EmailSignUpDto, EmailSignUpRes } from './dto/email-signup.dto';
+import { AuthVerifyDto, AuthVerifyRes } from './dto/auth-verify.dto';
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post(`${V1}/${EMAIL_SIGNUP_PATH}`)
+  @ApiResponse({ status: 201, type: EmailSignUpRes })
   async emailSignUpV1(@Body() dto: EmailSignUpDto) {
     return await this.authService.emailSignUp(dto);
   }
 
   @Post(`${V1}/${VERIFICATION_PATH}`)
+  @HttpCode(202)
+  @ApiResponse({ status: 202, type: AuthVerifyRes })
   async authVerifyV1(@Body() dto: AuthVerifyDto) {
     return await this.authService.verifyAuth(dto);
   }

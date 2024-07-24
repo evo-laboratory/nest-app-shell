@@ -1,5 +1,6 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
-import { IEmailSignUp } from '../types/email-signup.interface';
+import { IEmailSignUp, IEmailSignUpRes } from '../types/email-signup.interface';
+import { AUTH_PROVIDER } from '../types';
 
 export class EmailSignUpDto implements IEmailSignUp {
   @IsEmail()
@@ -13,4 +14,11 @@ export class EmailSignUpDto implements IEmailSignUp {
   lastName: string;
   @IsString()
   displayName: string;
+}
+
+export class EmailSignUpRes implements IEmailSignUpRes {
+  email: string;
+  isEmailSent: boolean;
+  canResendAt: number;
+  provider: AUTH_PROVIDER;
 }

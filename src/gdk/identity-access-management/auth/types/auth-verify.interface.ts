@@ -8,5 +8,5 @@ export interface IAuthVerify {
 }
 
 export interface IAuthVerifyRes {
-  isVerified: true;
+  isDone: boolean;
 }

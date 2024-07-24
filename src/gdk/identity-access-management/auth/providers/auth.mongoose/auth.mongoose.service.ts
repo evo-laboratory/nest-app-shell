@@ -25,6 +25,7 @@ import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
 import { ISendMail } from '@gdk-mail/types/send-mail.interface';
 import { AuthVerifyDto } from '@gdk-iam/auth/dto/auth-verify.dto';
 import { AUTH_IDENTIFIER_TYPE } from '@gdk-iam/auth/types/auth-identifier-type';
+import { IAuthVerifyRes } from '@gdk-iam/auth/types/auth-verify.interface';
 
 import { Auth } from './auth.schema';
 
@@ -133,7 +134,7 @@ export class AuthMongooseService implements AuthService {
   public async verifyAuth(
     dto: AuthVerifyDto,
     session?: ClientSession,
-  ): Promise<boolean> {
+  ): Promise<IAuthVerifyRes> {
     if (!session) {
       session = await this.connection.startSession();
     }
@@ -145,6 +146,17 @@ export class AuthMongooseService implements AuthService {
         const error = this.buildError(
           ERROR_CODE.AUTH_NOT_FOUND,
           `Identifier: ${dto.identifier} not exist`,
+          404,
+          'verifyAuth',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 2. Check User Exist
+      const user = await this.userService.findById(`${auth.userId}`);
+      if (user === null) {
+        const error = this.buildError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User not exist`,
           404,
           'verifyAuth',
         );
@@ -167,25 +179,35 @@ export class AuthMongooseService implements AuthService {
       if (dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
         const isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY;
         const isCodeMatched = auth.code === dto.code;
-        const isNotExpired = currentTimeStamp > auth.codeExpiredAt;
+        const isNotExpired = auth.codeExpiredAt > currentTimeStamp;
         const isValid = isMatchUsage && isCodeMatched && isNotExpired;
         if (!isValid) {
-          return false;
+          const error = this.buildError(
+            ERROR_CODE.AUTH_CODE_INVALID,
+            `Invalid code`,
+            400,
+            'verifyAuth',
+          );
+          throw new UniteHttpException(error);
         }
       }
       // * Update Data
       // * STEP A. Setup Transaction Session
       session.startTransaction();
       // * STEP B. Reset Auth State
+      const updateQuery: any = {
+        codeExpiredAt: 0,
+        code: '',
+        codeUsage: AUTH_CODE_USAGE.NOT_SET,
+        updatedAt: Date.now(),
+      };
+      if (auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
+        updateQuery.isIdentifierVerified = true;
+      }
       const resetAuthState = await this.AuthModel.findByIdAndUpdate(
         auth._id,
         {
-          $set: {
-            codeExpiredAt: 0,
-            code: '',
-            codeUsage: AUTH_CODE_USAGE.NOT_SET,
-            updatedAt: Date.now(),
-          },
+          $set: updateQuery,
         },
         { session: session },
       );
@@ -204,7 +226,9 @@ export class AuthMongooseService implements AuthService {
       // * STEP 6. Complete session
       await session.commitTransaction();
       await session.endSession();
-      return true;
+      return {
+        isDone: true,
+      };
     } catch (error) {
       if (session.inTransaction()) {
         await session.abortTransaction();
