@@ -2,6 +2,7 @@ import { IAuth } from './auth.interface';
 
 export type ICreateAuth = Pick<
   IAuth,
+  | 'identifierType'
   | 'identifier'
   | 'provider'
   | 'signUpMethodList'
@@ -12,5 +13,5 @@ export type ICreateAuth = Pick<
 
 export type ICreateAuthResult = Pick<
   IAuth,
-  'identifier' | 'code' | 'codeUsage' | 'codeExpiredAt'
+  'identifierType' | 'identifier' | 'code' | 'codeUsage' | 'codeExpiredAt'
 >;

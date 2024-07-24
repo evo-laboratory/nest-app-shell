@@ -10,11 +10,18 @@ import { USER_MODEL_NAME } from '@gdk-iam/user/types/user.static';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
 import { IUser } from '@gdk-iam/user/types/user.interface';
 import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enum';
+import { AUTH_IDENTIFIER_TYPE } from '@gdk-iam/auth/types/auth-identifier-type';
 
 export type AuthDocument = HydratedDocument<Auth>;
 
 @Schema()
 export class Auth implements IAuth {
+  @Prop({
+    type: String,
+    enum: EnumToArray(AUTH_IDENTIFIER_TYPE),
+    default: AUTH_IDENTIFIER_TYPE.EMAIL,
+  })
+  identifierType: AUTH_IDENTIFIER_TYPE;
   @Prop({ type: String, default: '', unique: true, required: true })
   identifier: string;
   @Prop({

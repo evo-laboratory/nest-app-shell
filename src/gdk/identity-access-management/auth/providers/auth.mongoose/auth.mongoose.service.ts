@@ -26,6 +26,7 @@ import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
 import { Auth } from './auth.schema';
 import { ISendMail } from '@gdk-mail/types/send-mail.interface';
 import { AuthVerifyDto } from '@gdk-iam/auth/dto/auth-verify.dto';
+import { AUTH_IDENTIFIER_TYPE } from '@gdk-iam/auth/types/auth-identifier-type';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -88,6 +89,7 @@ export class AuthMongooseService implements AuthService {
       // * STEP 4. Create New Auth
       const newAuth: ICreateAuthResult = await this.create(
         {
+          identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
           identifier: dto.email,
           signUpMethodList: [AUTH_SIGN_UP_METHOD.EMAIL_PASSWORD],
           provider: AUTH_PROVIDER.MONGOOSE,
@@ -191,6 +193,7 @@ export class AuthMongooseService implements AuthService {
         codeExpiredAt: resolveCode ? expiredAt : 0,
       }).save({ session });
       const result: ICreateAuthResult = {
+        identifierType: dto.identifierType,
         identifier: newAuth.identifier,
         code: newAuth.code,
         codeUsage: newAuth.codeUsage,
