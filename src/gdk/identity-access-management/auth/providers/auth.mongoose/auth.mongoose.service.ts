@@ -12,10 +12,11 @@ import {
 } from '@shared/exceptions';
 import { MinToMilliseconds, RandomNumber } from '@shared/helper';
 import { AuthService } from '@gdk-iam/auth/auth.service';
-import { EmailSignUpDto } from '@gdk-iam/auth/dto/email-signup.dto';
-import { AUTH_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
+import { MailService } from '@gdk-mail/mail.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { EncryptService } from '@gdk-iam/encrypt/encrypt.service';
+import { EmailSignUpDto } from '@gdk-iam/auth/dto/email-signup.dto';
+import { AUTH_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
 import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
 import { IEmailSignUpRes } from '@gdk-iam/auth/types/email-signup.interface';
 import { CreateAuthDto } from '@gdk-iam/auth/dto/create-auth.dto';
@@ -23,6 +24,7 @@ import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enu
 import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
 
 import { Auth } from './auth.schema';
+import { ISendMail } from '@gdk-mail/types/send-mail.interface';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -32,6 +34,7 @@ export class AuthMongooseService implements AuthService {
     @InjectModel(AUTH_MODEL_NAME)
     private readonly AuthModel: Model<Auth>,
     private readonly userService: UserService,
+    private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
   ) {}
   @MethodLogger()
@@ -97,13 +100,21 @@ export class AuthMongooseService implements AuthService {
       );
       assert.ok(newAuth, 'New Auth Created');
       // * STEP 5. Send Email
+      const mail: ISendMail = {
+        to: dto.email,
+        subject: '註冊驗證碼',
+        text: newAuth.code,
+        html: `<h1>驗證碼 : ${newAuth.code}</h1>`,
+      };
+      const sent = await this.mailService.send(mail);
+      assert.ok(sent, 'Verify Email Sent');
       // * STEP 6. Complete session
       await session.commitTransaction();
       await session.endSession();
       const res: IEmailSignUpRes = {
         email: dto.email,
-        isEmailSent: false,
-        canResendAt: Date.now(),
+        isEmailSent: true,
+        canResendAt: newAuth.codeExpiredAt,
         provider: AUTH_PROVIDER.MONGOOSE,
       };
       return res;
