@@ -25,6 +25,7 @@ import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
 
 import { Auth } from './auth.schema';
 import { ISendMail } from '@gdk-mail/types/send-mail.interface';
+import { AuthVerifyDto } from '@gdk-iam/auth/dto/auth-verify.dto';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -51,7 +52,7 @@ export class AuthMongooseService implements AuthService {
       if (checkUserEmail !== null) {
         const error = this.buildError(
           ERROR_CODE.AUTH_EMAIL_EXIST,
-          `${dto.email} already existed`,
+          `Email: ${dto.email} already existed`,
           400,
           'emailSignUp.checkUserEmail',
         );
@@ -62,8 +63,8 @@ export class AuthMongooseService implements AuthService {
       });
       if (checkAuthIdentifier !== null) {
         const error = this.buildError(
-          ERROR_CODE.AUTH_EMAIL_EXIST,
-          `${dto.email} already existed`,
+          ERROR_CODE.AUTH_IDENTIFIER_EXIST,
+          `Identifier: ${dto.email} already existed`,
           400,
           'emailSignUp.checkAuthIdentifier',
         );
@@ -127,8 +128,9 @@ export class AuthMongooseService implements AuthService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  verifyAuth(): void {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async verifyAuth(dto: AuthVerifyDto): Promise<boolean> {
+    return true;
   }
   emailVerification(): void {
     throw new Error('Method not implemented.');
