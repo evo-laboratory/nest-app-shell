@@ -10,20 +10,23 @@ import {
 } from '@nestjs/common';
 import { GPI, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
+import {
+  AuthEmailVerificationDto,
+  AuthEmailVerificationRes,
+  AuthVerifyDto,
+  AuthVerifyRes,
+  EmailSignUpDto,
+  EmailSignUpRes,
+  UpdateAuthDto,
+} from './dto';
 import {
   AUTH_API,
   EMAIL_SIGNUP_PATH,
   EMAIL_VERIFICATION_PATH,
   VERIFICATION_PATH,
-} from './types/auth.static';
-import { AuthService } from './auth.service';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { EmailSignUpDto, EmailSignUpRes } from './dto/email-signup.dto';
-import { AuthVerifyDto, AuthVerifyRes } from './dto/auth-verify.dto';
-import {
-  AuthEmailVerificationDto,
-  AuthEmailVerificationRes,
-} from './dto/auth-email-verification.dto';
+} from './types';
+
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {

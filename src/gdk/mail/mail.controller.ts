@@ -1,10 +1,9 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { GPI, V1 } from '@shared/statics';
-import { MAIL_API } from './types/mail.static';
-import { MailService } from './mail.service';
-import { SendMailDto, SendMailRes } from './dto/send-mail.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-
+import { MailService } from './mail.service';
+import { MAIL_API } from './types';
+import { SendMailDto, SendMailRes } from './dto';
 @ApiTags(MAIL_API)
 @Controller(`${GPI}/${MAIL_API}`)
 export class MailController {

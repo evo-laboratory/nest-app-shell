@@ -1,10 +1,13 @@
 import { MailService } from '@gdk-mail/mail.service';
-import { ISendMail, ISendMailRes } from '@gdk-mail/types/send-mail.interface';
-import { ISendGridSendMailResItem } from '@gdk-mail/types/sendgrid.interface';
 import { Injectable } from '@nestjs/common';
 import * as SendGrid from '@sendgrid/mail';
 import { ClientResponse } from '@sendgrid/mail';
 import { MethodLogger } from '@shared/winston-logger';
+import {
+  ISendGridSendMailResItem,
+  ISendMail,
+  ISendMailRes,
+} from '@gdk-mail/types';
 
 @Injectable()
 export class MailSendgridService implements MailService {
