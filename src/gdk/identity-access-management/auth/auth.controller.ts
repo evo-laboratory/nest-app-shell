@@ -13,12 +13,17 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   AUTH_API,
   EMAIL_SIGNUP_PATH,
+  EMAIL_VERIFICATION_PATH,
   VERIFICATION_PATH,
 } from './types/auth.static';
 import { AuthService } from './auth.service';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { EmailSignUpDto, EmailSignUpRes } from './dto/email-signup.dto';
 import { AuthVerifyDto, AuthVerifyRes } from './dto/auth-verify.dto';
+import {
+  AuthEmailVerificationDto,
+  AuthEmailVerificationRes,
+} from './dto/auth-email-verification.dto';
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {
@@ -33,8 +38,15 @@ export class AuthController {
   @Post(`${V1}/${VERIFICATION_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthVerifyRes })
-  async authVerifyV1(@Body() dto: AuthVerifyDto) {
+  async authVerificationV1(@Body() dto: AuthVerifyDto) {
     return await this.authService.verifyAuth(dto);
+  }
+
+  @Post(`${V1}/${EMAIL_VERIFICATION_PATH}`)
+  @HttpCode(202)
+  @ApiResponse({ status: 202, type: AuthEmailVerificationRes })
+  async authEmailVerificationV1(@Body() dto: AuthEmailVerificationDto) {
+    return await this.authService.emailVerification(dto);
   }
 
   @Get()

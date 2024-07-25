@@ -73,6 +73,7 @@ export class Auth implements IAuth {
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);
+AuthSchema.index({ identifier: 1 });
 AuthSchema.index({ userId: 1 });
 AuthSchema.index({ isActive: 1 });
 AuthSchema.index({ createdAt: -1 });

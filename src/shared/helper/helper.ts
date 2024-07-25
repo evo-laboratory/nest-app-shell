@@ -83,3 +83,7 @@ export function MinToMilliseconds(min: number | string) {
   }
   return converted * 60000;
 }
+
+export type PickEnum<T, K extends T> = {
+  [P in keyof K]: P extends K ? P : never;
+};
