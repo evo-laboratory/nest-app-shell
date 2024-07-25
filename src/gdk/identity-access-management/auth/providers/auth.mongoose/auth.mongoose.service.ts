@@ -15,25 +15,27 @@ import { AuthService } from '@gdk-iam/auth/auth.service';
 import { MailService } from '@gdk-mail/mail.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { EncryptService } from '@gdk-iam/encrypt/encrypt.service';
-import { EmailSignUpDto } from '@gdk-iam/auth/dto/email-signup.dto';
 import {
   AUTH_MODEL_NAME,
+  IEmailSignUpRes,
+  ICreateAuthResult,
+  AUTH_IDENTIFIER_TYPE,
+  AUTH_SIGN_UP_METHOD,
+  AUTH_PROVIDER,
+  AUTH_CODE_USAGE,
+  IAuthVerifyRes,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
-} from '@gdk-iam/auth/types/auth.static';
-import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
-import { IEmailSignUpRes } from '@gdk-iam/auth/types/email-signup.interface';
-import { CreateAuthDto } from '@gdk-iam/auth/dto/create-auth.dto';
-import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enum';
-import { ICreateAuthResult } from '@gdk-iam/auth/types/create-auth.interface';
-import { ISendMail } from '@gdk-mail/types/send-mail.interface';
-import { AuthVerifyDto } from '@gdk-iam/auth/dto/auth-verify.dto';
-import { AUTH_IDENTIFIER_TYPE } from '@gdk-iam/auth/types/auth-identifier-type';
-import { IAuthVerifyRes } from '@gdk-iam/auth/types/auth-verify.interface';
+  IAuthGeneratedCode,
+} from '@gdk-iam/auth/types';
+import {
+  AuthEmailVerificationDto,
+  AuthVerifyDto,
+  CreateAuthDto,
+  EmailSignUpDto,
+} from '@gdk-iam/auth/dto';
+import { ISendMail } from '@gdk-mail/types';
 
 import { Auth } from './auth.schema';
-import { AuthEmailVerificationDto } from '@gdk-iam/auth/dto/auth-email-verification.dto';
-import { IAuthGeneratedCode } from '@gdk-iam/auth/types/auth-generated-code.interface';
-
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -426,6 +428,7 @@ export class AuthMongooseService implements AuthService {
     }
   }
 
+  @MethodLogger()
   private generateAuthCode(): IAuthGeneratedCode {
     const code = RandomNumber();
     const EXPIRE_MIN = process.env.CODE_EXPIRE_MIN || 3;
