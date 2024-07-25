@@ -277,6 +277,15 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 3. Check Usage match with auth state
+      if (auth.identifierType !== AUTH_IDENTIFIER_TYPE.EMAIL) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_IDENTIFIER_TYPE_NOT_EMAIL,
+          `Identifier of ${dto.email} is not email`,
+          400,
+          'emailVerification',
+        );
+        throw new UniteHttpException(error);
+      }
       if (auth.codeExpiredAt > currentTimeStamp) {
         const EXPIRE_MIN = process.env.CODE_EXPIRE_MIN || 3;
         const error = this.buildError(
