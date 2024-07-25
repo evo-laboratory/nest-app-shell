@@ -2,18 +2,19 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
-import { IAuthTokenItem } from '@gdk-iam/auth/types/auth-token-item.interface';
-import { AUTH_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
-import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
-import { IAuth } from '@gdk-iam/auth/types/auth.interface';
-import { USER_MODEL_NAME } from '@gdk-iam/user/types/user.static';
+import {
+  AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
+  AUTH_MODEL_NAME,
+  AUTH_PROVIDER,
+  AUTH_SIGN_UP_METHOD,
+  IAuth,
+  IAuthTokenItem,
+} from '@gdk-iam/auth/types';
+import { IUser, USER_MODEL_NAME } from '@gdk-iam/user/types';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
-import { IUser } from '@gdk-iam/user/types/user.interface';
-import { AUTH_SIGN_UP_METHOD } from '@gdk-iam/auth/types/auth-sign-up-method.enum';
-import { AUTH_IDENTIFIER_TYPE } from '@gdk-iam/auth/types/auth-identifier-type';
 
 export type AuthDocument = HydratedDocument<Auth>;
-
 @Schema()
 export class Auth implements IAuth {
   @Prop({
@@ -70,6 +71,8 @@ export class Auth implements IAuth {
   updatedAt: number;
   @Prop({ type: Number, default: 0 })
   lastSignInAt: number;
+  @Prop({ type: Number, default: 0 })
+  lastChangedPasswordAt: number;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);

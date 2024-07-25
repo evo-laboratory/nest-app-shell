@@ -185,8 +185,17 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 3. SIGN_UP_VERIFY
-      if (dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
-        const isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY;
+      if (
+        dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY ||
+        dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD
+      ) {
+        let isMatchUsage = true;
+        if (dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
+          isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY;
+        }
+        if (dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD) {
+          isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.FORGOT_PASSWORD;
+        }
         const isCodeMatched = auth.code === dto.code;
         const isNotExpired = auth.codeExpiredAt > currentTimeStamp;
         const isValid = isMatchUsage && isCodeMatched && isNotExpired;
@@ -200,6 +209,31 @@ export class AuthMongooseService implements AuthService {
           throw new UniteHttpException(error);
         }
       }
+      // * STEP 4. CHANGE_PASSWORD
+      if (
+        dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD &&
+        auth.codeUsage !== AUTH_CODE_USAGE.FORGOT_PASSWORD
+      ) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_CODE_USAGE_NOW_ALLOW,
+          `Usage not matched`,
+          403,
+          'verifyAuth',
+        );
+        throw new UniteHttpException(error);
+      }
+      if (
+        dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD &&
+        !dto.newPassword
+      ) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_PASSWORD_REQUIRED,
+          `Password is required`,
+          400,
+          'verifyAuth',
+        );
+        throw new UniteHttpException(error);
+      }
       // * Update Data
       // * STEP A. Setup Transaction Session
       session.startTransaction();
@@ -212,6 +246,15 @@ export class AuthMongooseService implements AuthService {
       };
       if (auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
         updateQuery.isIdentifierVerified = true;
+      }
+      if (
+        auth.codeUsage === AUTH_CODE_USAGE.FORGOT_PASSWORD &&
+        dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD
+      ) {
+        updateQuery.password = await this.encryptService.hashPassword(
+          dto.newPassword,
+        );
+        updateQuery.lastChangedPasswordAt = currentTimeStamp;
       }
       const resetAuthState = await this.AuthModel.findByIdAndUpdate(
         auth._id,
@@ -232,7 +275,7 @@ export class AuthMongooseService implements AuthService {
         );
         assert.ok(updatedUser, 'User EmailVerified Updated');
       }
-      // * STEP 6. Complete session
+      // * STEP D. Complete session
       await session.commitTransaction();
       await session.endSession();
       return {
@@ -262,7 +305,7 @@ export class AuthMongooseService implements AuthService {
         const error = this.buildError(
           ERROR_CODE.AUTH_CODE_USAGE_NOW_ALLOW,
           `${dto.usage} not allowed`,
-          404,
+          400,
           'emailVerification',
         );
         throw new UniteHttpException(error);

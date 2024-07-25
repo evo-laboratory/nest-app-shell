@@ -1,9 +1,12 @@
 import { Types } from 'mongoose';
-import { AUTH_CODE_USAGE, AUTH_PROVIDER } from '.';
+import {
+  AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
+  AUTH_PROVIDER,
+  AUTH_SIGN_UP_METHOD,
+  IAuthTokenItem,
+} from '.';
 import { IUser } from '@gdk-iam/user/types/user.interface';
-import { IAuthTokenItem } from './auth-token-item.interface';
-import { AUTH_SIGN_UP_METHOD } from './auth-sign-up-method.enum';
-import { AUTH_IDENTIFIER_TYPE } from './auth-identifier-type';
 
 export interface IAuth {
   identifier: string;
@@ -22,4 +25,5 @@ export interface IAuth {
   createdAt: number;
   updatedAt: number;
   lastSignInAt: number;
+  lastChangedPasswordAt: number;
 }
