@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
+import { Connection } from 'mongoose';
 
-describe('AppController (e2e)', () => {
+describe('GDK/AuthController', () => {
   let app: INestApplication;
+  let connection: Connection;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -12,6 +14,12 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+      }),
+    );
     await app.init();
   });
 
@@ -20,5 +28,10 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect('Hello World!');
+  });
+  afterAll(async () => {
+    setTimeout(async () => {
+      await connection.close(true);
+    }, 1500);
   });
 });
