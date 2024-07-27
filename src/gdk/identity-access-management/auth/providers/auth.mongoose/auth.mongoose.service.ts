@@ -30,8 +30,8 @@ import {
   IAuthVerifyRes,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
-  IAuth,
   IAuthSignInFailedRecordItem,
+  IAuth,
 } from '@gdk-iam/auth/types';
 import {
   AuthEmailVerificationDto,
@@ -40,9 +40,9 @@ import {
   EmailSignUpDto,
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
-
-import { Auth, AuthDocument } from './auth.schema';
 import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
+
+import { Auth } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -448,7 +448,7 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 2. Check Auth sign in failed attempts
-      const isLocked = this.isExceedAttemptLimit(auth);
+      const isLocked = this.isExceedAttemptLimit(auth.toJSON());
       if (isLocked) {
         const error = this.buildError(
           ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
@@ -518,6 +518,38 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
+  public isExceedAttemptLimit(auth: IAuth): boolean {
+    // * If Failed more than SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT times within 1hour, stop it.
+    const ATTEMPT_LIMIT =
+      Number(process.env.SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT) || 5;
+    const LOCK_ATTEMPT_EXCEED = ParseAnyToBoolean(
+      process.env.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED,
+    );
+    const currentTimeStamp = Date.now();
+    const startingTimeStamp = LOCK_ATTEMPT_EXCEED
+      ? currentTimeStamp
+      : auth.lastChangedPasswordAt;
+    const hourAgo = startingTimeStamp - 3600000;
+    const recentFailAttempts = auth.signInFailRecordList.filter(
+      (record: IAuthSignInFailedRecordItem) => {
+        if (LOCK_ATTEMPT_EXCEED) {
+          return record.createdAt > hourAgo;
+        }
+        if (auth.lastChangedPasswordAt > record.createdAt) {
+          // * Ignore failed record before lastChangedPasswordAt
+          return false;
+        } else {
+          return record.createdAt > hourAgo;
+        }
+      },
+    );
+    if (recentFailAttempts.length > ATTEMPT_LIMIT) {
+      return true;
+    }
+    return false;
+  }
+
+  @MethodLogger()
   private async create(
     dto: CreateAuthDto,
     session?: ClientSession,
@@ -584,37 +616,6 @@ export class AuthMongooseService implements AuthService {
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
-  }
-
-  @MethodLogger()
-  private isExceedAttemptLimit(auth: AuthDocument): boolean {
-    // * If Failed more than SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT times within 1hour, stop it.
-    const ATTEMPT_LIMIT =
-      Number(process.env.SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT) || 5;
-    const LOCK_ATTEMPT_EXCEED = ParseAnyToBoolean(
-      process.env.LOCK_ATTEMPT_EXCEED,
-    );
-    const currentTimeStamp = Date.now();
-    const startingTimeStamp = LOCK_ATTEMPT_EXCEED
-      ? currentTimeStamp
-      : auth.lastChangedPasswordAt;
-    const hourAgo = startingTimeStamp - 3600000;
-    const recentFailAttempts = auth.signInFailRecordList.filter(
-      (record: IAuthSignInFailedRecordItem) => {
-        if (LOCK_ATTEMPT_EXCEED) {
-          return record.createdAt > hourAgo;
-        }
-        if (auth.lastChangedPasswordAt > record.createdAt) {
-          return false;
-        } else {
-          return record.createdAt > hourAgo;
-        }
-      },
-    );
-    if (recentFailAttempts.length > ATTEMPT_LIMIT) {
-      return true;
-    }
-    return false;
   }
 
   @MethodLogger()
