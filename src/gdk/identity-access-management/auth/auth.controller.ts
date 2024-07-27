@@ -22,7 +22,8 @@ import {
 } from './dto';
 import {
   AUTH_API,
-  EMAIL_SIGNUP_PATH,
+  EMAIL_SIGN_IN_PATH,
+  EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
   VERIFICATION_PATH,
 } from './types';
@@ -32,7 +33,7 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post(`${V1}/${EMAIL_SIGNUP_PATH}`)
+  @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)
   @ApiResponse({ status: 201, type: EmailSignUpRes })
   async emailSignUpV1(@Body() dto: EmailSignUpDto) {
     return await this.authService.emailSignUp(dto);
@@ -50,6 +51,12 @@ export class AuthController {
   @ApiResponse({ status: 202, type: AuthEmailVerificationRes })
   async authEmailVerificationV1(@Body() dto: AuthEmailVerificationDto) {
     return await this.authService.emailVerification(dto);
+  }
+
+  @Post(`${V1}/${EMAIL_SIGN_IN_PATH}`)
+  @ApiResponse({ status: 201, type: EmailSignUpRes })
+  async emailSignInV1(@Body() dto: EmailSignUpDto) {
+    return await this.authService.emailSignUp(dto);
   }
 
   @Get()

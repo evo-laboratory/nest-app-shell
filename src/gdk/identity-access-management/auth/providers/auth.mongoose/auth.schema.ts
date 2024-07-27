@@ -7,7 +7,7 @@ import {
   AUTH_IDENTIFIER_TYPE,
   AUTH_MODEL_NAME,
   AUTH_PROVIDER,
-  AUTH_SIGN_UP_METHOD,
+  AUTH_METHOD,
   IAuth,
   IAuthTokenItem,
 } from '@gdk-iam/auth/types';
@@ -33,10 +33,10 @@ export class Auth implements IAuth {
   provider: AUTH_PROVIDER;
   @Prop({
     type: [String],
-    enum: EnumToArray(AUTH_SIGN_UP_METHOD),
-    default: AUTH_SIGN_UP_METHOD.EMAIL_PASSWORD,
+    enum: EnumToArray(AUTH_METHOD),
+    default: AUTH_METHOD.EMAIL_PASSWORD,
   })
-  signUpMethodList: AUTH_SIGN_UP_METHOD[];
+  signUpMethodList: AUTH_METHOD[];
   @Prop({ type: Types.ObjectId, ref: USER_MODEL_NAME, required: true })
   userId: Types.ObjectId | IUser;
   @Prop({ type: String, default: '' })

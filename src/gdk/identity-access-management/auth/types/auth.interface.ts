@@ -3,7 +3,7 @@ import {
   AUTH_CODE_USAGE,
   AUTH_IDENTIFIER_TYPE,
   AUTH_PROVIDER,
-  AUTH_SIGN_UP_METHOD,
+  AUTH_METHOD,
   IAuthTokenItem,
 } from '.';
 import { IUser } from '@gdk-iam/user/types/user.interface';
@@ -12,7 +12,7 @@ export interface IAuth {
   identifier: string;
   identifierType: AUTH_IDENTIFIER_TYPE;
   provider: AUTH_PROVIDER;
-  signUpMethodList: AUTH_SIGN_UP_METHOD[];
+  signUpMethodList: AUTH_METHOD[];
   userId: Types.ObjectId | IUser;
   password: string;
   code: string;

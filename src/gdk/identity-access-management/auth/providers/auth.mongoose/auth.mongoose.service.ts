@@ -20,7 +20,7 @@ import {
   IEmailSignUpRes,
   ICreateAuthResult,
   AUTH_IDENTIFIER_TYPE,
-  AUTH_SIGN_UP_METHOD,
+  AUTH_METHOD,
   AUTH_PROVIDER,
   AUTH_CODE_USAGE,
   IAuthVerifyRes,
@@ -36,6 +36,7 @@ import {
 import { ISendMail } from '@gdk-mail/types';
 
 import { Auth } from './auth.schema';
+import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -100,7 +101,7 @@ export class AuthMongooseService implements AuthService {
         {
           identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
           identifier: dto.email,
-          signUpMethodList: [AUTH_SIGN_UP_METHOD.EMAIL_PASSWORD],
+          signUpMethodList: [AUTH_METHOD.EMAIL_PASSWORD],
           provider: AUTH_PROVIDER.MONGOOSE,
           userId: newUser._id,
           password: dto.password,
@@ -405,8 +406,39 @@ export class AuthMongooseService implements AuthService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  emailPasswordSignIn(): void {
-    throw new Error('Method not implemented.');
+
+  @MethodLogger()
+  public async emailSignIn(dto: AuthEmailSignInDto): Promise<any> {
+    try {
+      // * STEP 1. Check email exist in both Auth and User
+      const auth = await this.AuthModel.findOne({ identifier: dto.email });
+      if (auth === null) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Identifier: ${dto.email} not found`,
+          404,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      const user = await this.userService.findByEmail(dto.email);
+      if (user === null) {
+        const error = this.buildError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User: ${dto.email} not found`,
+          404,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 2. Check Auth sign in failed counts
+      // * IF Failed more than 5 times within 1hour, stop it.
+      // * STEP 3. Compare password => Record Fail
+      // * STEP 4. Issue JWT
+      throw new Error('Method not implemented.');
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   signOut(): void {
     throw new Error('Method not implemented.');
