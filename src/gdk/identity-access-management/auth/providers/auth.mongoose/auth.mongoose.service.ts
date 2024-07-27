@@ -600,7 +600,16 @@ export class AuthMongooseService implements AuthService {
       : auth.lastChangedPasswordAt;
     const hourAgo = startingTimeStamp - 3600000;
     const recentFailAttempts = auth.signInFailRecordList.filter(
-      (record: IAuthSignInFailedRecordItem) => record.createdAt > hourAgo,
+      (record: IAuthSignInFailedRecordItem) => {
+        if (LOCK_ATTEMPT_EXCEED) {
+          return record.createdAt > hourAgo;
+        }
+        if (auth.lastChangedPasswordAt > record.createdAt) {
+          return false;
+        } else {
+          return record.createdAt > hourAgo;
+        }
+      },
     );
     if (recentFailAttempts.length > ATTEMPT_LIMIT) {
       return true;
