@@ -1,9 +1,11 @@
 import { AUTH_CODE_USAGE } from './auth-code-usage.enum';
 
-export const AUTH_MODEL_NAME = 'Auth';
 export const AUTH_API = 'auth';
 
+export const AUTH_MODEL_NAME = 'Auth';
 export const AUTH_TOKEN_ITEM_MODEL_NAME = 'AuthTokenItem';
+export const AUTH_SIGN_IN_FAIL_RECORD_ITEM_MODEL_NAME =
+  'AuthSignInFailRecordItem';
 
 export const EMAIL_SIGN_UP_PATH = 'email-sign-up';
 export const EMAIL_SIGN_IN_PATH = 'email-sign-in';

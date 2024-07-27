@@ -12,4 +12,4 @@ export * from './auth.static';
 export * from './create-auth.interface';
 export * from './email-signup.interface';
 export * from './auth-email-sign-in.interface';
-export * from './auth-sign-in-failed-record.interface';
+export * from './auth-sign-in-failed-record-item.interface';

@@ -10,9 +10,11 @@ import {
   AUTH_METHOD,
   IAuth,
   IAuthTokenItem,
+  IAuthSignInFailedRecordItem,
 } from '@gdk-iam/auth/types';
 import { IUser, USER_MODEL_NAME } from '@gdk-iam/user/types';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
+import { AuthSignInFailRecordItemSchema } from './auth-sign-in-fail-record-item.schema';
 
 export type AuthDocument = HydratedDocument<Auth>;
 @Schema()
@@ -61,6 +63,11 @@ export class Auth implements IAuth {
     default: [],
   })
   accessTokenHistoryList: IAuthTokenItem[];
+  @Prop({
+    type: [AuthSignInFailRecordItemSchema],
+    default: [],
+  })
+  signInFailRecordList: IAuthSignInFailedRecordItem[];
   @Prop({ type: Boolean, default: true })
   isActive: boolean;
   @Prop({ type: Boolean, default: false })

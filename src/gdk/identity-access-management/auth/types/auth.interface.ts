@@ -5,10 +5,12 @@ import {
   AUTH_PROVIDER,
   AUTH_METHOD,
   IAuthTokenItem,
+  IAuthSignInFailedRecordItem,
 } from '.';
 import { IUser } from '@gdk-iam/user/types/user.interface';
 
 export interface IAuth {
+  _id?: string;
   identifier: string;
   identifierType: AUTH_IDENTIFIER_TYPE;
   provider: AUTH_PROVIDER;
@@ -20,6 +22,7 @@ export interface IAuth {
   codeExpiredAt: number;
   activeRefreshTokenList: IAuthTokenItem[];
   accessTokenHistoryList: IAuthTokenItem[]; // * Only tracks latest 1000
+  signInFailRecordList: IAuthSignInFailedRecordItem[]; // * Only tracks latest 1000
   isIdentifierVerified: boolean;
   isActive: boolean;
   createdAt: number;

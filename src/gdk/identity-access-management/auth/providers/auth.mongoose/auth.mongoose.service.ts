@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { MethodLogger } from '@shared/winston-logger';
-import { ClientSession, Connection, Model } from 'mongoose';
+import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { strict as assert } from 'assert';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import {
@@ -26,6 +26,8 @@ import {
   IAuthVerifyRes,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
+  IAuth,
+  IAuthSignInFailedRecordItem,
 } from '@gdk-iam/auth/types';
 import {
   AuthEmailVerificationDto,
@@ -431,11 +433,43 @@ export class AuthMongooseService implements AuthService {
         );
         throw new UniteHttpException(error);
       }
+      // * STEP 2. Check is Identity Verified
+      if (!auth.isIdentifierVerified) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED,
+          `Identifier: ${dto.email} not verified`,
+          403,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
       // * STEP 2. Check Auth sign in failed counts
       // * IF Failed more than 5 times within 1hour, stop it.
+      // TODO
       // * STEP 3. Compare password => Record Fail
+      const validPassword = await this.encryptService.comparePassword(
+        dto.password,
+        auth.password,
+      );
+      if (!validPassword) {
+        // * STEP 3-1. Add FailRecord
+        await this.pushFailedRecordItemById(auth._id, {
+          signInMethod: AUTH_METHOD.EMAIL_PASSWORD,
+          errorCode: ERROR_CODE.AUTH_PASSWORD_INVALID,
+          ipAddress: '',
+          failedPassword: dto.password,
+          createdAt: Date.now(),
+        });
+        const error = this.buildError(
+          ERROR_CODE.AUTH_PASSWORD_INVALID,
+          `Invalid password`,
+          403,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
       // * STEP 4. Issue JWT
-      throw new Error('Method not implemented.');
+      return dto.password;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -514,6 +548,33 @@ export class AuthMongooseService implements AuthService {
     };
   }
 
+  @MethodLogger()
+  private async pushFailedRecordItemById(
+    authId: Types.ObjectId,
+    item: IAuthSignInFailedRecordItem,
+    session?: ClientSession,
+  ) {
+    try {
+      const SLICE_COUNT = 10;
+      const updated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $push: {
+            signInFailRecordList: {
+              $each: [item],
+              $slice: -SLICE_COUNT,
+            },
+          },
+        },
+        { session: session },
+      );
+      return updated;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
   private buildError(
     code: ERROR_CODE,
     msg: string,
