@@ -412,6 +412,7 @@ export class AuthMongooseService implements AuthService {
   @MethodLogger()
   public async emailSignIn(dto: AuthEmailSignInDto): Promise<any> {
     try {
+      const currentTimeStamp = Date.now();
       // * STEP 1. Check email exist in both Auth and User
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
       if (auth === null) {
@@ -444,8 +445,22 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 2. Check Auth sign in failed counts
-      // * IF Failed more than 5 times within 1hour, stop it.
-      // TODO
+      // * If Failed more than SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT times within 1hour, stop it.
+      const ATTEMPT_LIMIT =
+        Number(process.env.SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT) || 5;
+      const hourAgo = currentTimeStamp - 3600000;
+      const recentFailAttempts = auth.signInFailRecordList.filter(
+        (record: IAuthSignInFailedRecordItem) => record.createdAt > hourAgo,
+      );
+      if (recentFailAttempts.length > ATTEMPT_LIMIT) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
+          `Attempt rate limit, please try again after 1 hour`,
+          406,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
       // * STEP 3. Compare password => Record Fail
       const validPassword = await this.encryptService.comparePassword(
         dto.password,
@@ -555,7 +570,7 @@ export class AuthMongooseService implements AuthService {
     session?: ClientSession,
   ) {
     try {
-      const SLICE_COUNT = 10;
+      const SLICE_COUNT = 20;
       const updated = await this.AuthModel.findByIdAndUpdate(
         authId,
         {

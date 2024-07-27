@@ -7,7 +7,7 @@ export abstract class AuthService {
   abstract emailSignUp(dto: EmailSignUpDto): Promise<IEmailSignUpRes>;
   abstract verifyAuth(dto: AuthVerifyDto): Promise<IAuthVerifyRes>;
   abstract emailVerification(dto: AuthEmailVerificationDto): Promise<any>;
-  abstract emailSignIn(dto: AuthEmailSignInDto): void;
+  abstract emailSignIn(dto: AuthEmailSignInDto): Promise<any>;
   abstract signOut(): void;
   abstract createAuth(): void;
   abstract getAuthById(): void;
