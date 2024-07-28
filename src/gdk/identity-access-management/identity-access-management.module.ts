@@ -11,9 +11,19 @@ import { AuthModel } from './auth/providers/auth.mongoose/auth.schema';
 import { EncryptService } from './encrypt/encrypt.service';
 import { MailModule } from '@gdk-mail/mail.module';
 import { AuthUtilService } from './auth-util/auth-util.service';
+import { AuthJwtService } from './auth-jwt/auth-jwt.service';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [MailModule, MongooseModule.forFeature([UserModel, AuthModel])],
+  imports: [
+    MailModule,
+    MongooseModule.forFeature([UserModel, AuthModel]),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_TOKEN_EXPIRES_IN || '60s' },
+    }),
+  ],
   controllers: [UserController, AuthController],
   providers: [
     {
@@ -26,6 +36,12 @@ import { AuthUtilService } from './auth-util/auth-util.service';
     },
     EncryptService,
     AuthUtilService,
+    AuthJwtService,
   ],
 })
-export class IdentityAccessManagementModule {}
+export class IdentityAccessManagementModule {
+  constructor() {
+    console.log(process.env.JWT_SECRET);
+    console.log(process.env.JWT_TOKEN_EXPIRES_IN);
+  }
+}
