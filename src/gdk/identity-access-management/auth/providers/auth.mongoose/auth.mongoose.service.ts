@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { MethodLogger } from '@shared/winston-logger';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { strict as assert } from 'assert';
+import { MethodLogger } from '@shared/winston-logger';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import {
   ERROR_CODE,
@@ -10,12 +10,8 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
-import {
-  MinToMilliseconds,
-  ParseAnyToBoolean,
-  RandomNumber,
-} from '@shared/helper';
 import { AuthService } from '@gdk-iam/auth/auth.service';
+import { AuthUtilService } from '@gdk-iam/auth-util/auth-util.service';
 import { MailService } from '@gdk-mail/mail.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { EncryptService } from '@gdk-iam/encrypt/encrypt.service';
@@ -31,7 +27,6 @@ import {
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
   IAuthSignInFailedRecordItem,
-  IAuth,
 } from '@gdk-iam/auth/types';
 import {
   AuthEmailVerificationDto,
@@ -43,6 +38,7 @@ import { ISendMail } from '@gdk-mail/types';
 import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
 
 import { Auth } from './auth.schema';
+
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -50,6 +46,7 @@ export class AuthMongooseService implements AuthService {
     private readonly connection: Connection,
     @InjectModel(AUTH_MODEL_NAME)
     private readonly AuthModel: Model<Auth>,
+    private readonly authUtil: AuthUtilService,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
@@ -374,7 +371,7 @@ export class AuthMongooseService implements AuthService {
       }
       // * STEP 4. Setup Transaction Session
       session.startTransaction();
-      const generated: IAuthGeneratedCode = this.generateAuthCode();
+      const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
       // * STEP 5. Send Email
       const mail: ISendMail = {
         to: dto.email,
@@ -448,7 +445,7 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 2. Check Auth sign in failed attempts
-      const isLocked = this.isExceedAttemptLimit(auth.toJSON());
+      const isLocked = this.authUtil.isExceedAttemptLimit(auth.toJSON());
       if (isLocked) {
         const error = this.buildError(
           ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
@@ -518,38 +515,6 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public isExceedAttemptLimit(auth: IAuth): boolean {
-    // * If Failed more than SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT times within 1hour, stop it.
-    const ATTEMPT_LIMIT =
-      Number(process.env.SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT) || 5;
-    const LOCK_ATTEMPT_EXCEED = ParseAnyToBoolean(
-      process.env.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED,
-    );
-    const currentTimeStamp = Date.now();
-    const startingTimeStamp = LOCK_ATTEMPT_EXCEED
-      ? currentTimeStamp
-      : auth.lastChangedPasswordAt;
-    const hourAgo = startingTimeStamp - 3600000;
-    const recentFailAttempts = auth.signInFailRecordList.filter(
-      (record: IAuthSignInFailedRecordItem) => {
-        if (LOCK_ATTEMPT_EXCEED) {
-          return record.createdAt > hourAgo;
-        }
-        if (auth.lastChangedPasswordAt > record.createdAt) {
-          // * Ignore failed record before lastChangedPasswordAt
-          return false;
-        } else {
-          return record.createdAt > hourAgo;
-        }
-      },
-    );
-    if (recentFailAttempts.length > ATTEMPT_LIMIT) {
-      return true;
-    }
-    return false;
-  }
-
-  @MethodLogger()
   private async create(
     dto: CreateAuthDto,
     session?: ClientSession,
@@ -557,7 +522,7 @@ export class AuthMongooseService implements AuthService {
     resolveCode = true,
   ): Promise<ICreateAuthResult> {
     try {
-      const generated: IAuthGeneratedCode = this.generateAuthCode();
+      const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
       let authPassword = dto.password;
       if (hashPassword) {
         authPassword = await this.encryptService.hashPassword(authPassword);
@@ -579,17 +544,6 @@ export class AuthMongooseService implements AuthService {
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
-  }
-
-  @MethodLogger()
-  private generateAuthCode(): IAuthGeneratedCode {
-    const code = RandomNumber();
-    const EXPIRE_MIN = process.env.CODE_EXPIRE_MIN || 3;
-    const expiredAt = Date.now() + MinToMilliseconds(EXPIRE_MIN);
-    return {
-      code: code,
-      codeExpiredAt: expiredAt,
-    };
   }
 
   @MethodLogger()

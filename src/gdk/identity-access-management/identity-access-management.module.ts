@@ -10,6 +10,7 @@ import { AuthMongooseService } from './auth/providers/auth.mongoose/auth.mongoos
 import { AuthModel } from './auth/providers/auth.mongoose/auth.schema';
 import { EncryptService } from './encrypt/encrypt.service';
 import { MailModule } from '@gdk-mail/mail.module';
+import { AuthUtilService } from './auth-util/auth-util.service';
 
 @Module({
   imports: [MailModule, MongooseModule.forFeature([UserModel, AuthModel])],
@@ -24,6 +25,7 @@ import { MailModule } from '@gdk-mail/mail.module';
       useClass: AuthMongooseService,
     },
     EncryptService,
+    AuthUtilService,
   ],
 })
 export class IdentityAccessManagementModule {}

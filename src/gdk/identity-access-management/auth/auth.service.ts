@@ -25,5 +25,4 @@ export abstract class AuthService {
   abstract signInWithCustomToken(): void;
   abstract enable(): void;
   abstract disable(): void;
-  abstract isExceedAttemptLimit(auth: IAuth): boolean;
 }
