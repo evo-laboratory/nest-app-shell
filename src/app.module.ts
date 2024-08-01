@@ -11,10 +11,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { IdentityAccessManagementModule } from './gdk/identity-access-management/identity-access-management.module';
 import { MailModule } from './gdk/mail/mail.module';
+import { EnvironmentConfigSchema } from './environment-config.schema';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      validationSchema: EnvironmentConfigSchema,
+    }),
     MongooseModule.forRoot(
       `${process.env.MONGO_URI || 'mongodb://localhost:27017?replicaSet=rs'}`,
       {
