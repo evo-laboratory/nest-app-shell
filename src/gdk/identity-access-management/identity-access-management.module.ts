@@ -14,10 +14,11 @@ import { AuthUtilService } from './auth-util/auth-util.service';
 import { AuthJwtService } from './auth-jwt/auth-jwt.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import identityAccessManagementConfig from './identity-access-management.config';
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forFeature(identityAccessManagementConfig),
     MailModule,
     MongooseModule.forFeature([UserModel, AuthModel]),
     JwtModule.registerAsync({
@@ -45,9 +46,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     AuthJwtService,
   ],
 })
-export class IdentityAccessManagementModule {
-  constructor(configService: ConfigService) {
-    console.log(configService.get('JWT_SECRET'));
-    console.log(configService.get('JWT_TOKEN_EXPIRES_IN'));
-  }
-}
+export class IdentityAccessManagementModule {}

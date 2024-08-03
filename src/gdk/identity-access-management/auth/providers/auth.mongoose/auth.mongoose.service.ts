@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { strict as assert } from 'assert';
@@ -38,10 +38,16 @@ import { ISendMail } from '@gdk-mail/types';
 import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
 
 import { Auth } from './auth.schema';
+import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
+    @Inject(identityAccessManagementConfig.KEY)
+    private readonly iamConfig: ConfigType<
+      typeof identityAccessManagementConfig
+    >,
     @InjectConnection()
     private readonly connection: Connection,
     @InjectModel(AUTH_MODEL_NAME)
@@ -50,7 +56,9 @@ export class AuthMongooseService implements AuthService {
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
-  ) {}
+  ) {
+    console.log(this.iamConfig);
+  }
 
   @MethodLogger()
   public async emailSignUp(
@@ -336,7 +344,7 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       if (auth.codeExpiredAt > currentTimeStamp) {
-        const EXPIRE_MIN = process.env.CODE_EXPIRE_MIN || 3;
+        const EXPIRE_MIN = this.iamConfig.CODE_EXPIRE_MIN || 3;
         const error = this.buildError(
           ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT,
           `Identifier: ${dto.email} cannot send within ${EXPIRE_MIN} minute`,

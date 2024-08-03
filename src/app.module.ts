@@ -7,7 +7,6 @@ import {
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HttpLoggerMiddleware } from '@shared/middlewares/http-logger.middleware';
-import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { IdentityAccessManagementModule } from '@gdk-iam/identity-access-management.module';
 import { MailModule } from '@gdk-mail/mail.module';
 import { AppController } from './app.controller';
@@ -18,7 +17,6 @@ import { EnvironmentConfigSchema } from './environment-config.schema';
   imports: [
     ConfigModule.forRoot({
       validationSchema: EnvironmentConfigSchema,
-      load: [identityAccessManagementConfig],
     }),
     MongooseModule.forRoot(
       `${process.env.MONGO_URI || 'mongodb://localhost:27017?replicaSet=rs'}`,

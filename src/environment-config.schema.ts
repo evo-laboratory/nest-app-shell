@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
 
+// * Be aware that this schema only checks required , valid and default. Doesn't convert type.
 export const EnvironmentConfigSchema = Joi.object({
   APP_NAME: Joi.string().default('Nest App Shell'),
   STAGE: Joi.string().valid('DEV', 'QA', 'TEST', 'PROD').default('DEV'),
