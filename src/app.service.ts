@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { MethodLogger } from '@shared/winston-logger';
 import appConfig from './app.config';
+
 @Injectable()
 export class AppService {
   constructor(
@@ -11,6 +13,7 @@ export class AppService {
     return 'Hello World!';
   }
 
+  @MethodLogger()
   public getPublicEnv() {
     return {
       APP_NAME: this.appEnvConfig.APP_NAME,
