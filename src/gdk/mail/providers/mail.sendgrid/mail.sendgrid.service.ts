@@ -1,5 +1,5 @@
 import { MailService } from '@gdk-mail/mail.service';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as SendGrid from '@sendgrid/mail';
 import { ClientResponse } from '@sendgrid/mail';
 import { MethodLogger } from '@shared/winston-logger';
@@ -8,12 +8,22 @@ import {
   ISendMail,
   ISendMailRes,
 } from '@gdk-mail/types';
+import { ConfigType } from '@nestjs/config';
+import mailConfig from '@gdk-mail/mail.config';
 
 @Injectable()
 export class MailSendgridService implements MailService {
-  private DEFAULT_SENDER = process.env.SENDGRID_SENDER_EMAIL;
-  constructor() {
-    SendGrid.setApiKey(process.env.SENDGRID_API_KEY);
+  private DEFAULT_SENDER = '';
+
+  constructor(
+    @Inject(mailConfig.KEY)
+    private readonly mailEnvConfig: ConfigType<typeof mailConfig>,
+  ) {
+    this.init();
+  }
+  private init(): void {
+    SendGrid.setApiKey(this.mailEnvConfig.SENDGRID_API_KEY);
+    this.DEFAULT_SENDER = this.mailEnvConfig.SENDGRID_SENDER_EMAIL;
   }
   @MethodLogger()
   public async send(dto: ISendMail): Promise<ISendMailRes> {

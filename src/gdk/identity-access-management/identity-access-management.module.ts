@@ -13,15 +13,21 @@ import { MailModule } from '@gdk-mail/mail.module';
 import { AuthUtilService } from './auth-util/auth-util.service';
 import { AuthJwtService } from './auth-jwt/auth-jwt.service';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule,
     MailModule,
     MongooseModule.forFeature([UserModel, AuthModel]),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_TOKEN_EXPIRES_IN || '60s' },
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get('JWT_TOKEN_EXPIRES_IN') },
+      }),
     }),
   ],
   controllers: [UserController, AuthController],
@@ -40,8 +46,8 @@ import { JwtModule } from '@nestjs/jwt';
   ],
 })
 export class IdentityAccessManagementModule {
-  constructor() {
-    console.log(process.env.JWT_SECRET);
-    console.log(process.env.JWT_TOKEN_EXPIRES_IN);
+  constructor(configService: ConfigService) {
+    console.log(configService.get('JWT_SECRET'));
+    console.log(configService.get('JWT_TOKEN_EXPIRES_IN'));
   }
 }
