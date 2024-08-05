@@ -39,7 +39,7 @@ export function PromisedTimeout(second: number) {
   return new Promise((resolve) => setTimeout(resolve, second * 1000));
 }
 
-export function MatchPropertiesFromObj(oriObj: object, properties: string[]) {
+export function ExtractPropertiesFromObj(oriObj: object, properties: string[]) {
   return properties.reduce((result, prop) => {
     if (oriObj[`${prop}`]) {
       result[`${prop}`] = oriObj[`${prop}`];

@@ -17,4 +17,7 @@ export default registerAs(IAM_CONFIG_KEY, () => ({
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_TOKEN_EXPIRES_IN: process.env.JWT_TOKEN_EXPIRES_IN,
   JWT_ACCESS_TOKEN_TTL: parseInt(process.env.JWT_ACCESS_TOKEN_TTL, 10),
+  JWT_REFRESH_TOKEN_TTL: parseInt(process.env.JWT_REFRESH_TOKEN_TTL, 10),
+  JWT_PAYLOAD_PROPS_FROM_USER:
+    process.env.JWT_PAYLOAD_PROPS_FROM_USER.split(','),
 }));

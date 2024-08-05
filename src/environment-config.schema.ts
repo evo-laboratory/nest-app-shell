@@ -14,6 +14,8 @@ export const EnvironmentConfigSchema = Joi.object({
   JWT_SECRET: Joi.string().required(),
   JWT_TOKEN_EXPIRES_IN: Joi.string().required(),
   JWT_ACCESS_TOKEN_TTL: Joi.number().default(3600),
+  JWT_REFRESH_TOKEN_TTL: Joi.number().default(86400),
+  JWT_PAYLOAD_PROPS_FROM_USER: Joi.string().default('_id,email'),
   MONGO_URI: Joi.string(),
   MONGO_DB_NAME: Joi.string(),
   SENDGRID_API_KEY: Joi.string(),

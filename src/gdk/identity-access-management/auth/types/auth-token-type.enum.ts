@@ -1,0 +1,4 @@
+export enum AUTH_TOKEN_TYPE {
+  ACCESS = 'ACCESS',
+  REFRESH = 'REFRESH',
+}

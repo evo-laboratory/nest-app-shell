@@ -1,3 +1,4 @@
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
@@ -13,11 +14,25 @@ export class AuthJwtService {
     private readonly jwtService: JwtService,
   ) {}
 
-  public sign(payload: any): Promise<any> {
+  public sign<T>(
+    sub: string,
+    payload: T,
+    type: AUTH_TOKEN_TYPE = AUTH_TOKEN_TYPE.ACCESS,
+  ): Promise<any> {
+    const expiresIn =
+      type === AUTH_TOKEN_TYPE.ACCESS
+        ? this.iamConfig.JWT_ACCESS_TOKEN_TTL
+        : this.iamConfig.JWT_REFRESH_TOKEN_TTL;
     return this.jwtService.signAsync(
-      { ...payload },
       {
-        expiresIn: this.iamConfig.JWT_ACCESS_TOKEN_TTL,
+        sub: sub,
+        ...payload,
+      },
+      {
+        expiresIn: expiresIn,
+        issuer: this.iamConfig.JWT_ISSUER,
+        audience: this.iamConfig.JWT_AUDIENCE,
+        secret: this.iamConfig.JWT_SECRET,
       },
     );
   }

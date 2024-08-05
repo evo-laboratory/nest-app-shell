@@ -488,14 +488,19 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
-      const accessToken = await this.authJwt.sign({
-        sub: user._id,
-        email: dto.email,
+      const accessToken = await this.authJwt.sign(`${auth._id}`, {
+        userId: `${user._id}`,
+        roleList: user.roleList,
         displayName: user.displayName,
-        roles: user.roleList,
+        email: user.email,
+      });
+      const refreshToken = await this.authJwt.sign(`${auth._id}`, {
+        userId: `${user._id}`,
+        email: `${user.email}`,
       });
       return {
         accessToken: accessToken,
+        refreshToken: refreshToken,
       };
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
