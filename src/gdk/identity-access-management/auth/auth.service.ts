@@ -3,7 +3,6 @@ import { EmailSignUpDto, AuthVerifyDto, AuthEmailVerificationDto } from './dto';
 import {
   IEmailSignUpRes,
   IAuthVerifyRes,
-  IAuth,
   IAuthEmailVerificationRes,
 } from './types';
 import { AuthEmailSignInDto } from './dto/auth-email-sign-in.dto';

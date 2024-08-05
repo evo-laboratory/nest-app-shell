@@ -12,6 +12,7 @@ import {
 } from '@shared/exceptions';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { AuthUtilService } from '@gdk-iam/auth-util/auth-util.service';
+import { AuthJwtService } from '@gdk-iam/auth-jwt/auth-jwt.service';
 import { MailService } from '@gdk-mail/mail.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { EncryptService } from '@gdk-iam/encrypt/encrypt.service';
@@ -36,10 +37,10 @@ import {
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
 import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
-
-import { Auth } from './auth.schema';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { ConfigType } from '@nestjs/config';
+
+import { Auth } from './auth.schema';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -53,6 +54,7 @@ export class AuthMongooseService implements AuthService {
     @InjectModel(AUTH_MODEL_NAME)
     private readonly AuthModel: Model<Auth>,
     private readonly authUtil: AuthUtilService,
+    private readonly authJwt: AuthJwtService,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
@@ -486,7 +488,15 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
-      return dto.password;
+      const accessToken = await this.authJwt.sign({
+        sub: user._id,
+        email: dto.email,
+        displayName: user.displayName,
+        roles: user.roleList,
+      });
+      return {
+        accessToken: accessToken,
+      };
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

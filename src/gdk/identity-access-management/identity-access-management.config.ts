@@ -12,6 +12,9 @@ export default registerAs(IAM_CONFIG_KEY, () => ({
   LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED: ParseAnyToBoolean(
     process.env.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED,
   ),
+  JWT_ISSUER: process.env.JWT_ISSUER,
+  JWT_AUDIENCE: process.env.JWT_AUDIENCE,
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_TOKEN_EXPIRES_IN: process.env.JWT_TOKEN_EXPIRES_IN,
+  JWT_ACCESS_TOKEN_TTL: parseInt(process.env.JWT_ACCESS_TOKEN_TTL, 10),
 }));

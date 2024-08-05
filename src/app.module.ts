@@ -11,8 +11,9 @@ import { IdentityAccessManagementModule } from '@gdk-iam/identity-access-managem
 import { MailModule } from '@gdk-mail/mail.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { EnvironmentConfigSchema } from './environment-config.schema';
 import appConfig from './app.config';
+
+import { EnvironmentConfigSchema } from './environment-config.schema';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import appConfig from './app.config';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService) => ({
+      useFactory: (configService) => ({
         uri: configService.get('MONGO_URI'),
         dbName: configService.get('MONGO_DB_NAME'),
         autoCreate: true,
