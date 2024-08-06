@@ -15,6 +15,9 @@ export class AuthJwtService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // TODO Generate Token
+  // TODO Interface Handling
+
   public sign<T>(
     sub: string,
     payload: T,
