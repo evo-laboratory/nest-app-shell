@@ -1,5 +1,5 @@
 // * Application Shell Default File
-import { customAlphabet } from 'nanoid';
+import { customAlphabet, nanoid } from 'nanoid';
 
 export function EnumToArray(enumObject: object): string[] {
   if (typeof enumObject !== 'object') {
@@ -87,3 +87,7 @@ export function MinToMilliseconds(min: number | string) {
 export type PickEnum<T, K extends T> = {
   [P in keyof K]: P extends K ? P : never;
 };
+
+export function GenerateUUID(): string {
+  return nanoid();
+}
