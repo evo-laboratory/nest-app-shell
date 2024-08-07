@@ -6,6 +6,7 @@ import {
   IAuthEmailVerificationRes,
 } from './types';
 import { AuthEmailSignInDto } from './dto/auth-email-sign-in.dto';
+import { IAuthSignInRes } from './types/auth.sign-in-response.interface';
 @Injectable()
 export abstract class AuthService {
   abstract emailSignUp(dto: EmailSignUpDto): Promise<IEmailSignUpRes>;
@@ -13,7 +14,7 @@ export abstract class AuthService {
   abstract emailVerification(
     dto: AuthEmailVerificationDto,
   ): Promise<IAuthEmailVerificationRes>;
-  abstract emailSignIn(dto: AuthEmailSignInDto): Promise<any>;
+  abstract emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes>;
   abstract signOut(): void;
   abstract createAuth(): void;
   abstract getAuthById(): void;

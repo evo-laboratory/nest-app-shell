@@ -41,6 +41,7 @@ import identityAccessManagementConfig from '@gdk-iam/identity-access-management.
 import { ConfigType } from '@nestjs/config';
 
 import { Auth } from './auth.schema';
+import { IAuthSignInRes } from '@gdk-iam/auth/types/auth.sign-in-response.interface';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -421,7 +422,7 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async emailSignIn(dto: AuthEmailSignInDto): Promise<any> {
+  public async emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes> {
     try {
       // * STEP 1. Check email exist in both Auth and User
       const auth = await this.AuthModel.findOne({ identifier: dto.email });

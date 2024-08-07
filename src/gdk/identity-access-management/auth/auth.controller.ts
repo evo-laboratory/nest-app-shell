@@ -28,6 +28,7 @@ import {
   VERIFICATION_PATH,
 } from './types';
 import { AuthEmailSignInDto } from './dto/auth-email-sign-in.dto';
+import { AuthSignInRes } from './dto/auth-sign-in-res.dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -55,7 +56,7 @@ export class AuthController {
   }
 
   @Post(`${V1}/${EMAIL_SIGN_IN_PATH}`)
-  @ApiResponse({ status: 201, type: EmailSignUpRes })
+  @ApiResponse({ status: 201, type: AuthSignInRes })
   async emailSignInV1(@Body() dto: AuthEmailSignInDto) {
     return await this.authService.emailSignIn(dto);
   }
