@@ -12,8 +12,10 @@ import { GPI, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
+  AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
+  AuthSignInRes,
   AuthVerifyDto,
   AuthVerifyRes,
   EmailSignUpDto,
@@ -27,8 +29,6 @@ import {
   EMAIL_VERIFICATION_PATH,
   VERIFICATION_PATH,
 } from './types';
-import { AuthEmailSignInDto } from './dto/auth-email-sign-in.dto';
-import { AuthSignInRes } from './dto/auth-sign-in-res.dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
