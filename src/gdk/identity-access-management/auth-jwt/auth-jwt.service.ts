@@ -1,9 +1,11 @@
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
+import { IUser } from '@gdk-iam/user/types';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { GenerateUUID } from '@shared/helper';
+import { ExtractPropertiesFromObj, GenerateUUID } from '@shared/helper';
+import { MethodLogger } from '@shared/winston-logger';
 
 @Injectable()
 export class AuthJwtService {
@@ -15,9 +17,35 @@ export class AuthJwtService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // TODO Generate Token
-  // TODO Interface Handling
+  @MethodLogger()
+  public async generateCustomToken(authId: string, user: IUser) {
+    // TODO Interface Handling
+    try {
+      const userPayload = ExtractPropertiesFromObj(
+        user,
+        this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
+      );
+      console.log(userPayload);
+      const access = await this.sign(
+        authId,
+        userPayload,
+        AUTH_TOKEN_TYPE.ACCESS,
+      );
+      const refresh = await this.sign(
+        authId,
+        userPayload,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      return {
+        accessToken: access,
+        refreshToken: refresh,
+      };
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
+  @MethodLogger()
   public sign<T>(
     sub: string,
     payload: T,
