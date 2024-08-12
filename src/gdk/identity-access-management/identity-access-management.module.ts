@@ -16,8 +16,6 @@ import { UserModel } from './user/providers/user.mongoose/user.schema';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { UserMongooseService } from './user/providers/user.mongoose/user.mongoose.service';
-import { SecureTokenMongooseService } from './auth/providers/secure-token.mongoose/secure-token.mongoose.service';
-import { SecureTokenRedisService } from './auth/providers/secure-token.redis/secure-token.redis.service';
 
 import identityAccessManagementConfig from './identity-access-management.config';
 
@@ -52,8 +50,6 @@ import identityAccessManagementConfig from './identity-access-management.config'
     EncryptService,
     AuthUtilService,
     AuthJwtService,
-    SecureTokenMongooseService,
-    SecureTokenRedisService,
   ],
 })
 export class IdentityAccessManagementModule {}

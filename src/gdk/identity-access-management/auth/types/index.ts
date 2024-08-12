@@ -5,6 +5,7 @@ export * from './auth-generated-code.interface';
 export * from './auth-identifier-type';
 export * from './auth-method.enum';
 export * from './auth-provider.enum';
+export * from './auth-register-token.interface';
 export * from './auth-sign-in-failed-record-item.interface';
 export * from './auth-token-item.interface';
 export * from './auth-token-type.enum';
