@@ -16,6 +16,9 @@ import { UserModel } from './user/providers/user.mongoose/user.schema';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { UserMongooseService } from './user/providers/user.mongoose/user.mongoose.service';
+import { AuthRevokedTokenService } from './auth-revoked-token/auth-revoked-token.service';
+import { RevokedTokenMongooseService } from './auth-revoked-token/providers/revoked-token.mongoose/revoked-token.mongoose.service';
+import { RevokedTokenRedisService } from './auth-revoked-token/providers/revoked-token.redis/revoked-token.redis.service';
 
 import identityAccessManagementConfig from './identity-access-management.config';
 
@@ -50,6 +53,9 @@ import identityAccessManagementConfig from './identity-access-management.config'
     EncryptService,
     AuthUtilService,
     AuthJwtService,
+    AuthRevokedTokenService,
+    RevokedTokenMongooseService,
+    RevokedTokenRedisService,
   ],
 })
 export class IdentityAccessManagementModule {}
