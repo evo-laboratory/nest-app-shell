@@ -1,10 +1,10 @@
-import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
-import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
-import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
 import { Injectable } from '@nestjs/common';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
 @Injectable()
-export class RevokedTokenRedisService implements AuthRevokedTokenService {
+export class AuthRevokedTokenRedisService implements AuthRevokedTokenService {
   public async insert(
     authId: string,
     tokenId: string,
