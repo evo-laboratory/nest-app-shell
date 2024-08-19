@@ -18,12 +18,13 @@ import { UserService } from './user/user.service';
 import { UserMongooseService } from './user/providers/user.mongoose/user.mongoose.service';
 
 import identityAccessManagementConfig from './identity-access-management.config';
+import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.schema';
 
 @Module({
   imports: [
     ConfigModule.forFeature(identityAccessManagementConfig),
     MailModule,
-    MongooseModule.forFeature([UserModel, AuthModel]),
+    MongooseModule.forFeature([UserModel, AuthModel, AuthRevokedTokenModel]),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
