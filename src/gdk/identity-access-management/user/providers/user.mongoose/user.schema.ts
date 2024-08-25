@@ -7,6 +7,7 @@ import { ROLE } from '@gdk-iam/user/types/role.enum';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types/user.static';
 
 export type UserDocument = HydratedDocument<User>;
+
 @Schema()
 export class User implements IUser {
   @Prop({ type: String, default: '', unique: true, required: true })

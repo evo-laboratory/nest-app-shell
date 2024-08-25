@@ -2,13 +2,19 @@ import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoke
 import {
   AUTH_REVOKED_TOKEN_MODEL_NAME,
   AUTH_REVOKED_TOKEN_SOURCE,
+  IAuthRevokedToken,
 } from '@gdk-iam/auth-revoked-token/types';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 
-import { AuthRevokedToken } from './auth-revoked-token.schema';
+import {
+  AuthRevokedToken,
+  AuthRevokedTolenDocument,
+} from './auth-revoked-token.schema';
+import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
+import { MethodLogger } from '@shared/winston-logger';
 
 @Injectable()
 export class AuthRevokedTokenMongooseService
@@ -18,24 +24,66 @@ export class AuthRevokedTokenMongooseService
     @InjectModel(AUTH_REVOKED_TOKEN_MODEL_NAME)
     private readonly AuthRevokedTokenModel: Model<AuthRevokedToken>,
   ) {}
+  @MethodLogger()
   public async insert(
     authId: string,
     tokenId: string,
     source: AUTH_REVOKED_TOKEN_SOURCE,
     type: AUTH_TOKEN_TYPE,
-  ): Promise<any> {
-    throw new Error('Method not implemented.');
+    session?: ClientSession,
+  ): Promise<IAuthRevokedToken> {
+    try {
+      const newData: AuthRevokedTolenDocument =
+        await new this.AuthRevokedTokenModel({
+          tokenId: tokenId,
+          authId: authId,
+          source: source,
+          type: type,
+        }).save({ session: session });
+      return newData.toJSON();
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
+  @MethodLogger()
   public async check(authId: string, tokenId: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    try {
+      const found = await this.AuthRevokedTokenModel.findOne({
+        authId: authId,
+        tokenId: tokenId,
+      });
+      return found === null;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
-  public async get(authId: string, tokenId: string): Promise<any> {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async get(
+    authId: string,
+    tokenId: string,
+  ): Promise<AuthRevokedTolenDocument> {
+    try {
+      const found = await this.AuthRevokedTokenModel.findOne({
+        authId: authId,
+        tokenId: tokenId,
+      });
+      return found;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
-  public async listByAuthId(authId: string): Promise<any> {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async listByAuthId(authId: string): Promise<IAuthRevokedToken[]> {
+    try {
+      const list = await this.AuthRevokedTokenModel.find({
+        authId: authId,
+      }).lean();
+      return list;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 }
