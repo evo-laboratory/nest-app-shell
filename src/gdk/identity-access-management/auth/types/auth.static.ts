@@ -11,6 +11,7 @@ export const EMAIL_SIGN_UP_PATH = 'email-sign-up';
 export const EMAIL_SIGN_IN_PATH = 'email-sign-in';
 export const VERIFICATION_PATH = 'verification';
 export const EMAIL_VERIFICATION_PATH = 'email-verification';
+export const SIGN_OUT_PATH = 'sign-out';
 
 export const EMAIL_VERIFICATION_ALLOW_AUTH_USAGE = [
   AUTH_CODE_USAGE.FORGOT_PASSWORD,

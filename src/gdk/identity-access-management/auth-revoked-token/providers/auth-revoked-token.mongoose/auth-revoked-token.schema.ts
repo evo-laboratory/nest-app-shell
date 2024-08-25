@@ -1,12 +1,12 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import {
   AUTH_REVOKED_TOKEN_MODEL_NAME,
   AUTH_REVOKED_TOKEN_SOURCE,
 } from '@gdk-iam/auth-revoked-token/types';
 import { IAuthRevokedToken } from '@gdk-iam/auth-revoked-token/types/auth-revoked-token.interface';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { IAuth } from '@gdk-iam/auth/types';
 import { HydratedDocument, Types } from 'mongoose';
 import { EnumToArray } from '@shared/helper';
-import { IAuth } from '@gdk-iam/auth/types';
 import { MongoModelBuilder } from '@shared/mongodb';
 
 export type AuthRevokedTolenDocument = HydratedDocument<AuthRevokedToken>;
