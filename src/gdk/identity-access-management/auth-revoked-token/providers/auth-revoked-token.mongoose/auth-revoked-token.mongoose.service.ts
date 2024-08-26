@@ -9,12 +9,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 
+import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
+import { MethodLogger } from '@shared/winston-logger';
+
 import {
   AuthRevokedToken,
   AuthRevokedTokenDocument,
 } from './auth-revoked-token.schema';
-import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
-import { MethodLogger } from '@shared/winston-logger';
 
 @Injectable()
 export class AuthRevokedTokenMongooseService

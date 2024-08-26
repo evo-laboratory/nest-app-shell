@@ -29,6 +29,7 @@ import {
   IAuthGeneratedCode,
   IAuthSignInFailedRecordItem,
   IAuthTokenItem,
+  AUTH_TOKEN_TYPE,
 } from '@gdk-iam/auth/types';
 import {
   AuthEmailVerificationDto,
@@ -43,6 +44,7 @@ import { ConfigType } from '@nestjs/config';
 
 import { Auth } from './auth.schema';
 import { IAuthSignInRes } from '@gdk-iam/auth/types/auth.sign-in-response.interface';
+import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-tokem-result.interface';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -423,7 +425,13 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes> {
+  public async emailSignIn(
+    dto: AuthEmailSignInDto,
+    session?: ClientSession,
+  ): Promise<IAuthSignInRes> {
+    if (!session) {
+      session = await this.connection.startSession();
+    }
     try {
       // * STEP 1. Check email exist in both Auth and User
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
@@ -490,14 +498,46 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
-      const tokens = await this.authJwt.generateCustomToken(
-        `${auth._id}`,
-        user,
+      const tokenResults: IAuthGenerateCustomTokenResult =
+        await this.authJwt.generateCustomToken(`${auth._id}`, user);
+      session.startTransaction();
+      const refreshItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.REFRESH,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.refreshTokenId,
+        tokenContent: tokenResults.refreshToken,
+        expiredAt: 0, // TODO
+        createdAt: Date.now(),
+      };
+      const pushedRefreshItem = await this.pushRefreshTokenItemById(
+        auth._id,
+        refreshItem,
+        session,
       );
-      // TODO Access Token into Main Provider (just for tracking)
-      // TODO Refresh token abstract storage (could support redis)
-      return tokens;
+      assert.ok(pushedRefreshItem, 'Pushed Refresh Token');
+      const accessItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.ACCESS,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.accessTokenId,
+        tokenContent: tokenResults.accessToken,
+        expiredAt: 0, // TODO
+        createdAt: Date.now(),
+      };
+      const pushedAccessItem = await this.pushAccessTokenItemById(
+        auth._id,
+        accessItem,
+        session,
+      );
+      assert.ok(pushedAccessItem, 'Pushed Access Token');
+      return {
+        accessToken: tokenResults.accessToken,
+        refreshToken: tokenResults.refreshToken,
+      };
     } catch (error) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }

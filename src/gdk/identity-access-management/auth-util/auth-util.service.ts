@@ -53,7 +53,6 @@ export class AuthUtilService {
         }
       },
     );
-    console.log(recentFailAttempts);
     if (recentFailAttempts.length > ATTEMPT_LIMIT) {
       return true;
     }
