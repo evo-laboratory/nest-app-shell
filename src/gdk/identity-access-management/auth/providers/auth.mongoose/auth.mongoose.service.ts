@@ -500,6 +500,7 @@ export class AuthMongooseService implements AuthService {
       // * STEP 4. Issue JWT
       const tokenResults: IAuthGenerateCustomTokenResult =
         await this.authJwt.generateCustomToken(`${auth._id}`, user);
+      // * STEP 5. Push into Auth
       session.startTransaction();
       const refreshItem: IAuthTokenItem = {
         type: AUTH_TOKEN_TYPE.REFRESH,
