@@ -27,6 +27,7 @@ import {
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
+  SIGN_OUT_PATH,
   VERIFICATION_PATH,
 } from './types';
 
@@ -59,6 +60,11 @@ export class AuthController {
   @ApiResponse({ status: 201, type: AuthSignInRes })
   async emailSignInV1(@Body() dto: AuthEmailSignInDto) {
     return await this.authService.emailSignIn(dto);
+  }
+
+  @Post(`${V1}/${SIGN_OUT_PATH}`)
+  async signOutV1() {
+    return 'ok';
   }
 
   @Get()
