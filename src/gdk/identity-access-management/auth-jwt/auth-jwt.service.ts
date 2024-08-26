@@ -25,7 +25,6 @@ export class AuthJwtService {
         user,
         this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
       );
-      console.log(userPayload);
       const access = await this.sign(
         authId,
         userPayload,

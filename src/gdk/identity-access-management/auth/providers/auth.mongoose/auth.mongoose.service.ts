@@ -28,6 +28,7 @@ import {
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
   IAuthSignInFailedRecordItem,
+  IAuthTokenItem,
 } from '@gdk-iam/auth/types';
 import {
   AuthEmailVerificationDto,
@@ -576,6 +577,58 @@ export class AuthMongooseService implements AuthService {
         {
           $push: {
             signInFailRecordList: {
+              $each: [item],
+              $slice: -SLICE_COUNT,
+            },
+          },
+        },
+        { session: session },
+      );
+      return updated;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  private async pushRefreshTokenItemById(
+    authId: Types.ObjectId,
+    item: IAuthTokenItem,
+    session?: ClientSession,
+  ) {
+    try {
+      const SLICE_COUNT = 100;
+      const updated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $push: {
+            activeRefreshTokenList: {
+              $each: [item],
+              $slice: -SLICE_COUNT,
+            },
+          },
+        },
+        { session: session },
+      );
+      return updated;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  private async pushAccessTokenItemById(
+    authId: Types.ObjectId,
+    item: IAuthTokenItem,
+    session?: ClientSession,
+  ) {
+    try {
+      const SLICE_COUNT = 100;
+      const updated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $push: {
+            activeRefreshTokenList: {
               $each: [item],
               $slice: -SLICE_COUNT,
             },
