@@ -11,7 +11,7 @@ import { ClientSession, Model } from 'mongoose';
 
 import {
   AuthRevokedToken,
-  AuthRevokedTolenDocument,
+  AuthRevokedTokenDocument,
 } from './auth-revoked-token.schema';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import { MethodLogger } from '@shared/winston-logger';
@@ -33,7 +33,7 @@ export class AuthRevokedTokenMongooseService
     session?: ClientSession,
   ): Promise<IAuthRevokedToken> {
     try {
-      const newData: AuthRevokedTolenDocument =
+      const newData: AuthRevokedTokenDocument =
         await new this.AuthRevokedTokenModel({
           tokenId: tokenId,
           authId: authId,
@@ -63,7 +63,7 @@ export class AuthRevokedTokenMongooseService
   public async get(
     authId: string,
     tokenId: string,
-  ): Promise<AuthRevokedTolenDocument> {
+  ): Promise<AuthRevokedTokenDocument> {
     try {
       const found = await this.AuthRevokedTokenModel.findOne({
         authId: authId,

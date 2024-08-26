@@ -4,12 +4,12 @@ import {
   AUTH_REVOKED_TOKEN_SOURCE,
 } from '@gdk-iam/auth-revoked-token/types';
 import { IAuthRevokedToken } from '@gdk-iam/auth-revoked-token/types/auth-revoked-token.interface';
-import { IAuth } from '@gdk-iam/auth/types';
+import { AUTH_TOKEN_TYPE, IAuth } from '@gdk-iam/auth/types';
 import { HydratedDocument, Types } from 'mongoose';
 import { EnumToArray } from '@shared/helper';
 import { MongoModelBuilder } from '@shared/mongodb';
 
-export type AuthRevokedTolenDocument = HydratedDocument<AuthRevokedToken>;
+export type AuthRevokedTokenDocument = HydratedDocument<AuthRevokedToken>;
 
 @Schema()
 export class AuthRevokedToken implements IAuthRevokedToken {
@@ -19,6 +19,12 @@ export class AuthRevokedToken implements IAuthRevokedToken {
     default: AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
   })
   source: AUTH_REVOKED_TOKEN_SOURCE;
+  @Prop({
+    type: String,
+    enum: EnumToArray(AUTH_TOKEN_TYPE),
+    default: AUTH_TOKEN_TYPE.REFRESH,
+  })
+  type: AUTH_TOKEN_TYPE;
   @Prop({ type: Types.ObjectId, default: null, required: true })
   authId: IAuth | Types.ObjectId;
   @Prop({ type: String, default: '', required: true })

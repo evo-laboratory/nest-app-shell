@@ -1,4 +1,6 @@
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
+import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-tokem-result.interface';
+import { IAuthSignedResult } from '@gdk-iam/auth/types/auth-signed-result.interface';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { IUser } from '@gdk-iam/user/types';
 import { Inject, Injectable } from '@nestjs/common';
@@ -18,8 +20,10 @@ export class AuthJwtService {
   ) {}
 
   @MethodLogger()
-  public async generateCustomToken(authId: string, user: IUser) {
-    // TODO Interface Handling
+  public async generateCustomToken(
+    authId: string,
+    user: IUser,
+  ): Promise<IAuthGenerateCustomTokenResult> {
     try {
       const userPayload = ExtractPropertiesFromObj(
         user,
@@ -36,8 +40,10 @@ export class AuthJwtService {
         AUTH_TOKEN_TYPE.REFRESH,
       );
       return {
-        accessToken: access,
-        refreshToken: refresh,
+        accessTokenId: access.tokenId,
+        accessToken: access.token,
+        refreshTokenId: refresh.tokenId,
+        refreshToken: refresh.token,
       };
     } catch (error) {
       return Promise.reject(error);
@@ -45,28 +51,36 @@ export class AuthJwtService {
   }
 
   @MethodLogger()
-  public sign<T>(
+  public async sign<T>(
     sub: string,
     payload: T,
     type: AUTH_TOKEN_TYPE = AUTH_TOKEN_TYPE.ACCESS,
-  ): Promise<any> {
-    const tokenId = GenerateUUID();
-    const expiresIn =
-      type === AUTH_TOKEN_TYPE.ACCESS
-        ? this.iamConfig.JWT_ACCESS_TOKEN_TTL
-        : this.iamConfig.JWT_REFRESH_TOKEN_TTL;
-    return this.jwtService.signAsync(
-      {
+  ): Promise<IAuthSignedResult<any>> {
+    try {
+      const tokenId = GenerateUUID();
+      const expiresIn =
+        type === AUTH_TOKEN_TYPE.ACCESS
+          ? this.iamConfig.JWT_ACCESS_TOKEN_TTL
+          : this.iamConfig.JWT_REFRESH_TOKEN_TTL;
+      const token = this.jwtService.signAsync(
+        {
+          tokenId: tokenId,
+          sub: sub,
+          ...payload,
+        },
+        {
+          expiresIn: expiresIn,
+          issuer: this.iamConfig.JWT_ISSUER,
+          audience: this.iamConfig.JWT_AUDIENCE,
+          secret: this.iamConfig.JWT_SECRET,
+        },
+      );
+      return {
         tokenId: tokenId,
-        sub: sub,
-        ...payload,
-      },
-      {
-        expiresIn: expiresIn,
-        issuer: this.iamConfig.JWT_ISSUER,
-        audience: this.iamConfig.JWT_AUDIENCE,
-        secret: this.iamConfig.JWT_SECRET,
-      },
-    );
+        token: token,
+      };
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 }
