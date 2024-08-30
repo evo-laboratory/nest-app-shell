@@ -32,7 +32,6 @@ import {
   IAuthTokenItem,
   AUTH_TOKEN_TYPE,
   IAuthSignInRes,
-  IAuthGenerateCustomTokenResult,
   IAuthDecodedToken,
 } from '@gdk-iam/auth/types';
 import {
