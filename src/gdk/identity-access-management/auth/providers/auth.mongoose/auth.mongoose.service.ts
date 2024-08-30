@@ -31,23 +31,21 @@ import {
   IAuthSignInFailedRecordItem,
   IAuthTokenItem,
   AUTH_TOKEN_TYPE,
+  IAuthSignInRes,
+  IAuthGenerateCustomTokenResult,
+  IAuthDecodedToken,
 } from '@gdk-iam/auth/types';
 import {
+  AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthVerifyDto,
   CreateAuthDto,
   EmailSignUpDto,
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
-import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 
-import { IAuthSignInRes } from '@gdk-iam/auth/types/auth.sign-in-response.interface';
-import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
-
 import { Auth } from './auth.schema';
-import { IAuthDecodedToken } from '@gdk-iam/auth/types/auth-decoded-token.interface';
-
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
