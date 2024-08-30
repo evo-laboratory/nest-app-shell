@@ -1,5 +1,5 @@
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
-import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-tokem-result.interface';
+import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
 import { IAuthSignedResult } from '@gdk-iam/auth/types/auth-signed-result.interface';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { IUser } from '@gdk-iam/user/types';

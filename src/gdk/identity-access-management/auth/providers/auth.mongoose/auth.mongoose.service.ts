@@ -44,7 +44,7 @@ import { ConfigType } from '@nestjs/config';
 
 import { Auth } from './auth.schema';
 import { IAuthSignInRes } from '@gdk-iam/auth/types/auth.sign-in-response.interface';
-import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-tokem-result.interface';
+import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
