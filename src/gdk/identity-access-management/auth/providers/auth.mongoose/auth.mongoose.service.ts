@@ -502,7 +502,6 @@ export class AuthMongooseService implements AuthService {
         await this.authJwt.generateCustomToken(`${auth._id}`, user);
       const aToken = this.authJwt.decode(tokenResults.accessToken);
       const rToken = this.authJwt.decode(tokenResults.refreshToken);
-      console.log(aToken);
       // * STEP 5. Push into Auth
       session.startTransaction();
       const refreshItem: IAuthTokenItem = {
