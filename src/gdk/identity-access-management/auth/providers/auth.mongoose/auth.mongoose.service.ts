@@ -500,6 +500,9 @@ export class AuthMongooseService implements AuthService {
       // * STEP 4. Issue JWT
       const tokenResults: IAuthGenerateCustomTokenResult =
         await this.authJwt.generateCustomToken(`${auth._id}`, user);
+      const aToken = this.authJwt.decode(tokenResults.accessToken);
+      const rToken = this.authJwt.decode(tokenResults.refreshToken);
+      console.log(aToken);
       // * STEP 5. Push into Auth
       session.startTransaction();
       const refreshItem: IAuthTokenItem = {
@@ -507,7 +510,8 @@ export class AuthMongooseService implements AuthService {
         provider: AUTH_PROVIDER.MONGOOSE,
         tokenId: tokenResults.refreshTokenId,
         tokenContent: tokenResults.refreshToken,
-        expiredAt: 0, // TODO
+        issuer: rToken.iss,
+        expiredAt: rToken.exp * 1000,
         createdAt: Date.now(),
       };
       const pushedRefreshItem = await this.pushRefreshTokenItemById(
@@ -521,7 +525,8 @@ export class AuthMongooseService implements AuthService {
         provider: AUTH_PROVIDER.MONGOOSE,
         tokenId: tokenResults.accessTokenId,
         tokenContent: tokenResults.accessToken,
-        expiredAt: 0, // TODO
+        issuer: aToken.iss,
+        expiredAt: aToken.exp * 1000,
         createdAt: Date.now(),
       };
       const pushedAccessItem = await this.pushAccessTokenItemById(
@@ -530,6 +535,8 @@ export class AuthMongooseService implements AuthService {
         session,
       );
       assert.ok(pushedAccessItem, 'Pushed Access Token');
+      await session.commitTransaction();
+      await session.endSession();
       return {
         accessToken: tokenResults.accessToken,
         refreshToken: tokenResults.refreshToken,
@@ -620,6 +627,7 @@ export class AuthMongooseService implements AuthService {
             signInFailRecordList: {
               $each: [item],
               $slice: -SLICE_COUNT,
+              $position: 0,
             },
           },
         },
@@ -646,6 +654,7 @@ export class AuthMongooseService implements AuthService {
             activeRefreshTokenList: {
               $each: [item],
               $slice: -SLICE_COUNT,
+              $position: 0,
             },
           },
         },
@@ -669,9 +678,10 @@ export class AuthMongooseService implements AuthService {
         authId,
         {
           $push: {
-            activeRefreshTokenList: {
+            accessTokenHistoryList: {
               $each: [item],
               $slice: -SLICE_COUNT,
+              $position: 0,
             },
           },
         },

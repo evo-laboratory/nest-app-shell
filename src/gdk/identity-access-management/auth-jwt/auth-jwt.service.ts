@@ -39,6 +39,7 @@ export class AuthJwtService {
         userPayload,
         AUTH_TOKEN_TYPE.REFRESH,
       );
+      console.log(access, refresh);
       return {
         accessTokenId: access.tokenId,
         accessToken: access.token,
@@ -62,7 +63,7 @@ export class AuthJwtService {
         type === AUTH_TOKEN_TYPE.ACCESS
           ? this.iamConfig.JWT_ACCESS_TOKEN_TTL
           : this.iamConfig.JWT_REFRESH_TOKEN_TTL;
-      const token = this.jwtService.signAsync(
+      const token = await this.jwtService.signAsync(
         {
           tokenId: tokenId,
           sub: sub,
@@ -79,6 +80,15 @@ export class AuthJwtService {
         tokenId: tokenId,
         token: token,
       };
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  public decode(tokenString: string) {
+    try {
+      const token = this.jwtService.decode(tokenString);
+      return token;
     } catch (error) {
       return Promise.reject(error);
     }
