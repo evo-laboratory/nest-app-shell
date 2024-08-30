@@ -45,7 +45,7 @@ import {
 import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 
-import { Auth } from './auth.schema';
+import { Auth, AuthDocument } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -114,7 +114,7 @@ export class AuthMongooseService implements AuthService {
       );
       assert.ok(newUser, 'New User Created');
       // * STEP 4. Create New Auth
-      const newAuth: ICreateAuthResult = await this.create(
+      const newAuth = await this.create(
         {
           identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
           identifier: dto.email,
@@ -256,6 +256,7 @@ export class AuthMongooseService implements AuthService {
       // * STEP A. Setup Transaction Session
       session.startTransaction();
       // * STEP B. Reset Auth State
+      // TODO Typing
       const updateQuery: any = {
         codeExpiredAt: 0,
         code: '',
@@ -385,7 +386,7 @@ export class AuthMongooseService implements AuthService {
       }
       // * STEP 4. Setup Transaction Session
       session.startTransaction();
-      const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
+      const generated = this.authUtil.generateAuthCode();
       // * STEP 5. Send Email
       const mail: ISendMail = {
         to: dto.email,
@@ -498,8 +499,10 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
-      const tokenResults: IAuthGenerateCustomTokenResult =
-        await this.authJwt.generateCustomToken(`${auth._id}`, user);
+      const tokenResults = await this.authJwt.generateCustomToken(
+        `${auth._id}`,
+        user,
+      );
       const aToken = this.authJwt.decode<IAuthDecodedToken>(
         tokenResults.accessToken,
       );
@@ -620,7 +623,7 @@ export class AuthMongooseService implements AuthService {
     authId: Types.ObjectId,
     item: IAuthSignInFailedRecordItem,
     session?: ClientSession,
-  ) {
+  ): Promise<AuthDocument> {
     try {
       const SLICE_COUNT = 20;
       const updated = await this.AuthModel.findByIdAndUpdate(
@@ -647,7 +650,7 @@ export class AuthMongooseService implements AuthService {
     authId: Types.ObjectId,
     item: IAuthTokenItem,
     session?: ClientSession,
-  ) {
+  ): Promise<AuthDocument> {
     try {
       const SLICE_COUNT = 100;
       const updated = await this.AuthModel.findByIdAndUpdate(
@@ -674,7 +677,7 @@ export class AuthMongooseService implements AuthService {
     authId: Types.ObjectId,
     item: IAuthTokenItem,
     session?: ClientSession,
-  ) {
+  ): Promise<AuthDocument> {
     try {
       const SLICE_COUNT = 100;
       const updated = await this.AuthModel.findByIdAndUpdate(
