@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { ConfigType } from '@nestjs/config';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { strict as assert } from 'assert';
 import { MethodLogger } from '@shared/winston-logger';
@@ -40,11 +41,12 @@ import {
 import { ISendMail } from '@gdk-mail/types';
 import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
-import { ConfigType } from '@nestjs/config';
 
-import { Auth } from './auth.schema';
 import { IAuthSignInRes } from '@gdk-iam/auth/types/auth.sign-in-response.interface';
 import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
+
+import { Auth } from './auth.schema';
+import { IAuthDecodedToken } from '@gdk-iam/auth/types/auth-decoded-token.interface';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -500,8 +502,12 @@ export class AuthMongooseService implements AuthService {
       // * STEP 4. Issue JWT
       const tokenResults: IAuthGenerateCustomTokenResult =
         await this.authJwt.generateCustomToken(`${auth._id}`, user);
-      const aToken = this.authJwt.decode(tokenResults.accessToken);
-      const rToken = this.authJwt.decode(tokenResults.refreshToken);
+      const aToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.accessToken,
+      );
+      const rToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.refreshToken,
+      );
       // * STEP 5. Push into Auth
       session.startTransaction();
       const refreshItem: IAuthTokenItem = {

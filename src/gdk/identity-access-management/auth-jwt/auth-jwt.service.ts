@@ -1,8 +1,9 @@
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
+import { IAuthDecodedToken } from '@gdk-iam/auth/types/auth-decoded-token.interface';
 import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
 import { IAuthSignedResult } from '@gdk-iam/auth/types/auth-signed-result.interface';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
-import { IUser } from '@gdk-iam/user/types';
+import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -25,21 +26,23 @@ export class AuthJwtService {
     user: IUser,
   ): Promise<IAuthGenerateCustomTokenResult> {
     try {
-      const userPayload = ExtractPropertiesFromObj(
-        user,
-        this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
-      );
+      const userPayload: IUserTokenPayload =
+        ExtractPropertiesFromObj<IUserTokenPayload>(
+          user,
+          this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
+        );
       const access = await this.sign(
         authId,
+        `${user._id}`,
         userPayload,
         AUTH_TOKEN_TYPE.ACCESS,
       );
       const refresh = await this.sign(
         authId,
+        `${user._id}`,
         userPayload,
         AUTH_TOKEN_TYPE.REFRESH,
       );
-      console.log(access, refresh);
       return {
         accessTokenId: access.tokenId,
         accessToken: access.token,
@@ -54,6 +57,7 @@ export class AuthJwtService {
   @MethodLogger()
   public async sign<T>(
     sub: string,
+    userId: string,
     payload: T,
     type: AUTH_TOKEN_TYPE = AUTH_TOKEN_TYPE.ACCESS,
   ): Promise<IAuthSignedResult<any>> {
@@ -66,6 +70,7 @@ export class AuthJwtService {
       const token = await this.jwtService.signAsync(
         {
           tokenId: tokenId,
+          userId: userId,
           sub: sub,
           ...payload,
         },
@@ -85,12 +90,13 @@ export class AuthJwtService {
     }
   }
 
-  public decode(tokenString: string) {
+  @MethodLogger()
+  public decode<T>(tokenString: string): T {
     try {
       const token = this.jwtService.decode(tokenString);
       return token;
     } catch (error) {
-      return Promise.reject(error);
+      throw new Error(error);
     }
   }
 }
