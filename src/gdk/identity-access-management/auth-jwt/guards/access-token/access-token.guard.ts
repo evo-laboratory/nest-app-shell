@@ -42,7 +42,7 @@ export class AccessTokenGuard implements CanActivate {
       req[VERIFIED_JWT_KEY] = payload;
       console.log(payload);
     } catch {
-      WinstonLogger.error('Invalid token', {
+      WinstonLogger.error('Verify failed', {
         contextName: AccessTokenGuard.name,
         methodName: 'canActivate',
       });
