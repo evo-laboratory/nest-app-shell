@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { GPI, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -30,6 +31,7 @@ import {
   SIGN_OUT_PATH,
   VERIFICATION_PATH,
 } from './types';
+import { AccessTokenGuard } from '@gdk-iam/auth-jwt/guards/access-token/access-token.guard';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)

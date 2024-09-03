@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from '@gdk-mail/mail.module';
 
@@ -19,6 +19,8 @@ import { UserMongooseService } from './user/providers/user.mongoose/user.mongoos
 
 import identityAccessManagementConfig from './identity-access-management.config';
 import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.schema';
+import { AccessTokenGuard } from './auth-jwt/guards/access-token/access-token.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -38,7 +40,6 @@ import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revok
       }),
     }),
   ],
-  controllers: [UserController, AuthController],
   providers: [
     {
       provide: UserService,
@@ -48,9 +49,16 @@ import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revok
       provide: AuthService,
       useClass: AuthMongooseService,
     },
+    {
+      provide: APP_GUARD,
+      useClass: AccessTokenGuard,
+    },
     EncryptService,
     AuthUtilService,
     AuthJwtService,
+    JwtService,
+    ConfigService,
   ],
+  controllers: [UserController, AuthController],
 })
 export class IdentityAccessManagementModule {}
