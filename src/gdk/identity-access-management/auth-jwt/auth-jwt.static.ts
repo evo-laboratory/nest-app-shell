@@ -1,1 +1,1 @@
-export const VERIFIED_JWT_KEY = 'verifiedPayload';
+export const VERIFIED_JWT_KEY = 'verifiedJWTPayload';

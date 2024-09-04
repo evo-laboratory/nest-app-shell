@@ -11,6 +11,7 @@ import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
+import { IAuthDecodedToken } from '@gdk-iam/auth/types';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
@@ -25,10 +26,6 @@ export class AccessTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(req);
-    WinstonLogger.info('Guarding', {
-      contextName: AccessTokenGuard.name,
-      methodName: 'canActivate',
-    });
     if (!token) {
       WinstonLogger.error('Token not found', {
         contextName: AccessTokenGuard.name,
@@ -37,14 +34,19 @@ export class AccessTokenGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      // TODO Typing
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.iamConfig.JWT_SECRET,
-        issuer: this.iamConfig.JWT_ISSUER,
-        audience: this.iamConfig.JWT_AUDIENCE,
-      });
+      const payload = await this.jwtService.verifyAsync<IAuthDecodedToken>(
+        token,
+        {
+          secret: this.iamConfig.JWT_SECRET,
+          issuer: this.iamConfig.JWT_ISSUER,
+          audience: this.iamConfig.JWT_AUDIENCE,
+        },
+      );
       req[VERIFIED_JWT_KEY] = payload;
-      console.log(payload);
+      WinstonLogger.info('Token verified', {
+        contextName: AccessTokenGuard.name,
+        methodName: 'canActivate',
+      });
     } catch {
       WinstonLogger.error('Verify failed', {
         contextName: AccessTokenGuard.name,
