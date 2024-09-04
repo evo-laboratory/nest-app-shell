@@ -1,4 +1,4 @@
-export interface IAuthSignedResult<T> {
-  token: T;
+export interface IAuthSignedResult {
+  token: string;
   tokenId: string;
 }

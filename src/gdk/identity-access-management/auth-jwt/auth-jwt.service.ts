@@ -59,7 +59,7 @@ export class AuthJwtService {
     userId: string,
     payload: T,
     type: AUTH_TOKEN_TYPE = AUTH_TOKEN_TYPE.ACCESS,
-  ): Promise<IAuthSignedResult<any>> {
+  ): Promise<IAuthSignedResult> {
     try {
       const tokenId = GenerateUUID();
       const expiresIn =

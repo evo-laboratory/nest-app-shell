@@ -17,10 +17,12 @@ export class AuthenticationGuard implements CanActivate {
     [AUTH_TYPE.BEARER]: this.accessTokenGuard,
     [AUTH_TYPE.NONE]: { canActivate: () => true },
   };
+
   constructor(
     private readonly reflector: Reflector,
     private readonly accessTokenGuard: AccessTokenGuard,
   ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const authTypes = this.reflector.getAllAndOverride<AUTH_TYPE[]>(
       AUTH_TYPE_KEY,

@@ -5,7 +5,7 @@ import { IAuthDecodedToken } from '../types';
 export const VerifiedToken = createParamDecorator(
   (field: keyof IAuthDecodedToken | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    const user: IAuthDecodedToken | undefined = request[VERIFIED_JWT_KEY];
-    return field ? user?.[field] : user;
+    const token: IAuthDecodedToken | undefined = request[VERIFIED_JWT_KEY];
+    return field ? token?.[field] : token;
   },
 );
