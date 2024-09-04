@@ -21,6 +21,7 @@ import identityAccessManagementConfig from './identity-access-management.config'
 import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.schema';
 import { AccessTokenGuard } from './auth-jwt/guards/access-token/access-token.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { AuthenticationGuard } from './auth/guards/authentication/authentication.guard';
 
 @Module({
   imports: [
@@ -51,8 +52,9 @@ import { APP_GUARD } from '@nestjs/core';
     },
     {
       provide: APP_GUARD,
-      useClass: AccessTokenGuard,
+      useClass: AuthenticationGuard,
     },
+    AccessTokenGuard,
     EncryptService,
     AuthUtilService,
     AuthJwtService,

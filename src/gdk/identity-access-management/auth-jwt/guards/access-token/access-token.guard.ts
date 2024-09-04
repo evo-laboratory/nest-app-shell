@@ -25,6 +25,10 @@ export class AccessTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(req);
+    WinstonLogger.info('Guarding', {
+      contextName: AccessTokenGuard.name,
+      methodName: 'canActivate',
+    });
     if (!token) {
       WinstonLogger.error('Token not found', {
         contextName: AccessTokenGuard.name,

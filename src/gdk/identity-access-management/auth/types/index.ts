@@ -12,6 +12,7 @@ export * from './auth-register-token.interface';
 export * from './auth-sign-in-failed-record-item.interface';
 export * from './auth-token-item.interface';
 export * from './auth-token-type.enum';
+export * from './auth-type.enum';
 export * from './auth-verify.interface';
 export * from './auth-email-verification.interface';
 export * from './auth.interface';
