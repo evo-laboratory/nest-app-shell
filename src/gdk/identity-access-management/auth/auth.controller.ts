@@ -28,10 +28,12 @@ import {
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
+  IAuthDecodedToken,
   SIGN_OUT_PATH,
   VERIFICATION_PATH,
 } from './types';
 import { AuthType } from './decorators/auth-type.decorator';
+import { VerifiedToken } from './decorators/verified-token.decorator';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -69,7 +71,8 @@ export class AuthController {
   }
 
   @Post(`${V1}/${SIGN_OUT_PATH}`)
-  async signOutV1() {
+  async signOutV1(@VerifiedToken() token: IAuthDecodedToken) {
+    console.log(token);
     return 'ok';
   }
 
