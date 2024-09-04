@@ -48,7 +48,7 @@ export class AccessTokenGuard implements CanActivate {
         methodName: 'canActivate',
       });
     } catch {
-      WinstonLogger.error('Verify failed', {
+      WinstonLogger.error('Token verify failed', {
         contextName: AccessTokenGuard.name,
         methodName: 'canActivate',
       });

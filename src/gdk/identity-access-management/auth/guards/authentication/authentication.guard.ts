@@ -28,7 +28,7 @@ export class AuthenticationGuard implements CanActivate {
     ) ?? [AuthenticationGuard.defaultAuthType];
     let error = new UnauthorizedException();
     const guards = authTypes.map((type) => this.authTypeGuardMap[type]).flat();
-    WinstonLogger.info(`Auth Types: ${authTypes.join(',')}`, {
+    WinstonLogger.info(`Auth types: ${authTypes.join(',')}`, {
       contextName: AuthenticationGuard.name,
       methodName: 'canActivate',
     });
