@@ -34,6 +34,7 @@ export class AuthRevokedTokenMongooseService
     session?: ClientSession,
   ): Promise<IAuthRevokedToken> {
     try {
+      // TODO Check if already revoked => AUTH_REFRESH_TOKEN_ALREADY_REVOKED
       const newData: AuthRevokedTokenDocument =
         await new this.AuthRevokedTokenModel({
           tokenId: tokenId,
