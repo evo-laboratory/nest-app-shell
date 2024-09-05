@@ -22,6 +22,8 @@ import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revok
 import { AccessTokenGuard } from './auth-jwt/guards/access-token/access-token.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './auth/guards/authentication/authentication.guard';
+import { AuthRevokedTokenService } from './auth-revoked-token/auth-revoked-token.service';
+import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.mongoose.service';
 
 @Module({
   imports: [
@@ -49,6 +51,10 @@ import { AuthenticationGuard } from './auth/guards/authentication/authentication
     {
       provide: AuthService,
       useClass: AuthMongooseService,
+    },
+    {
+      provide: AuthRevokedTokenService,
+      useClass: AuthRevokedTokenMongooseService,
     },
     {
       provide: APP_GUARD,

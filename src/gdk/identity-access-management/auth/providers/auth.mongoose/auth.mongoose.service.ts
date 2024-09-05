@@ -43,8 +43,10 @@ import {
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
 import { Auth, AuthDocument } from './auth.schema';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -61,6 +63,7 @@ export class AuthMongooseService implements AuthService {
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
+    private readonly revokeService: AuthRevokedTokenService,
   ) {
     console.log(this.iamConfig);
   }
@@ -554,9 +557,25 @@ export class AuthMongooseService implements AuthService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  signOut(): void {
-    throw new Error('Method not implemented.');
+
+  @MethodLogger()
+  public async signOut(authId: string, tokenId: string): Promise<any> {
+    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
+      return 'ok';
+    }
+    try {
+      await this.revokeService.insert(
+        authId,
+        tokenId,
+        AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      return 'ok';
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
+
   createAuth(): void {
     throw new Error('Method not implemented.');
   }

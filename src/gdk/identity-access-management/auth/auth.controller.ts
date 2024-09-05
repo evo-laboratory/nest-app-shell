@@ -34,6 +34,7 @@ import {
 } from './types';
 import { AuthType } from './decorators/auth-type.decorator';
 import { VerifiedToken } from './decorators/verified-token.decorator';
+import { AuthSignOutDto } from './dto/auth-sign-out.dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -71,9 +72,12 @@ export class AuthController {
   }
 
   @Post(`${V1}/${SIGN_OUT_PATH}`)
-  async signOutV1(@VerifiedToken() token: IAuthDecodedToken) {
-    console.log(token);
-    return 'ok';
+  async signOutV1(
+    @VerifiedToken() token: IAuthDecodedToken,
+    @Body() dto: AuthSignOutDto,
+  ) {
+    console.log(dto);
+    return await this.authService.signOut(token.sub, token.tokenId);
   }
 
   @Get()

@@ -20,7 +20,7 @@ export abstract class AuthService {
     dto: AuthEmailVerificationDto,
   ): Promise<IAuthEmailVerificationRes>;
   abstract emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes>;
-  abstract signOut(): void;
+  abstract signOut(authId: string, tokenId: string): Promise<any>;
   abstract createAuth(): void;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;

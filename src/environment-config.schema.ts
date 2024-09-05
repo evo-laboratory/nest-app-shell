@@ -9,6 +9,10 @@ export const EnvironmentConfigSchema = Joi.object({
   CODE_EXPIRE_MIN: Joi.number().default(5),
   SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT: Joi.number().default(5),
   LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED: Joi.boolean().default(false),
+  CHECK_REVOKED_TOKEN: Joi.boolean().default(false),
+  REVOKED_TOKEN_PROVIDER: Joi.string()
+    .valid('DATABASE', 'REDIS')
+    .default('DATABASE'),
   JWT_ISSUER: Joi.string().required(),
   JWT_AUDIENCE: Joi.string().required(),
   JWT_SECRET: Joi.string().required(),
