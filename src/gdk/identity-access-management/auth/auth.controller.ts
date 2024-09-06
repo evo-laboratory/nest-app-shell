@@ -16,6 +16,7 @@ import {
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
   AuthSignInRes,
+  AuthSignOutRes,
   AuthVerifyDto,
   AuthVerifyRes,
   EmailSignUpDto,
@@ -72,6 +73,8 @@ export class AuthController {
   }
 
   @Post(`${V1}/${SIGN_OUT_PATH}`)
+  @HttpCode(202)
+  @ApiResponse({ status: 202, type: AuthSignOutRes })
   async signOutV1(
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,

@@ -33,6 +33,7 @@ import {
   AUTH_TOKEN_TYPE,
   IAuthSignInRes,
   IAuthDecodedToken,
+  IAuthSignOutRes,
 } from '@gdk-iam/auth/types';
 import {
   AuthEmailSignInDto,
@@ -560,9 +561,15 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async signOut(authId: string, dto: AuthSignOutDto): Promise<any> {
+  public async signOut(
+    authId: string,
+    dto: AuthSignOutDto,
+  ): Promise<IAuthSignOutRes> {
     if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
-      return 'ok';
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: false,
+      };
     }
     try {
       // * Validate refresh token
@@ -576,7 +583,10 @@ export class AuthMongooseService implements AuthService {
         AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
         AUTH_TOKEN_TYPE.REFRESH,
       );
-      return 'ok';
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: true,
+      };
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
