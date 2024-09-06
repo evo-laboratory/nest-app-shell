@@ -83,6 +83,18 @@ export class AuthController {
     return await this.authService.signOut(token.sub, dto);
   }
 
+  // TODO Implement renew access token from refresh token
+  // TODO List All Auth
+  // TODO Find Auth ById
+  // TODO Revoke Refresh token by admin
+  // TODO Implement API Key
+  // TODO Implement RBAC
+  // TODO 3rd party OAuth Login
+  // TODO Google Login
+  // TODO FB Login
+  // TODO Github Login
+  // TODO Implement Event(Auth) webhooks / triggers
+
   @Get()
   findAll() {
     // return this.authService.findAll();
