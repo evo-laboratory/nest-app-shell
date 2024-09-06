@@ -69,6 +69,7 @@ export class AuthJwtService {
       const token = await this.jwtService.signAsync(
         {
           tokenId: tokenId,
+          tokenType: type,
           userId: userId,
           sub: sub,
           ...payload,
@@ -93,6 +94,28 @@ export class AuthJwtService {
   public decode<T>(tokenString: string): T {
     try {
       const token = this.jwtService.decode(tokenString);
+      return token;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  @MethodLogger()
+  public async verify<T>(
+    tokenString: string,
+    specificType?: AUTH_TOKEN_TYPE,
+  ): Promise<T> {
+    try {
+      const token = await this.jwtService.verifyAsync<any>(tokenString, {
+        issuer: this.iamConfig.JWT_ISSUER,
+        audience: this.iamConfig.JWT_AUDIENCE,
+        secret: this.iamConfig.JWT_SECRET,
+      });
+      if (specificType) {
+        if (!token.tokenType || token.tokenType !== specificType) {
+          throw new Error('jwt type not valid');
+        }
+      }
       return token;
     } catch (error) {
       throw new Error(error);

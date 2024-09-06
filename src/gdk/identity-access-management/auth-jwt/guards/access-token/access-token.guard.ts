@@ -1,27 +1,18 @@
 import { VERIFIED_JWT_KEY } from '@gdk-iam/auth-jwt/auth-jwt.static';
-import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import {
   CanActivate,
   ExecutionContext,
-  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
-import { IAuthDecodedToken } from '@gdk-iam/auth/types';
+import { AUTH_TOKEN_TYPE, IAuthDecodedToken } from '@gdk-iam/auth/types';
+import { AuthJwtService } from '@gdk-iam/auth-jwt/auth-jwt.service';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
-  constructor(
-    @Inject(identityAccessManagementConfig.KEY)
-    private readonly iamConfig: ConfigType<
-      typeof identityAccessManagementConfig
-    >,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly authJWT: AuthJwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
@@ -34,13 +25,9 @@ export class AccessTokenGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      const payload = await this.jwtService.verifyAsync<IAuthDecodedToken>(
+      const payload = await this.authJWT.verify<IAuthDecodedToken>(
         token,
-        {
-          secret: this.iamConfig.JWT_SECRET,
-          issuer: this.iamConfig.JWT_ISSUER,
-          audience: this.iamConfig.JWT_AUDIENCE,
-        },
+        AUTH_TOKEN_TYPE.ACCESS,
       );
       req[VERIFIED_JWT_KEY] = payload;
       WinstonLogger.info('Token verified', {

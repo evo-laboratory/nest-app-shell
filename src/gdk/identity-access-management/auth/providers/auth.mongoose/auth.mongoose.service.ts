@@ -47,6 +47,7 @@ import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoke
 
 import { Auth, AuthDocument } from './auth.schema';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
+import { AuthSignOutDto } from '@gdk-iam/auth/dto/auth-sign-out.dto';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -559,14 +560,19 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async signOut(authId: string, tokenId: string): Promise<any> {
+  public async signOut(authId: string, dto: AuthSignOutDto): Promise<any> {
     if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
       return 'ok';
     }
     try {
+      // * Validate refresh token
+      const token = await this.authJwt.verify<IAuthDecodedToken>(
+        dto.refreshToken,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
       await this.revokeService.insert(
         authId,
-        tokenId,
+        token.tokenId,
         AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
         AUTH_TOKEN_TYPE.REFRESH,
       );

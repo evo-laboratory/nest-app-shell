@@ -77,7 +77,7 @@ export class AuthController {
     @Body() dto: AuthSignOutDto,
   ) {
     console.log(dto);
-    return await this.authService.signOut(token.sub, token.tokenId);
+    return await this.authService.signOut(token.sub, dto);
   }
 
   @Get()
