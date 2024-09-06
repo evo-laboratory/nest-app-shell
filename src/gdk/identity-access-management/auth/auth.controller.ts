@@ -87,6 +87,8 @@ export class AuthController {
   // TODO List All Auth
   // TODO Find Auth ById
   // TODO Revoke Refresh token by admin
+  // TODO Disable Auth
+  // TODO Delete Auth
   // TODO Implement API Key
   // TODO Implement RBAC
   // TODO 3rd party OAuth Login
