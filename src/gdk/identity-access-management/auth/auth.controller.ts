@@ -16,6 +16,7 @@ import {
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
   AuthSignInRes,
+  AuthSignOutRes,
   AuthVerifyDto,
   AuthVerifyRes,
   EmailSignUpDto,
@@ -24,24 +25,31 @@ import {
 } from './dto';
 import {
   AUTH_API,
+  AUTH_TYPE,
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
+  IAuthDecodedToken,
   SIGN_OUT_PATH,
   VERIFICATION_PATH,
 } from './types';
+import { AuthType } from './decorators/auth-type.decorator';
+import { VerifiedToken } from './decorators/verified-token.decorator';
+import { AuthSignOutDto } from './dto/auth-sign-out.dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)
   @ApiResponse({ status: 201, type: EmailSignUpRes })
   async emailSignUpV1(@Body() dto: EmailSignUpDto) {
     return await this.authService.emailSignUp(dto);
   }
 
+  @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${VERIFICATION_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthVerifyRes })
@@ -49,6 +57,7 @@ export class AuthController {
     return await this.authService.verifyAuth(dto);
   }
 
+  @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${EMAIL_VERIFICATION_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthEmailVerificationRes })
@@ -56,6 +65,7 @@ export class AuthController {
     return await this.authService.emailVerification(dto);
   }
 
+  @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${EMAIL_SIGN_IN_PATH}`)
   @ApiResponse({ status: 201, type: AuthSignInRes })
   async emailSignInV1(@Body() dto: AuthEmailSignInDto) {
@@ -63,9 +73,29 @@ export class AuthController {
   }
 
   @Post(`${V1}/${SIGN_OUT_PATH}`)
-  async signOutV1() {
-    return 'ok';
+  @HttpCode(202)
+  @ApiResponse({ status: 202, type: AuthSignOutRes })
+  async signOutV1(
+    @VerifiedToken() token: IAuthDecodedToken,
+    @Body() dto: AuthSignOutDto,
+  ) {
+    console.log(dto);
+    return await this.authService.signOut(token.sub, dto);
   }
+
+  // TODO Implement renew access token from refresh token
+  // TODO List All Auth
+  // TODO Find Auth ById
+  // TODO Revoke Refresh token by admin
+  // TODO Disable Auth
+  // TODO Delete Auth
+  // TODO Implement API Key
+  // TODO Implement RBAC
+  // TODO 3rd party OAuth Login
+  // TODO Google Login
+  // TODO FB Login
+  // TODO Github Login
+  // TODO Implement Event(Auth) webhooks / triggers
 
   @Get()
   findAll() {

@@ -39,13 +39,16 @@ export function PromisedTimeout(second: number) {
   return new Promise((resolve) => setTimeout(resolve, second * 1000));
 }
 
-export function ExtractPropertiesFromObj(oriObj: object, properties: string[]) {
+export function ExtractPropertiesFromObj<T>(
+  oriObj: object,
+  properties: string[],
+): T {
   return properties.reduce((result, prop) => {
     if (oriObj[`${prop}`]) {
       result[`${prop}`] = oriObj[`${prop}`];
     }
     return result;
-  }, {});
+  }, {} as T);
 }
 
 export function CheckTwoArrayHasCommon(fstArr: any[], sndArr: any[]): boolean {

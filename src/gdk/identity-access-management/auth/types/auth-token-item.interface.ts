@@ -6,6 +6,7 @@ export interface IAuthTokenItem {
   provider: AUTH_PROVIDER;
   tokenId: string;
   tokenContent: string;
+  issuer: string;
   expiredAt: number;
   createdAt: number;
 }

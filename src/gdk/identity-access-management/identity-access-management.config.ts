@@ -12,6 +12,8 @@ export default registerAs(IAM_CONFIG_KEY, () => ({
   LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED: ParseAnyToBoolean(
     process.env.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED,
   ),
+  CHECK_REVOKED_TOKEN: ParseAnyToBoolean(process.env.CHECK_REVOKED_TOKEN),
+  REVOKED_TOKEN_PROVIDER: process.env.REVOKED_TOKEN_PROVIDER,
   JWT_ISSUER: process.env.JWT_ISSUER,
   JWT_AUDIENCE: process.env.JWT_AUDIENCE,
   JWT_SECRET: process.env.JWT_SECRET,
