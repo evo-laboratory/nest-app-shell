@@ -8,6 +8,7 @@ export * from './auth-generated-code.interface';
 export * from './auth-identifier-type';
 export * from './auth-method.enum';
 export * from './auth-provider.enum';
+export * from './auth-token.interface';
 export * from './auth-register-token.interface';
 export * from './auth-sign-in-failed-record-item.interface';
 export * from './auth-sign-out-response.interface';

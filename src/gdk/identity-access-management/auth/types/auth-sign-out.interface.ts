@@ -1,3 +1,3 @@
-export interface IAuthSignOut {
-  refreshToken: string;
-}
+import { IAuthToken } from './auth-token.interface';
+
+export type IAuthSignOut = IAuthToken;

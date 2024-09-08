@@ -1,7 +1,10 @@
-import { IsString } from 'class-validator';
-import { IAuthSignOut } from '../types';
+import { IsEnum, IsString } from 'class-validator';
+import { AUTH_TOKEN_TYPE, IAuthSignOut } from '../types';
 
 export class AuthSignOutDto implements IAuthSignOut {
   @IsString()
-  refreshToken: string;
+  @IsEnum(AUTH_TOKEN_TYPE)
+  type: AUTH_TOKEN_TYPE;
+  @IsString()
+  token: string;
 }

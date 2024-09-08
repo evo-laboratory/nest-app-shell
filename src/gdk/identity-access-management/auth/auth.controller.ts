@@ -8,7 +8,7 @@ import {
   Delete,
   HttpCode,
 } from '@nestjs/common';
-import { GPI, V1 } from '@shared/statics';
+import { CHECK_PATH, GPI, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -24,12 +24,14 @@ import {
   UpdateAuthDto,
 } from './dto';
 import {
+  ACCESS_TOKEN_PATH,
   AUTH_API,
   AUTH_TYPE,
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
   IAuthDecodedToken,
+  REFRESH_TOKEN_PATH,
   SIGN_OUT_PATH,
   VERIFICATION_PATH,
 } from './types';
@@ -72,6 +74,20 @@ export class AuthController {
     return await this.authService.emailSignIn(dto);
   }
 
+  @AuthType(AUTH_TYPE.NONE)
+  @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
+  async exchangeNewAccessTokenV1() {
+    // TODO Implement renew access token from refresh token
+    return;
+  }
+
+  @AuthType(AUTH_TYPE.NONE)
+  @Post(`${V1}/${CHECK_PATH}/${REFRESH_TOKEN_PATH}`)
+  async checkRefreshTokenStateV1() {
+    // TODO Implement check refresh token is revoked or not
+    return;
+  }
+
   @Post(`${V1}/${SIGN_OUT_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthSignOutRes })
@@ -83,19 +99,20 @@ export class AuthController {
     return await this.authService.signOut(token.sub, dto);
   }
 
-  // TODO Implement renew access token from refresh token
   // TODO List All Auth
   // TODO Find Auth ById
   // TODO Revoke Refresh token by admin
   // TODO Disable Auth
-  // TODO Delete Auth
+  // TODO Delete Auth and User
   // TODO Implement API Key
-  // TODO Implement RBAC
+  // TODO Implement AuthorizationGuard (different approaches)
   // TODO 3rd party OAuth Login
   // TODO Google Login
   // TODO FB Login
   // TODO Github Login
   // TODO Implement Event(Auth) webhooks / triggers
+  // TODO User APIs
+  // TODO E2E testing
 
   @Get()
   findAll() {

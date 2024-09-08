@@ -574,7 +574,7 @@ export class AuthMongooseService implements AuthService {
     try {
       // * Validate refresh token
       const token = await this.authJwt.verify<IAuthDecodedToken>(
-        dto.refreshToken,
+        dto.token,
         AUTH_TOKEN_TYPE.REFRESH,
       );
       await this.revokeService.insert(
