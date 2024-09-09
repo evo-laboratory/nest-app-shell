@@ -36,8 +36,11 @@ import {
   IAuthSignOutRes,
 } from '@gdk-iam/auth/types';
 import {
+  AuthCheckRefreshTokenDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
+  AuthExchangeNewAccessTokenDto,
+  AuthSignOutDto,
   AuthVerifyDto,
   CreateAuthDto,
   EmailSignUpDto,
@@ -48,7 +51,9 @@ import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoke
 
 import { Auth, AuthDocument } from './auth.schema';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
-import { AuthSignOutDto } from '@gdk-iam/auth/dto/auth-sign-out.dto';
+// import { AuthSignOutDto } from '@gdk-iam/auth/dto/auth-sign-out.dto';
+// import { AuthCheckRefreshTokenDto } from '@gdk-iam/auth/dto/auth-check-refresh-token.dto';
+// import { AuthExchangeNewAccessTokenDto } from '@gdk-iam/auth/dto/auth-exchange-new-access-token.dto';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -558,6 +563,16 @@ export class AuthMongooseService implements AuthService {
       }
       return Promise.reject(MongoDBErrorHandler(error));
     }
+  }
+
+  @MethodLogger()
+  public async verifyRefreshToken(dto: AuthCheckRefreshTokenDto) {
+    throw new Error('Method not implemented.');
+  }
+
+  @MethodLogger()
+  public async exchangeAccessToken(dto: AuthExchangeNewAccessTokenDto) {
+    throw new Error('Method not implemented.');
   }
 
   @MethodLogger()
