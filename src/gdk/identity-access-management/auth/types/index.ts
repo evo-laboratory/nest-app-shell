@@ -1,4 +1,5 @@
 export * from './auth-check-refresh-token.interface';
+export * from './auth-check-result.interface';
 export * from './auth-code-usage.enum';
 export * from './auth-decoded-base-token.interface';
 export * from './auth-decoded-token.interface';

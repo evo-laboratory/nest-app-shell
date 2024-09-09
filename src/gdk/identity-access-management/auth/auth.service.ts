@@ -14,6 +14,7 @@ import {
   IAuthEmailVerificationRes,
   IAuthSignInRes,
   IAuthSignOutRes,
+  IAuthCheckResult,
 } from './types';
 
 @Injectable()
@@ -24,7 +25,9 @@ export abstract class AuthService {
     dto: AuthEmailVerificationDto,
   ): Promise<IAuthEmailVerificationRes>;
   abstract emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes>;
-  abstract verifyRefreshToken(dto: AuthCheckRefreshTokenDto): Promise<any>;
+  abstract verifyRefreshToken(
+    dto: AuthCheckRefreshTokenDto,
+  ): Promise<IAuthCheckResult>;
   abstract exchangeAccessToken(
     dto: AuthExchangeNewAccessTokenDto,
   ): Promise<any>;

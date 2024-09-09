@@ -86,8 +86,7 @@ export class AuthController {
   @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${CHECK_PATH}/${REFRESH_TOKEN_PATH}`)
   async checkRefreshTokenStateV1(@Body() dto: AuthCheckRefreshTokenDto) {
-    // TODO Implement check refresh token is revoked or not
-    return dto;
+    return await this.authService.verifyRefreshToken(dto);
   }
 
   @Post(`${V1}/${SIGN_OUT_PATH}`)
@@ -97,7 +96,6 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,
   ) {
-    console.log(dto);
     return await this.authService.signOut(token.sub, dto);
   }
 

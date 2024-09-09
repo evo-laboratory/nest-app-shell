@@ -34,6 +34,7 @@ import {
   IAuthSignInRes,
   IAuthDecodedToken,
   IAuthSignOutRes,
+  IAuthCheckResult,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
@@ -566,8 +567,37 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async verifyRefreshToken(dto: AuthCheckRefreshTokenDto) {
-    throw new Error('Method not implemented.');
+  public async verifyRefreshToken(
+    dto: AuthCheckRefreshTokenDto,
+  ): Promise<IAuthCheckResult> {
+    try {
+      const token = await this.authJwt.verify<IAuthDecodedToken>(
+        dto.token,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
+        return {
+          isValid: true,
+          message: 'ok',
+        };
+      }
+      const notRevoked = await this.revokeService.check(
+        token.sub,
+        token.tokenId,
+      );
+      if (notRevoked) {
+        return {
+          isValid: true,
+          message: 'Ok and not revoked',
+        };
+      }
+      return {
+        isValid: false,
+        message: 'Revoked token',
+      };
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
   @MethodLogger()
