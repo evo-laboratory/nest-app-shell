@@ -38,6 +38,8 @@ import {
 import { AuthType } from './decorators/auth-type.decorator';
 import { VerifiedToken } from './decorators/verified-token.decorator';
 import { AuthSignOutDto } from './dto/auth-sign-out.dto';
+import { AuthExchangeNewAccessTokenDto } from './dto/auth-exchange-new-access-token.dto';
+import { AuthCheckRefreshTokenDto } from './dto/auth-check-refresh-token.dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -76,16 +78,16 @@ export class AuthController {
 
   @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
-  async exchangeNewAccessTokenV1() {
+  async exchangeNewAccessTokenV1(@Body() dto: AuthExchangeNewAccessTokenDto) {
     // TODO Implement renew access token from refresh token
-    return;
+    return dto;
   }
 
   @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${CHECK_PATH}/${REFRESH_TOKEN_PATH}`)
-  async checkRefreshTokenStateV1() {
+  async checkRefreshTokenStateV1(@Body() dto: AuthCheckRefreshTokenDto) {
     // TODO Implement check refresh token is revoked or not
-    return;
+    return dto;
   }
 
   @Post(`${V1}/${SIGN_OUT_PATH}`)
