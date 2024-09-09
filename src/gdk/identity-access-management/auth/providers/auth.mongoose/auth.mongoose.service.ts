@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ConfigType } from '@nestjs/config';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
@@ -35,6 +35,7 @@ import {
   IAuthDecodedToken,
   IAuthSignOutRes,
   IAuthCheckResult,
+  IAuthExchangeNewAccessTokenRes,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
@@ -52,6 +53,8 @@ import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoke
 
 import { Auth, AuthDocument } from './auth.schema';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
+import { ExtractPropertiesFromObj } from '@shared/helper';
+import { IUserTokenPayload } from '@gdk-iam/user/types';
 // import { AuthSignOutDto } from '@gdk-iam/auth/dto/auth-sign-out.dto';
 // import { AuthCheckRefreshTokenDto } from '@gdk-iam/auth/dto/auth-check-refresh-token.dto';
 // import { AuthExchangeNewAccessTokenDto } from '@gdk-iam/auth/dto/auth-exchange-new-access-token.dto';
@@ -569,40 +572,86 @@ export class AuthMongooseService implements AuthService {
   @MethodLogger()
   public async verifyRefreshToken(
     dto: AuthCheckRefreshTokenDto,
+    returnDecodedToken = false,
   ): Promise<IAuthCheckResult> {
     try {
+      const result: IAuthCheckResult = {
+        isValid: false,
+        message: 'Invalid token',
+      };
       const token = await this.authJwt.verify<IAuthDecodedToken>(
         dto.token,
         AUTH_TOKEN_TYPE.REFRESH,
       );
       if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
-        return {
-          isValid: true,
-          message: 'ok',
-        };
+        result.isValid = true;
+        result.message = 'ok';
+        if (returnDecodedToken) {
+          result.decodedToken = token;
+        }
+        return result;
       }
       const notRevoked = await this.revokeService.check(
         token.sub,
         token.tokenId,
       );
       if (notRevoked) {
-        return {
-          isValid: true,
-          message: 'Ok and not revoked',
-        };
+        result.isValid = true;
+        result.message = 'ok';
+        if (returnDecodedToken) {
+          result.decodedToken = token;
+        }
+        return result;
       }
-      return {
-        isValid: false,
-        message: 'Revoked token',
-      };
+      result.isValid = false;
+      result.message = 'Revoked token';
+      return result;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
 
   @MethodLogger()
-  public async exchangeAccessToken(dto: AuthExchangeNewAccessTokenDto) {
-    throw new Error('Method not implemented.');
+  public async exchangeAccessToken(
+    dto: AuthExchangeNewAccessTokenDto,
+  ): Promise<IAuthExchangeNewAccessTokenRes> {
+    try {
+      const validResult = await this.verifyRefreshToken(
+        {
+          token: dto.token,
+          type: AUTH_TOKEN_TYPE.REFRESH,
+        },
+        true,
+      );
+      if (validResult.isValid) {
+        const user = await this.userService.findById(
+          validResult.decodedToken.userId,
+        );
+        const userPayload: IUserTokenPayload =
+          ExtractPropertiesFromObj<IUserTokenPayload>(
+            user,
+            this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
+          );
+        const aToken = await this.authJwt.sign(
+          validResult.decodedToken.sub,
+          validResult.decodedToken.userId,
+          userPayload,
+          AUTH_TOKEN_TYPE.ACCESS,
+        );
+        return {
+          accessToken: aToken.token,
+        };
+      }
+      const error = this.buildError(
+        ERROR_CODE.AUTH_TOKEN_INVALID,
+        `Invalid token`,
+        403,
+        'exchangeAccessToken',
+      );
+      throw new UniteHttpException(error);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
   @MethodLogger()

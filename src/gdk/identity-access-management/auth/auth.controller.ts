@@ -12,10 +12,15 @@ import { CHECK_PATH, GPI, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
+  AuthCheckRefreshTokenDto,
+  AuthCheckResult,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
+  AuthExchangeNewAccessTokenDto,
+  AuthExchangeNewAccessTokenRes,
   AuthSignInRes,
+  AuthSignOutDto,
   AuthSignOutRes,
   AuthVerifyDto,
   AuthVerifyRes,
@@ -37,9 +42,6 @@ import {
 } from './types';
 import { AuthType } from './decorators/auth-type.decorator';
 import { VerifiedToken } from './decorators/verified-token.decorator';
-import { AuthSignOutDto } from './dto/auth-sign-out.dto';
-import { AuthExchangeNewAccessTokenDto } from './dto/auth-exchange-new-access-token.dto';
-import { AuthCheckRefreshTokenDto } from './dto/auth-check-refresh-token.dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -78,15 +80,17 @@ export class AuthController {
 
   @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
+  @ApiResponse({ type: AuthExchangeNewAccessTokenRes })
   async exchangeNewAccessTokenV1(@Body() dto: AuthExchangeNewAccessTokenDto) {
-    // TODO Implement renew access token from refresh token
-    return dto;
+    return await this.authService.exchangeAccessToken(dto);
   }
 
   @AuthType(AUTH_TYPE.NONE)
   @Post(`${V1}/${CHECK_PATH}/${REFRESH_TOKEN_PATH}`)
+  @ApiResponse({ status: 202, type: AuthCheckResult })
   async checkRefreshTokenStateV1(@Body() dto: AuthCheckRefreshTokenDto) {
-    return await this.authService.verifyRefreshToken(dto);
+    // * We don't want to return decodedToken, force pass second arg false
+    return await this.authService.verifyRefreshToken(dto, false);
   }
 
   @Post(`${V1}/${SIGN_OUT_PATH}`)
