@@ -1,8 +1,4 @@
-export enum ROLE_SET_METHOD {
-  WHITE_LIST = 'WHITE_LIST',
-  BLACK_LIST = 'BLACK_LIST',
-  ONLY_PUBLIC = 'ONLY_PUBLIC',
-}
+import { ROLE_SET_METHOD } from '../enums';
 
 export interface IRole {
   name: string;

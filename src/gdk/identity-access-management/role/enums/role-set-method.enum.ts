@@ -1,0 +1,4 @@
+export enum ROLE_SET_METHOD {
+  WHITE_LIST = 'WHITE_LIST',
+  BLACK_LIST = 'BLACK_LIST',
+}
