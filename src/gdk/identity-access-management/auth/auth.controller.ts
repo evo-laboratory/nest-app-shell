@@ -40,8 +40,7 @@ import {
   SIGN_OUT_PATH,
   VERIFICATION_PATH,
 } from './types';
-import { AuthType } from './decorators/auth-type.decorator';
-import { VerifiedToken } from './decorators/verified-token.decorator';
+import { AuthType, VerifiedToken } from './decorators';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
