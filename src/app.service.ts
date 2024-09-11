@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 import { MethodLogger } from '@shared/winston-logger';
+import SwaggerDocumentBuilder from '@shared/swagger/swagger-document-builder';
 import appConfig from './app.config';
-
+import { AppModule } from './app.module';
 @Injectable()
 export class AppService {
   constructor(
@@ -25,7 +27,10 @@ export class AppService {
     };
   }
 
-  public getSwaggerJson() {
-    // TODO
+  @MethodLogger()
+  public async getSwaggerJson() {
+    const app = await NestFactory.create(AppModule);
+    const document = SwaggerDocumentBuilder(app);
+    return document;
   }
 }

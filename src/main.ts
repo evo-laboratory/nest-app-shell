@@ -1,11 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import SwaggerSetup, {
-  SWAGGER_DEFAULT_TITLE,
-} from '@shared/swagger/swagger.setup';
+import SwaggerSetup from '@shared/swagger/swagger.setup';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
 
 import { AppModule } from './app.module';
+import { SWAGGER_DEFAULT_TITLE } from '@shared/swagger';
 
 const PORT = process.env.PORT || 3000;
 const STAGE = process.env.STAGE || 'DEV';
