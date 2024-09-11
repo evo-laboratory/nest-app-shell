@@ -9,14 +9,13 @@ export const SWAGGER_DEFAULT_VER = '1.0';
 export const SWAGGER_DEFAULT_PATH = 'swagger';
 
 function SwaggerSetup(app: INestApplication, option?: ISwaggerSetupOption) {
-  if (process.env.STAGE === 'DEV') {
-    const swaggerDoc = new DocumentBuilder()
-      .setTitle(option?.title || SWAGGER_DEFAULT_TITLE)
-      .setDescription(option?.description || SWAGGER_DEFAULT_DESC)
-      .setVersion(option?.version || SWAGGER_DEFAULT_VER)
-      .build();
-    const document = SwaggerModule.createDocument(app, swaggerDoc);
-    // console.log('document', document);
+  const swaggerDoc = new DocumentBuilder()
+    .setTitle(option?.title || SWAGGER_DEFAULT_TITLE)
+    .setDescription(option?.description || SWAGGER_DEFAULT_DESC)
+    .setVersion(option?.version || SWAGGER_DEFAULT_VER)
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerDoc);
+  if (process.env.STAGE === 'DEV' || process.env.ENABLE_SWAGGER) {
     SwaggerModule.setup(option?.path || SWAGGER_DEFAULT_PATH, app, document);
   }
 }
