@@ -13,6 +13,10 @@ export class RoleMongooseService implements RoleService {
     throw new Error('Method not implemented.');
   }
   @MethodLogger()
+  findByNames(names: string[]): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  @MethodLogger()
   findAll(): Promise<any> {
     throw new Error('Method not implemented.');
   }

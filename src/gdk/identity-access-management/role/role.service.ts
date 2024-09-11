@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 export abstract class RoleService {
   abstract create(dto: any): Promise<any>;
   abstract findByName(name: string): Promise<any>;
+  abstract findByNames(names: string[]): Promise<any>;
   abstract findAll(): Promise<any>;
   abstract updateById(id: string, dto: any): Promise<any>;
   abstract deleteById(id: string): Promise<any>;

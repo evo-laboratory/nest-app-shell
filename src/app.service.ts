@@ -23,4 +23,8 @@ export class AppService {
       MONGO_DB_NAME: this.appEnvConfig.MONGO_DB_NAME,
     };
   }
+
+  public getSwaggerJson() {
+    // TODO
+  }
 }

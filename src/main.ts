@@ -31,5 +31,11 @@ async function Bootstrap() {
     contextName: 'Main',
     methodName: Bootstrap.name,
   });
+  if (process.env.STAGE !== 'DEV') {
+    WinstonLogger.info('Swagger is disabled in non DEV stage', {
+      contextName: 'Main',
+      methodName: 'SwaggerSetup',
+    });
+  }
 }
 Bootstrap();
