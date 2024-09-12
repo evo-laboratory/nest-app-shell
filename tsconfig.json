@@ -20,7 +20,8 @@
     "paths": {
       "@shared/*": ["src/shared/*"],
       "@gdk-iam/*": ["src/gdk/identity-access-management/*"],
-      "@gdk-mail/*": ["src/gdk/mail/*"]
+      "@gdk-mail/*": ["src/gdk/mail/*"],
+      "@gdk-system/*": ["src/gdk/system/*"]
     }
   }
 }

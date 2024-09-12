@@ -14,6 +14,7 @@ import { AppService } from './app.service';
 import appConfig from './app.config';
 
 import { EnvironmentConfigSchema } from './environment-config.schema';
+import { SystemModule } from './gdk/system/system.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { EnvironmentConfigSchema } from './environment-config.schema';
     }),
     IdentityAccessManagementModule,
     MailModule,
+    SystemModule,
   ],
   controllers: [AppController],
   providers: [AppService],
