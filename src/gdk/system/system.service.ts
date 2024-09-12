@@ -1,4 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class SystemService {}
+export abstract class SystemService {
+  abstract create(dto: any): Promise<any>;
+  abstract findOne(): Promise<any>;
+  abstract syncHttpEndpointFromSwagger(): Promise<any>;
+  abstract updateById(id: string, dto: any): Promise<any>;
+  abstract deleteById(id: string): Promise<any>;
+}
