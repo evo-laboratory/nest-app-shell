@@ -5,4 +5,5 @@ export interface IHttpEndpoint {
   path: string;
   permissionId: string;
   operationId: string;
+  meta: any;
 }
