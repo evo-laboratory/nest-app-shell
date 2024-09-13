@@ -12,6 +12,7 @@ import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
 import { FlexUpdateSystemDto } from '@gdk-system/dto';
 import { ApiNotModifiedResponse } from '@nestjs/swagger';
+import { ISystem } from '@gdk-system/types';
 
 @Injectable()
 export class SystemMongooseService implements SystemService {
@@ -28,31 +29,33 @@ export class SystemMongooseService implements SystemService {
     throw new Error('Method not implemented.');
   }
   @MethodLogger()
-  public async syncHttpEndpointFromSwagger(): Promise<any> {
+  public async syncHttpEndpointFromSwagger(): Promise<ISystem> {
     try {
       const app = await NestFactory.create(AppModule);
       const swaggerDoc = SwaggerDocumentBuilder(app);
       const endpoints = OpenAPIConvertToHttpEndpoints(swaggerDoc);
       const check = await this.SystemModel.findOne({});
       if (check === null) {
-        await this.SystemModel.create({
+        return await this.SystemModel.create({
           endpoints: endpoints,
         });
       } else {
-        await this.SystemModel.findByIdAndUpdate(check._id, {
+        return await this.SystemModel.findByIdAndUpdate(check._id, {
           $set: {
             endpoints: endpoints,
             endpointUpdatedAt: Date.now(),
           },
         });
       }
-      return endpoints;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
   @MethodLogger()
-  public async updateById(id: string, dto: FlexUpdateSystemDto): Promise<any> {
+  public async updateById(
+    id: string,
+    dto: FlexUpdateSystemDto,
+  ): Promise<ISystem> {
     try {
       const updateObj: any = {};
       if (dto.roles && dto.roles.length > 0) {
