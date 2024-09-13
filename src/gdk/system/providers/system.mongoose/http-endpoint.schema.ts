@@ -1,10 +1,11 @@
 import { HTTP_METHOD } from '@gdk-system/enums';
 import { HTTP_ENDPOINT_MODEL_NAME } from '@gdk-system/statics';
 import { IHttpEndpoint } from '@gdk-system/types';
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
 
+@Schema()
 export class HttpEndpoint implements IHttpEndpoint {
   @Prop({
     type: String,

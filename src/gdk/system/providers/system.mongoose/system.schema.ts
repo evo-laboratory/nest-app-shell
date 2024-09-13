@@ -1,10 +1,11 @@
 import { SYSTEM_MODEL_NAME } from '@gdk-system/statics';
 import { IHttpEndpoint, IRole, ISystem } from '@gdk-system/types';
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { HttpEndpointSchema } from './http-endpoint.schema';
 import { RoleSchema } from './role.schema';
 
+@Schema()
 export class System implements ISystem {
   @Prop({
     type: [RoleSchema],

@@ -1,10 +1,11 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ROLE_SET_METHOD } from '@gdk-system/enums';
 import { ROLE_MODEL_NAME } from '@gdk-system/statics';
 import { IRole } from '@gdk-system/types';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
 
+@Schema()
 export class Role implements IRole {
   @Prop({ required: true, unique: true, type: String })
   name: string;
