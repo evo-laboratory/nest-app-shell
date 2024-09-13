@@ -2,17 +2,17 @@ import { SYSTEM_MODEL_NAME } from '@gdk-system/statics';
 import { SystemService } from '@gdk-system/system.service';
 import { Injectable } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import OpenAPIConvertToHttpEndpoints from '@shared/swagger/openapi-convertor';
 import SwaggerDocumentBuilder from '@shared/swagger/swagger-document-builder';
 import { MethodLogger } from '@shared/winston-logger';
-import { Model } from 'mongoose';
+import { FlexUpdateSystemDto } from '@gdk-system/dto';
+import { ISystem, IUpdateSystem } from '@gdk-system/types';
+
 import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
-import { FlexUpdateSystemDto } from '@gdk-system/dto';
-import { ApiNotModifiedResponse } from '@nestjs/swagger';
-import { ISystem } from '@gdk-system/types';
 
 @Injectable()
 export class SystemMongooseService implements SystemService {
@@ -57,7 +57,7 @@ export class SystemMongooseService implements SystemService {
     dto: FlexUpdateSystemDto,
   ): Promise<ISystem> {
     try {
-      const updateObj: any = {};
+      const updateObj: IUpdateSystem = {};
       if (dto.roles && dto.roles.length > 0) {
         updateObj.roles = dto.roles;
         updateObj.rolesUpdatedAt = Date.now();
