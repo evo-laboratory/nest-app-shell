@@ -5,6 +5,6 @@ export interface IRole {
   setMethod: ROLE_SET_METHOD;
   endpointPermissions: string[];
   description: string;
-  createdAt: number;
-  updatedAt: number;
+  createdAt?: number;
+  updatedAt?: number;
 }

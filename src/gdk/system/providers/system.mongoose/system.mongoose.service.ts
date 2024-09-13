@@ -10,6 +10,8 @@ import { MethodLogger } from '@shared/winston-logger';
 import { Model } from 'mongoose';
 import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
+import { FlexUpdateSystemDto } from '@gdk-system/dto';
+import { ApiNotModifiedResponse } from '@nestjs/swagger';
 
 @Injectable()
 export class SystemMongooseService implements SystemService {
@@ -50,8 +52,24 @@ export class SystemMongooseService implements SystemService {
     }
   }
   @MethodLogger()
-  updateById(id: string, dto: any): Promise<any> {
-    throw new Error('Method not implemented.');
+  public async updateById(id: string, dto: FlexUpdateSystemDto): Promise<any> {
+    try {
+      const updateObj: any = {};
+      if (dto.roles && dto.roles.length > 0) {
+        updateObj.roles = dto.roles;
+        updateObj.rolesUpdatedAt = Date.now();
+      }
+      if (Object.keys(updateObj).length === 0) {
+        return await this.SystemModel.findById(id);
+      }
+      return await this.SystemModel.findByIdAndUpdate(
+        id,
+        { $set: updateObj },
+        { new: true },
+      );
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   @MethodLogger()
   deleteById(id: string): Promise<any> {

@@ -1,6 +1,6 @@
 import { ROLE_SET_METHOD } from '@gdk-system/enums';
 import { IRole } from '@gdk-system/types';
-import { IsArray, IsEnum, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsString } from 'class-validator';
 
 export class RoleDto implements IRole {
   @IsString()
@@ -12,8 +12,4 @@ export class RoleDto implements IRole {
   endpointPermissions: string[];
   @IsString()
   description: string;
-  @IsNumber()
-  createdAt: number;
-  @IsNumber()
-  updatedAt: number;
 }
