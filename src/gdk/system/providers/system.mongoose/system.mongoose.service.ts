@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import OpenAPIConvertToHttpEndpoints from '@shared/swagger/openapi-convertor';
 import SwaggerDocumentBuilder from '@shared/swagger/swagger-document-builder';
+import WinstonLogger from '@shared/winston-logger/winston.logger';
 import { MethodLogger } from '@shared/winston-logger';
 import { FlexUpdateSystemDto } from '@gdk-system/dto';
 import { ISystem, IUpdateSystem } from '@gdk-system/types';
@@ -63,6 +64,10 @@ export class SystemMongooseService implements SystemService {
         updateObj.rolesUpdatedAt = Date.now();
       }
       if (Object.keys(updateObj).length === 0) {
+        WinstonLogger.info('No update required', {
+          contextName: 'SystemMongooseService',
+          methodName: 'updateById',
+        });
         return await this.SystemModel.findById(id);
       }
       return await this.SystemModel.findByIdAndUpdate(
