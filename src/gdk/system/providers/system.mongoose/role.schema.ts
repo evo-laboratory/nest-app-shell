@@ -16,7 +16,7 @@ export class Role implements IRole {
   setMethod: ROLE_SET_METHOD;
   @Prop({ type: [String], default: [] })
   endpointPermissions: string[];
-  @Prop({ type: String })
+  @Prop({ type: String, default: '' })
   description: string;
   @Prop({ type: Number, default: Date.now() })
   createdAt: number;
