@@ -1,4 +1,4 @@
-import { ROLE_SET_METHOD } from '../enums';
+import { ROLE_SET_METHOD } from '@gdk-system/enums/role-set-method.enum';
 
 export interface IRole {
   name: string;

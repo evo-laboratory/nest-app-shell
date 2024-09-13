@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from '@gdk-mail/mail.module';
 
@@ -20,13 +21,10 @@ import { UserMongooseService } from './user/providers/user.mongoose/user.mongoos
 import identityAccessManagementConfig from './identity-access-management.config';
 import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.schema';
 import { AccessTokenGuard } from './auth-jwt/guards/access-token/access-token.guard';
-import { APP_GUARD } from '@nestjs/core';
+
 import { AuthenticationGuard } from './auth/guards/authentication/authentication.guard';
 import { AuthRevokedTokenService } from './auth-revoked-token/auth-revoked-token.service';
 import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.mongoose.service';
-import { RoleController } from './role/role.controller';
-import { RoleService } from './role/role.service';
-import { RoleMongooseService } from './role/providers/role.mongoose/role.mongoose.service';
 
 @Module({
   imports: [
@@ -60,10 +58,6 @@ import { RoleMongooseService } from './role/providers/role.mongoose/role.mongoos
       useClass: AuthRevokedTokenMongooseService,
     },
     {
-      provide: RoleService,
-      useClass: RoleMongooseService,
-    },
-    {
       provide: APP_GUARD,
       useClass: AuthenticationGuard,
     },
@@ -74,6 +68,6 @@ import { RoleMongooseService } from './role/providers/role.mongoose/role.mongoos
     JwtService,
     ConfigService,
   ],
-  controllers: [UserController, AuthController, RoleController],
+  controllers: [UserController, AuthController],
 })
 export class IdentityAccessManagementModule {}
