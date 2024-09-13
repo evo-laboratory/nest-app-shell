@@ -5,7 +5,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
 
-@Schema()
+@Schema({
+  _id: false,
+})
 export class HttpEndpoint implements IHttpEndpoint {
   @Prop({
     type: String,

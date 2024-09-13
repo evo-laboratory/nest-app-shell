@@ -33,18 +33,16 @@ export class SystemMongooseService implements SystemService {
       const endpoints = OpenAPIConvertToHttpEndpoints(swaggerDoc);
       const check = await this.SystemModel.findOne({});
       if (check === null) {
-        const newData = await this.SystemModel.create({
+        await this.SystemModel.create({
           endpoints: endpoints,
         });
-        console.log(newData);
       } else {
-        const updated = await this.SystemModel.findByIdAndUpdate(check._id, {
+        await this.SystemModel.findByIdAndUpdate(check._id, {
           $set: {
             endpoints: endpoints,
             endpointUpdatedAt: Date.now(),
           },
         });
-        console.log(updated);
       }
       return endpoints;
     } catch (error) {

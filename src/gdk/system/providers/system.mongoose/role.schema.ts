@@ -5,7 +5,9 @@ import { IRole } from '@gdk-system/types';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
 
-@Schema()
+@Schema({
+  _id: false,
+})
 export class Role implements IRole {
   @Prop({ required: true, unique: true, type: String })
   name: string;
