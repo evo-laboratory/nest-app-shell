@@ -18,5 +18,6 @@ import { HttpEndpointModel } from './providers/system.mongoose/http-endpoint.sch
     },
   ],
   controllers: [SystemController],
+  exports: [SystemService],
 })
 export class SystemModule {}

@@ -18,7 +18,7 @@ export class SystemController {
     return await this.systemService.syncHttpEndpointFromSwagger();
   }
 
-  @AuthType(AUTH_TYPE.NONE)
+  // @AuthType(AUTH_TYPE.NONE)
   @Put(`${V1}/:id`)
   async updateByIdV1(
     @Param('id') id: string,
