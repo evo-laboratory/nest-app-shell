@@ -1,5 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { ConfigType } from '@nestjs/config';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { strict as assert } from 'assert';
 import { MethodLogger } from '@shared/winston-logger';
@@ -28,21 +29,35 @@ import {
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
   IAuthSignInFailedRecordItem,
+  IAuthTokenItem,
+  AUTH_TOKEN_TYPE,
+  IAuthSignInRes,
+  IAuthDecodedToken,
+  IAuthSignOutRes,
+  IAuthCheckResult,
+  IAuthExchangeNewAccessTokenRes,
 } from '@gdk-iam/auth/types';
 import {
+  AuthCheckRefreshTokenDto,
+  AuthEmailSignInDto,
   AuthEmailVerificationDto,
+  AuthExchangeNewAccessTokenDto,
+  AuthSignOutDto,
   AuthVerifyDto,
   CreateAuthDto,
   EmailSignUpDto,
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
-import { AuthEmailSignInDto } from '@gdk-iam/auth/dto/auth-email-sign-in.dto';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
-import { ConfigType } from '@nestjs/config';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
-import { Auth } from './auth.schema';
-import { IAuthSignInRes } from '@gdk-iam/auth/types/auth.sign-in-response.interface';
-
+import { Auth, AuthDocument } from './auth.schema';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
+import { ExtractPropertiesFromObj } from '@shared/helper';
+import { IUserTokenPayload } from '@gdk-iam/user/types';
+// import { AuthSignOutDto } from '@gdk-iam/auth/dto/auth-sign-out.dto';
+// import { AuthCheckRefreshTokenDto } from '@gdk-iam/auth/dto/auth-check-refresh-token.dto';
+// import { AuthExchangeNewAccessTokenDto } from '@gdk-iam/auth/dto/auth-exchange-new-access-token.dto';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -59,6 +74,7 @@ export class AuthMongooseService implements AuthService {
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
+    private readonly revokeService: AuthRevokedTokenService,
   ) {
     console.log(this.iamConfig);
   }
@@ -111,7 +127,7 @@ export class AuthMongooseService implements AuthService {
       );
       assert.ok(newUser, 'New User Created');
       // * STEP 4. Create New Auth
-      const newAuth: ICreateAuthResult = await this.create(
+      const newAuth = await this.create(
         {
           identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
           identifier: dto.email,
@@ -253,6 +269,7 @@ export class AuthMongooseService implements AuthService {
       // * STEP A. Setup Transaction Session
       session.startTransaction();
       // * STEP B. Reset Auth State
+      // TODO Typing
       const updateQuery: any = {
         codeExpiredAt: 0,
         code: '',
@@ -382,7 +399,7 @@ export class AuthMongooseService implements AuthService {
       }
       // * STEP 4. Setup Transaction Session
       session.startTransaction();
-      const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
+      const generated = this.authUtil.generateAuthCode();
       // * STEP 5. Send Email
       const mail: ISendMail = {
         to: dto.email,
@@ -422,7 +439,13 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes> {
+  public async emailSignIn(
+    dto: AuthEmailSignInDto,
+    session?: ClientSession,
+  ): Promise<IAuthSignInRes> {
+    if (!session) {
+      session = await this.connection.startSession();
+    }
     try {
       // * STEP 1. Check email exist in both Auth and User
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
@@ -489,20 +512,180 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
-      const tokens = await this.authJwt.generateCustomToken(
+      const tokenResults = await this.authJwt.generateCustomToken(
         `${auth._id}`,
         user,
       );
-      // TODO Access Token into Main Provider (just for tracking)
-      // TODO Refresh token abstract storage (could support redis)
-      return tokens;
+      const aToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.accessToken,
+      );
+      const rToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.refreshToken,
+      );
+      // * STEP 5. Push into Auth
+      session.startTransaction();
+      const refreshItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.REFRESH,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.refreshTokenId,
+        tokenContent: tokenResults.refreshToken,
+        issuer: rToken.iss,
+        expiredAt: rToken.exp * 1000,
+        createdAt: Date.now(),
+      };
+      const pushedRefreshItem = await this.pushRefreshTokenItemById(
+        auth._id,
+        refreshItem,
+        session,
+      );
+      assert.ok(pushedRefreshItem, 'Pushed Refresh Token');
+      const accessItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.ACCESS,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.accessTokenId,
+        tokenContent: tokenResults.accessToken,
+        issuer: aToken.iss,
+        expiredAt: aToken.exp * 1000,
+        createdAt: Date.now(),
+      };
+      const pushedAccessItem = await this.pushAccessTokenItemById(
+        auth._id,
+        accessItem,
+        session,
+      );
+      assert.ok(pushedAccessItem, 'Pushed Access Token');
+      await session.commitTransaction();
+      await session.endSession();
+      return {
+        accessToken: tokenResults.accessToken,
+        refreshToken: tokenResults.refreshToken,
+      };
+    } catch (error) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async verifyRefreshToken(
+    dto: AuthCheckRefreshTokenDto,
+    returnDecodedToken = false,
+  ): Promise<IAuthCheckResult> {
+    try {
+      const result: IAuthCheckResult = {
+        isValid: false,
+        message: 'Invalid token',
+      };
+      const token = await this.authJwt.verify<IAuthDecodedToken>(
+        dto.token,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
+        result.isValid = true;
+        result.message = 'ok';
+        if (returnDecodedToken) {
+          result.decodedToken = token;
+        }
+        return result;
+      }
+      const notRevoked = await this.revokeService.check(
+        token.sub,
+        token.tokenId,
+      );
+      if (notRevoked) {
+        result.isValid = true;
+        result.message = 'ok';
+        if (returnDecodedToken) {
+          result.decodedToken = token;
+        }
+        return result;
+      }
+      result.isValid = false;
+      result.message = 'Revoked token';
+      return result;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  signOut(): void {
-    throw new Error('Method not implemented.');
+
+  @MethodLogger()
+  public async exchangeAccessToken(
+    dto: AuthExchangeNewAccessTokenDto,
+  ): Promise<IAuthExchangeNewAccessTokenRes> {
+    try {
+      const validResult = await this.verifyRefreshToken(
+        {
+          token: dto.token,
+          type: AUTH_TOKEN_TYPE.REFRESH,
+        },
+        true,
+      );
+      if (validResult.isValid) {
+        const user = await this.userService.findById(
+          validResult.decodedToken.userId,
+        );
+        const userPayload: IUserTokenPayload =
+          ExtractPropertiesFromObj<IUserTokenPayload>(
+            user,
+            this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
+          );
+        const aToken = await this.authJwt.sign(
+          validResult.decodedToken.sub,
+          validResult.decodedToken.userId,
+          userPayload,
+          AUTH_TOKEN_TYPE.ACCESS,
+        );
+        return {
+          accessToken: aToken.token,
+        };
+      }
+      const error = this.buildError(
+        ERROR_CODE.AUTH_TOKEN_INVALID,
+        `Invalid token`,
+        403,
+        'exchangeAccessToken',
+      );
+      throw new UniteHttpException(error);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
+
+  @MethodLogger()
+  public async signOut(
+    authId: string,
+    dto: AuthSignOutDto,
+  ): Promise<IAuthSignOutRes> {
+    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: false,
+      };
+    }
+    try {
+      // * Validate refresh token
+      const token = await this.authJwt.verify<IAuthDecodedToken>(
+        dto.token,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      await this.revokeService.insert(
+        authId,
+        token.tokenId,
+        AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: true,
+      };
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
   createAuth(): void {
     throw new Error('Method not implemented.');
   }
@@ -568,7 +751,7 @@ export class AuthMongooseService implements AuthService {
     authId: Types.ObjectId,
     item: IAuthSignInFailedRecordItem,
     session?: ClientSession,
-  ) {
+  ): Promise<AuthDocument> {
     try {
       const SLICE_COUNT = 20;
       const updated = await this.AuthModel.findByIdAndUpdate(
@@ -578,6 +761,61 @@ export class AuthMongooseService implements AuthService {
             signInFailRecordList: {
               $each: [item],
               $slice: -SLICE_COUNT,
+              $position: 0,
+            },
+          },
+        },
+        { session: session },
+      );
+      return updated;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  private async pushRefreshTokenItemById(
+    authId: Types.ObjectId,
+    item: IAuthTokenItem,
+    session?: ClientSession,
+  ): Promise<AuthDocument> {
+    try {
+      const SLICE_COUNT = 100;
+      const updated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $push: {
+            activeRefreshTokenList: {
+              $each: [item],
+              $slice: -SLICE_COUNT,
+              $position: 0,
+            },
+          },
+        },
+        { session: session },
+      );
+      return updated;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  private async pushAccessTokenItemById(
+    authId: Types.ObjectId,
+    item: IAuthTokenItem,
+    session?: ClientSession,
+  ): Promise<AuthDocument> {
+    try {
+      const SLICE_COUNT = 100;
+      const updated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $push: {
+            accessTokenHistoryList: {
+              $each: [item],
+              $slice: -SLICE_COUNT,
+              $position: 0,
             },
           },
         },

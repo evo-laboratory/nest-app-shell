@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from '@gdk-mail/mail.module';
+import { SystemModule } from '@gdk-system/system.module';
 
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
@@ -19,11 +21,18 @@ import { UserMongooseService } from './user/providers/user.mongoose/user.mongoos
 
 import identityAccessManagementConfig from './identity-access-management.config';
 import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.schema';
+import { AccessTokenGuard } from './auth-jwt/guards/access-token/access-token.guard';
+
+import { AuthenticationGuard } from './auth/guards/authentication/authentication.guard';
+import { AuthRevokedTokenService } from './auth-revoked-token/auth-revoked-token.service';
+import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.mongoose.service';
+import { AuthorizationGuard } from './auth/guards/authorization/authorization.guard';
 
 @Module({
   imports: [
     ConfigModule.forFeature(identityAccessManagementConfig),
     MailModule,
+    SystemModule,
     MongooseModule.forFeature([UserModel, AuthModel, AuthRevokedTokenModel]),
     JwtModule.registerAsync({
       global: true,
@@ -38,7 +47,6 @@ import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revok
       }),
     }),
   ],
-  controllers: [UserController, AuthController],
   providers: [
     {
       provide: UserService,
@@ -48,9 +56,25 @@ import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revok
       provide: AuthService,
       useClass: AuthMongooseService,
     },
+    {
+      provide: AuthRevokedTokenService,
+      useClass: AuthRevokedTokenMongooseService,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthenticationGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthorizationGuard,
+    },
+    AccessTokenGuard,
     EncryptService,
     AuthUtilService,
     AuthJwtService,
+    JwtService,
+    ConfigService,
   ],
+  controllers: [UserController, AuthController],
 })
 export class IdentityAccessManagementModule {}

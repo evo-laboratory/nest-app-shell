@@ -4,12 +4,18 @@ import {
   AuthVerifyDto,
   AuthEmailVerificationDto,
   AuthEmailSignInDto,
+  AuthCheckRefreshTokenDto,
+  AuthExchangeNewAccessTokenDto,
+  AuthSignOutDto,
 } from './dto';
 import {
   IEmailSignUpRes,
   IAuthVerifyRes,
   IAuthEmailVerificationRes,
   IAuthSignInRes,
+  IAuthSignOutRes,
+  IAuthCheckResult,
+  IAuthExchangeNewAccessTokenRes,
 } from './types';
 
 @Injectable()
@@ -20,7 +26,17 @@ export abstract class AuthService {
     dto: AuthEmailVerificationDto,
   ): Promise<IAuthEmailVerificationRes>;
   abstract emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes>;
-  abstract signOut(): void;
+  abstract verifyRefreshToken(
+    dto: AuthCheckRefreshTokenDto,
+    returnDecodedToken?: boolean,
+  ): Promise<IAuthCheckResult>;
+  abstract exchangeAccessToken(
+    dto: AuthExchangeNewAccessTokenDto,
+  ): Promise<IAuthExchangeNewAccessTokenRes>;
+  abstract signOut(
+    authId: string,
+    dto: AuthSignOutDto,
+  ): Promise<IAuthSignOutRes>;
   abstract createAuth(): void;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;

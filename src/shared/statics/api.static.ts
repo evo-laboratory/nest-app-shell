@@ -1,6 +1,6 @@
-// * GPI = Generated Program Interface
-export const GPI = 'gpi';
-export const API = 'api';
+export const GPI = 'gpi'; // * GPI = Generated Programming Interface
+export const API = 'api'; // * API = Application Programming Interface
 
 export const V1 = 'v1';
-export const LIST_PATH = 'path';
+export const LIST_PATH = 'list';
+export const CHECK_PATH = 'check';

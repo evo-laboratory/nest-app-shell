@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { ROLE } from './role.enum';
+
 export interface IUser {
   _id?: Types.ObjectId;
   email: string;
@@ -7,7 +7,7 @@ export interface IUser {
   lastName: string;
   displayName: string;
   isEmailVerified: boolean;
-  roleList: ROLE[];
+  roleList: string[];
   createdAt: number;
   updatedAt: number;
 }

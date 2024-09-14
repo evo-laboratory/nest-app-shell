@@ -1,11 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import SwaggerSetup, {
-  SWAGGER_DEFAULT_TITLE,
-} from '@shared/swagger/swagger.setup';
+import SwaggerSetup from '@shared/swagger/swagger.setup';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
 
 import { AppModule } from './app.module';
+import { SWAGGER_DEFAULT_TITLE } from '@shared/swagger';
 
 const PORT = process.env.PORT || 3000;
 const STAGE = process.env.STAGE || 'DEV';
@@ -31,5 +30,18 @@ async function Bootstrap() {
     contextName: 'Main',
     methodName: Bootstrap.name,
   });
+  if (process.env.STAGE !== 'DEV') {
+    if (process.env.ENABLE_SWAGGER) {
+      WinstonLogger.warn('Swagger is enable in non DEV stage', {
+        contextName: 'Main',
+        methodName: 'SwaggerSetup',
+      });
+    } else {
+      WinstonLogger.info('Swagger is disabled in non DEV stage', {
+        contextName: 'Main',
+        methodName: 'SwaggerSetup',
+      });
+    }
+  }
 }
 Bootstrap();

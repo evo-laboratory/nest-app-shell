@@ -6,6 +6,7 @@ export default registerAs(APP_CONFIG_KEY, () => ({
   STAGE: process.env.STAGE,
   PORT: parseInt(process.env.PORT),
   DISABLE_ERROR_META: ParseAnyToBoolean(process.env.DISABLE_ERROR_META),
+  ENABLE_SWAGGER: ParseAnyToBoolean(process.env.ENABLE_SWAGGER),
   MONGO_URI: process.env.MONGO_URI,
   MONGO_DB_NAME: process.env.MONGO_DB_NAME,
 }));
