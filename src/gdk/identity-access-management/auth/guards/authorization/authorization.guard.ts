@@ -6,7 +6,6 @@ import { SystemService } from '@gdk-system/system.service';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -14,9 +13,7 @@ export class AuthorizationGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly sys: SystemService,
   ) {}
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const authTypes = this.reflector.getAllAndOverride<AUTH_TYPE[]>(
       AUTH_TYPE_KEY,
       [context.getHandler(), context.getClass()],
@@ -37,7 +34,9 @@ export class AuthorizationGuard implements CanActivate {
     }
     const req = context.switchToHttp().getRequest();
     const verifiedJwtPayload = req[VERIFIED_JWT_KEY] as IAuthDecodedToken;
-    console.log(verifiedJwtPayload);
+    // TODO
+    const assigned = await this.sys.listRoleByNamesFromCache(['ADMIN']);
+    console.log(assigned);
     if (!verifiedJwtPayload) {
       WinstonLogger.info(`Cannot find verified jwt`, {
         contextName: AuthorizationGuard.name,
@@ -62,7 +61,6 @@ export class AuthorizationGuard implements CanActivate {
       });
       return true;
     }
-    // TODO
     WinstonLogger.info('Authz Guarding ...', {
       contextName: AuthorizationGuard.name,
       methodName: 'canActivate',
