@@ -19,9 +19,6 @@ function RolePermissionResolver(roles: IRole[], permissionId: string): boolean {
       // * BlackList is superior than whitelist
       return false;
     }
-    if (thisRole.setMethod === ROLE_SET_METHOD.BLACK_LIST) {
-      allow = !thisRole.endpointPermissions.includes(permissionId);
-    }
     if (thisRole.setMethod === ROLE_SET_METHOD.WHITE_LIST) {
       allow = thisRole.endpointPermissions.includes(permissionId);
     }
