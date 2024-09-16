@@ -75,9 +75,7 @@ export class AuthMongooseService implements AuthService {
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
     private readonly revokeService: AuthRevokedTokenService,
-  ) {
-    console.log(this.iamConfig);
-  }
+  ) {}
 
   @MethodLogger()
   public async emailSignUp(
