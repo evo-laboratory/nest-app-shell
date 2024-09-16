@@ -102,13 +102,13 @@ export class AuthController {
     return await this.authService.signOut(token.sub, dto);
   }
 
+  // TODO RemoveRole API
+  // TODO Implement API Key
   // TODO List All Auth
   // TODO Find Auth ById
   // TODO Revoke Refresh token by admin
   // TODO Disable Auth
   // TODO Delete Auth and User
-  // TODO Implement API Key
-  // TODO Implement AuthorizationGuard (different approaches)
   // TODO 3rd party OAuth Login
   // TODO Google Login
   // TODO FB Login
