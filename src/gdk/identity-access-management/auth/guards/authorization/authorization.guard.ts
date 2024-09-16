@@ -3,13 +3,22 @@ import { AUTH_TYPE_KEY, AUTHZ_TYPE_KEY } from '@gdk-iam/auth/decorators';
 import { AUTHZ_TYPE } from '@gdk-iam/auth/enums';
 import { AUTH_TYPE, IAuthDecodedToken } from '@gdk-iam/auth/types';
 import { SystemService } from '@gdk-system/system.service';
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
+import appConfig from 'src/app.config';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
+    @Inject(appConfig.KEY)
+    private readonly appEnvConfig: ConfigType<typeof appConfig>,
     private readonly reflector: Reflector,
     private readonly sys: SystemService,
   ) {}
@@ -34,15 +43,21 @@ export class AuthorizationGuard implements CanActivate {
     }
     const req = context.switchToHttp().getRequest();
     const verifiedJwtPayload = req[VERIFIED_JWT_KEY] as IAuthDecodedToken;
-    // TODO
-    const assigned = await this.sys.listRoleByNamesFromCache(['ADMIN']);
-    console.log(assigned);
     if (!verifiedJwtPayload) {
       WinstonLogger.info(`Cannot find verified jwt`, {
         contextName: AuthorizationGuard.name,
         methodName: 'canActivate',
       });
       return false;
+    }
+    if (this.appEnvConfig.SYS_OWNER_EMAIL) {
+      if (verifiedJwtPayload.email === this.appEnvConfig.SYS_OWNER_EMAIL) {
+        WinstonLogger.info(`Sys owner email verified`, {
+          contextName: AuthorizationGuard.name,
+          methodName: 'canActivate',
+        });
+        return true;
+      }
     }
     if (
       verifiedJwtPayload.roleList.length === 0 &&

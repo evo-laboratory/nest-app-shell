@@ -7,8 +7,6 @@ import { MethodLogger } from '@shared/winston-logger';
 import { CreateUserDto, UpdateUserDto } from '@gdk-iam/user/dto';
 import { USER_MODEL_NAME, IUser } from '@gdk-iam/user/types';
 
-import { User, UserDocument } from './user.schema';
-import { UserService } from '../../user.service';
 import { UserAddRoleDto } from '@gdk-iam/user/dto/user-add-role.dto';
 import { SystemService } from '@gdk-system/system.service';
 import {
@@ -17,6 +15,9 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
+
+import { User, UserDocument } from './user.schema';
+import { UserService } from '../../user.service';
 @Injectable()
 export class UserMongooseService implements UserService {
   constructor(
@@ -111,7 +112,10 @@ export class UserMongooseService implements UserService {
       const updated = await this.UserModel.findByIdAndUpdate(
         dto.userId,
         {
-          $addToSet: { roles: dto.roleName },
+          $addToSet: { roleList: dto.roleName },
+          $set: {
+            updatedAt: Date.now(),
+          },
         },
         { new: true },
       );
