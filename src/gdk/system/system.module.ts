@@ -7,8 +7,6 @@ import { SystemService } from './system.service';
 
 import { SystemMongooseService } from './providers/system.mongoose/system.mongoose.service';
 import { SystemModel } from './providers/system.mongoose/system.schema';
-import { RoleModel } from './providers/system.mongoose/role.schema';
-import { HttpEndpointModel } from './providers/system.mongoose/http-endpoint.schema';
 import { ConfigModule } from '@nestjs/config';
 import appConfig from 'src/app.config';
 
@@ -16,7 +14,7 @@ import appConfig from 'src/app.config';
   imports: [
     ConfigModule.forFeature(appConfig),
     CacheModule.register(),
-    MongooseModule.forFeature([SystemModel, RoleModel, HttpEndpointModel]),
+    MongooseModule.forFeature([SystemModel]),
   ],
   providers: [
     {

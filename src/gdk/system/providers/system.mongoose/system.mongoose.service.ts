@@ -66,13 +66,15 @@ export class SystemMongooseService implements SystemService {
     try {
       let roleMap = await this.cacheManager.get<IRoleMap>(SYS_ROLE_MAP_KEY);
       if (!roleMap) {
+        WinstonLogger.info('No role map found in cache', {
+          contextName: 'SystemMongooseService',
+          methodName: 'listRoleByNamesFromCache',
+        });
         const foundSys = await this.findOne();
         await this.setCache(foundSys);
         roleMap = await this.cacheManager.get<IRoleMap>(SYS_ROLE_MAP_KEY);
       }
-      console.log('MAP');
-      console.log(roleMap);
-      const roles = names.map((name) => roleMap[name]);
+      const roles = names.map((name) => roleMap[name]).filter((r) => r);
       return roles;
     } catch (error) {
       return Promise.reject(error);
@@ -91,12 +93,16 @@ export class SystemMongooseService implements SystemService {
           endpoints: endpoints,
         });
       } else {
-        return await this.SystemModel.findByIdAndUpdate(check._id, {
-          $set: {
-            endpoints: endpoints,
-            endpointUpdatedAt: Date.now(),
+        return await this.SystemModel.findByIdAndUpdate(
+          check._id,
+          {
+            $set: {
+              endpoints: endpoints,
+              endpointUpdatedAt: Date.now(),
+            },
           },
-        });
+          { new: true },
+        );
       }
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));

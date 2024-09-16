@@ -6,6 +6,9 @@ import { UpdateUserDto } from '../../dto/update-user.dto';
 import { Types } from 'mongoose';
 @Injectable()
 export class UserTypeOrmService implements UserService {
+  addRole(role: any): Promise<IUser> {
+    throw new Error('Method not implemented.');
+  }
   updateEmailVerifiedById(
     id: Types.ObjectId | string,
     mongoSession?: any,
