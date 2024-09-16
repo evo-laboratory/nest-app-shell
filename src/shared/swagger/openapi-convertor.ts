@@ -1,14 +1,7 @@
 import { HTTP_METHOD } from '@gdk-system/enums';
 import { IHttpEndpoint } from '@gdk-system/types';
 import { OpenAPIObject } from '@nestjs/swagger';
-
-function PathToPermissionIdPath(path: string): string {
-  let converted = path;
-  if (path.charAt(0) === '/') {
-    converted = path.substring(1);
-  }
-  return converted.toUpperCase().replace(/\//g, ':');
-}
+import { PathToPermissionIdPath } from '@shared/helper';
 
 function OpenAPIConvertToHttpEndpoints(openAPIObj: OpenAPIObject) {
   const results = [];

@@ -98,7 +98,6 @@ export class UserMongooseService implements UserService {
     try {
       // * STEP 1. Check dto.roleName valid
       const roleMap = await this.sys.listRoleByNamesFromCache([dto.roleName]);
-      console.log(roleMap);
       if (roleMap.length === 0) {
         const error = this.buildError(
           ERROR_CODE.ROLE_NOT_EXIST,

@@ -2,6 +2,7 @@ import { VERIFIED_JWT_KEY } from '@gdk-iam/auth-jwt/auth-jwt.static';
 import { AUTH_TYPE_KEY, AUTHZ_TYPE_KEY } from '@gdk-iam/auth/decorators';
 import { AUTHZ_TYPE } from '@gdk-iam/auth/enums';
 import { AUTH_TYPE, IAuthDecodedToken } from '@gdk-iam/auth/types';
+import RolePermissionResolver from '@gdk-iam/user/helpers/role-permission-resolver';
 import { SystemService } from '@gdk-system/system.service';
 import {
   CanActivate,
@@ -11,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
+import { PathToPermissionIdPath } from '@shared/helper';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
 import appConfig from 'src/app.config';
 
@@ -76,10 +78,18 @@ export class AuthorizationGuard implements CanActivate {
       });
       return true;
     }
-    WinstonLogger.info('Authz Guarding ...', {
-      contextName: AuthorizationGuard.name,
-      methodName: 'canActivate',
-    });
-    return true;
+    const pathId = PathToPermissionIdPath(req.route.path);
+    const permissionId = `${req.method.toUpperCase()}:${pathId}`;
+    const userRoleMap = await this.sys.listRoleByNamesFromCache(
+      verifiedJwtPayload.roleList,
+    );
+    WinstonLogger.info(
+      `Authz guarding use RolePermissionResolver: ${permissionId}`,
+      {
+        contextName: AuthorizationGuard.name,
+        methodName: 'canActivate',
+      },
+    );
+    return RolePermissionResolver(userRoleMap, permissionId);
   }
 }
