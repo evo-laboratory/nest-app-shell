@@ -4,7 +4,11 @@ import { ClientSession, Model, Types } from 'mongoose';
 
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import { MethodLogger } from '@shared/winston-logger';
-import { CreateUserDto, UpdateUserDto } from '@gdk-iam/user/dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UserRemoveRoleDto,
+} from '@gdk-iam/user/dto';
 import { USER_MODEL_NAME, IUser } from '@gdk-iam/user/types';
 
 import { UserAddRoleDto } from '@gdk-iam/user/dto/user-add-role.dto';
@@ -102,7 +106,7 @@ export class UserMongooseService implements UserService {
         const error = this.buildError(
           ERROR_CODE.ROLE_NOT_EXIST,
           `${dto.roleName} is not a valid role`,
-          403,
+          400,
           'addRole',
         );
         throw new UniteHttpException(error);
@@ -125,6 +129,36 @@ export class UserMongooseService implements UserService {
   }
   updateById(id: string, dto: UpdateUserDto): Promise<IUser> {
     throw new Error('Method not implemented.');
+  }
+  @MethodLogger()
+  public async removeRole(dto: UserRemoveRoleDto): Promise<IUser> {
+    try {
+      // * STEP 1. Check dto.roleName valid
+      const roleMap = await this.sys.listRoleByNamesFromCache([dto.roleName]);
+      if (roleMap.length === 0) {
+        const error = this.buildError(
+          ERROR_CODE.ROLE_NOT_EXIST,
+          `${dto.roleName} is not a valid role`,
+          400,
+          'removeRole',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 2. update User
+      const updated = await this.UserModel.findByIdAndUpdate(
+        dto.userId,
+        {
+          $pull: { roleList: dto.roleName },
+          $set: {
+            updatedAt: Date.now(),
+          },
+        },
+        { new: true },
+      );
+      return updated;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   removeById(id: string): Promise<IUser> {
     throw new Error('Method not implemented.');

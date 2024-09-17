@@ -1,4 +1,4 @@
-export interface IUserAddRole {
+export interface IUserUpdateRole {
   userId: string;
   roleName: string;
 }

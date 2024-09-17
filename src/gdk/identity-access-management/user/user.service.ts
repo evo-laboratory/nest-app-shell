@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { CreateUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto, UpdateUserDto, UserRemoveRoleDto } from './dto';
 import { IUser } from './types';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
 @Injectable()
@@ -20,5 +20,6 @@ export abstract class UserService {
     id: Types.ObjectId | string,
     dto: UpdateUserDto,
   ): Promise<IUser>;
+  abstract removeRole(role: UserRemoveRoleDto): Promise<IUser>;
   abstract removeById(id: string): Promise<IUser>;
 }

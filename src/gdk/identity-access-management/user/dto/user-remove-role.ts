@@ -1,7 +1,7 @@
 import { IsString } from 'class-validator';
 import { IUserUpdateRole } from '../types';
 
-export class UserAddRoleDto implements IUserUpdateRole {
+export class UserRemoveRoleDto implements IUserUpdateRole {
   @IsString()
   userId: string;
 
