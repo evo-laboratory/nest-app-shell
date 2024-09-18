@@ -51,13 +51,11 @@ import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
-import { Auth, AuthDocument } from './auth.schema';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
 import { ExtractPropertiesFromObj } from '@shared/helper';
 import { IUserTokenPayload } from '@gdk-iam/user/types';
-// import { AuthSignOutDto } from '@gdk-iam/auth/dto/auth-sign-out.dto';
-// import { AuthCheckRefreshTokenDto } from '@gdk-iam/auth/dto/auth-check-refresh-token.dto';
-// import { AuthExchangeNewAccessTokenDto } from '@gdk-iam/auth/dto/auth-exchange-new-access-token.dto';
+
+import { Auth, AuthDocument } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
