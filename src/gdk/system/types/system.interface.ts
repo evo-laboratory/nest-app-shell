@@ -1,3 +1,4 @@
+import { IClient } from './client.interface';
 import { IHttpEndpoint } from './http-endpoint.interface';
 import { IRole } from './role.interface';
 
@@ -6,6 +7,8 @@ export interface ISystem {
   rolesUpdatedAt: number;
   endpoints: IHttpEndpoint[];
   endpointUpdatedAt: number;
+  clients: IClient[];
+  clientUpdatedAt: number;
   createdAt: number;
   updatedAt: number;
 }

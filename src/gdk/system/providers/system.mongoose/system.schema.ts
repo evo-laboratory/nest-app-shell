@@ -1,9 +1,10 @@
 import { SYSTEM_MODEL_NAME } from '@gdk-system/statics';
-import { IHttpEndpoint, IRole, ISystem } from '@gdk-system/types';
+import { IClient, IHttpEndpoint, IRole, ISystem } from '@gdk-system/types';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { HttpEndpointSchema } from './http-endpoint.schema';
 import { RoleSchema } from './role.schema';
+import { ClientSchema } from './client.schema';
 
 @Schema()
 export class System implements ISystem {
@@ -21,6 +22,13 @@ export class System implements ISystem {
   endpoints: IHttpEndpoint[];
   @Prop({ type: Number, default: Date.now() })
   endpointUpdatedAt: number;
+  @Prop({
+    type: [ClientSchema],
+    default: [],
+  })
+  clients: IClient[];
+  @Prop({ type: Number, default: Date.now() })
+  clientUpdatedAt: number;
   @Prop({ type: Number, default: Date.now() })
   createdAt: number;
   @Prop({ type: Number, default: Date.now() })

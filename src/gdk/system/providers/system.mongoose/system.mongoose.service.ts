@@ -6,9 +6,10 @@ import {
 import { SystemService } from '@gdk-system/system.service';
 import { Inject, Injectable } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { Model } from 'mongoose';
+import { ConfigType } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { Model } from 'mongoose';
 import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import OpenAPIConvertToHttpEndpoints from '@shared/swagger/openapi-convertor';
 import SwaggerDocumentBuilder from '@shared/swagger/swagger-document-builder';
@@ -20,7 +21,6 @@ import { IRole, IRoleMap, ISystem, IUpdateSystem } from '@gdk-system/types';
 import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
 import appConfig from 'src/app.config';
-import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class SystemMongooseService implements SystemService {
@@ -32,10 +32,12 @@ export class SystemMongooseService implements SystemService {
     @Inject(appConfig.KEY)
     private readonly appEnvConfig: ConfigType<typeof appConfig>,
   ) {}
+
   @MethodLogger()
   create(dto: any): Promise<any> {
     throw new Error('Method not implemented.');
   }
+
   @MethodLogger()
   public async findOne(): Promise<ISystem> {
     try {
@@ -108,6 +110,7 @@ export class SystemMongooseService implements SystemService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
+
   @MethodLogger()
   public async updateById(
     id: string,
@@ -118,6 +121,10 @@ export class SystemMongooseService implements SystemService {
       if (dto.roles && dto.roles.length > 0) {
         updateObj.roles = dto.roles;
         updateObj.rolesUpdatedAt = Date.now();
+      }
+      if (dto.clients && dto.clients.length > 0) {
+        updateObj.clients = dto.clients;
+        updateObj.clientsUpdatedAt = Date.now();
       }
       if (Object.keys(updateObj).length === 0) {
         WinstonLogger.info('No update required', {
@@ -135,6 +142,7 @@ export class SystemMongooseService implements SystemService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
+
   @MethodLogger()
   deleteById(id: string): Promise<any> {
     throw new Error('Method not implemented.');
