@@ -9,6 +9,7 @@ export const EnvironmentConfigSchema = Joi.object({
   ENABLE_SWAGGER: Joi.boolean().default(false),
   SYS_CACHE_TTL: Joi.number().default(3600),
   SYS_OWNER_EMAIL: Joi.string().email().optional(),
+  API_KEY_NAME: Joi.string().default('shell-api-key'),
   MONGO_URI: Joi.string(),
   MONGO_DB_NAME: Joi.string(),
   CODE_EXPIRE_MIN: Joi.number().default(5),

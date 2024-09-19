@@ -6,6 +6,7 @@ export const SYSTEM_API = 'system';
 
 export const SYS_CACHE_KEY = 'system';
 export const SYS_ROLE_MAP_KEY = 'system-role-map';
+export const SYS_CLIENT_KEY = 'system-client';
 
 export const SYNC_HTTP_ENDPOINTS_PATH = 'sync-http-endpoints';
 export const ROLE_PATH = 'role';
