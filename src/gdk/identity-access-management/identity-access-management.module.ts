@@ -27,10 +27,12 @@ import { AuthenticationGuard } from './auth/guards/authentication/authentication
 import { AuthRevokedTokenService } from './auth-revoked-token/auth-revoked-token.service';
 import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.mongoose.service';
 import { AuthorizationGuard } from './auth/guards/authorization/authorization.guard';
+import appConfig from 'src/app.config';
 
 @Module({
   imports: [
     ConfigModule.forFeature(identityAccessManagementConfig),
+    ConfigModule.forFeature(appConfig),
     MailModule,
     SystemModule,
     MongooseModule.forFeature([UserModel, AuthModel, AuthRevokedTokenModel]),

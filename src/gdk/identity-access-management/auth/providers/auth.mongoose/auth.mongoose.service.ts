@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ConfigType } from '@nestjs/config';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
@@ -51,13 +51,11 @@ import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
-import { Auth, AuthDocument } from './auth.schema';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
 import { ExtractPropertiesFromObj } from '@shared/helper';
 import { IUserTokenPayload } from '@gdk-iam/user/types';
-// import { AuthSignOutDto } from '@gdk-iam/auth/dto/auth-sign-out.dto';
-// import { AuthCheckRefreshTokenDto } from '@gdk-iam/auth/dto/auth-check-refresh-token.dto';
-// import { AuthExchangeNewAccessTokenDto } from '@gdk-iam/auth/dto/auth-exchange-new-access-token.dto';
+
+import { Auth, AuthDocument } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -75,9 +73,7 @@ export class AuthMongooseService implements AuthService {
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
     private readonly revokeService: AuthRevokedTokenService,
-  ) {
-    console.log(this.iamConfig);
-  }
+  ) {}
 
   @MethodLogger()
   public async emailSignUp(

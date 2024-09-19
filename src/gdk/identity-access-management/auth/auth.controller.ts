@@ -40,7 +40,8 @@ import {
   SIGN_OUT_PATH,
   VERIFICATION_PATH,
 } from './types';
-import { AuthType, VerifiedToken } from './decorators';
+import { AuthType, AuthZType, VerifiedToken } from './decorators';
+import { AUTHZ_TYPE } from './enums';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -78,6 +79,7 @@ export class AuthController {
   }
 
   @AuthType(AUTH_TYPE.NONE)
+  @AuthZType(AUTHZ_TYPE.USER)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
   @ApiResponse({ type: AuthExchangeNewAccessTokenRes })
   async exchangeNewAccessTokenV1(@Body() dto: AuthExchangeNewAccessTokenDto) {
@@ -92,6 +94,7 @@ export class AuthController {
     return await this.authService.verifyRefreshToken(dto, false);
   }
 
+  @AuthZType(AUTHZ_TYPE.USER)
   @Post(`${V1}/${SIGN_OUT_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthSignOutRes })
@@ -102,13 +105,12 @@ export class AuthController {
     return await this.authService.signOut(token.sub, dto);
   }
 
+  // TODO Implement API Key
   // TODO List All Auth
   // TODO Find Auth ById
   // TODO Revoke Refresh token by admin
   // TODO Disable Auth
   // TODO Delete Auth and User
-  // TODO Implement API Key
-  // TODO Implement AuthorizationGuard (different approaches)
   // TODO 3rd party OAuth Login
   // TODO Google Login
   // TODO FB Login

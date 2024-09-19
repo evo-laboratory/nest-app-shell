@@ -94,3 +94,11 @@ export type PickEnum<T, K extends T> = {
 export function GenerateUUID(): string {
   return nanoid();
 }
+
+export function PathToPermissionIdPath(path: string): string {
+  let converted = path;
+  if (path.charAt(0) === '/') {
+    converted = path.substring(1);
+  }
+  return converted.toUpperCase().replace(/\//g, ':');
+}

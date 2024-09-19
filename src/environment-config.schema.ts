@@ -7,6 +7,8 @@ export const EnvironmentConfigSchema = Joi.object({
   PORT: Joi.number().default(4000),
   DISABLE_ERROR_META: Joi.boolean().default(true),
   ENABLE_SWAGGER: Joi.boolean().default(false),
+  SYS_CACHE_TTL: Joi.number().default(3600),
+  SYS_OWNER_EMAIL: Joi.string().email().optional(),
   MONGO_URI: Joi.string(),
   MONGO_DB_NAME: Joi.string(),
   CODE_EXPIRE_MIN: Joi.number().default(5),
