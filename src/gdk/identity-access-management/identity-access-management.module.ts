@@ -28,6 +28,7 @@ import { AuthRevokedTokenService } from './auth-revoked-token/auth-revoked-token
 import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.mongoose.service';
 import { AuthorizationGuard } from './auth/guards/authorization/authorization.guard';
 import appConfig from 'src/app.config';
+import { ApiKeyGuard } from './auth/guards/api-key/api-key.guard';
 
 @Module({
   imports: [
@@ -61,6 +62,10 @@ import appConfig from 'src/app.config';
     {
       provide: AuthRevokedTokenService,
       useClass: AuthRevokedTokenMongooseService,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard,
     },
     {
       provide: APP_GUARD,
