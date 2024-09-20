@@ -1,3 +1,4 @@
+export * from './client-map.interface';
 export * from './client.interface';
 export * from './flex-update-system.interface';
 export * from './http-endpoint-body.interface';

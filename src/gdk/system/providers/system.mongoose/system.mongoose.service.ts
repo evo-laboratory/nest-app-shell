@@ -1,5 +1,6 @@
 import {
   SYS_CACHE_KEY,
+  SYS_CLIENT_KEY,
   SYS_ROLE_MAP_KEY,
   SYSTEM_MODEL_NAME,
 } from '@gdk-system/statics';
@@ -16,7 +17,13 @@ import SwaggerDocumentBuilder from '@shared/swagger/swagger-document-builder';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
 import { MethodLogger } from '@shared/winston-logger';
 import { FlexUpdateSystemDto } from '@gdk-system/dto';
-import { IRole, IRoleMap, ISystem, IUpdateSystem } from '@gdk-system/types';
+import {
+  IClientMap,
+  IRole,
+  IRoleMap,
+  ISystem,
+  IUpdateSystem,
+} from '@gdk-system/types';
 
 import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
@@ -160,9 +167,18 @@ export class SystemMongooseService implements SystemService {
         obj[role.name] = role;
         return obj;
       }, {});
+      const clientMap: IClientMap = sys.clients.reduce((obj, client) => {
+        obj[client.id] = client;
+        return obj;
+      }, {});
       await this.cacheManager.set(
         SYS_ROLE_MAP_KEY,
         roleMap,
+        this.appEnvConfig.SYS_CACHE_TTL * 1000,
+      );
+      await this.cacheManager.set(
+        SYS_CLIENT_KEY,
+        clientMap,
         this.appEnvConfig.SYS_CACHE_TTL * 1000,
       );
     } catch (error) {
