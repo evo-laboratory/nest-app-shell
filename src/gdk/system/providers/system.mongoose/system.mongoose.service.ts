@@ -91,6 +91,25 @@ export class SystemMongooseService implements SystemService {
   }
 
   @MethodLogger()
+  public async getClientMapFromCache(): Promise<IClientMap> {
+    try {
+      let clientMap = await this.cacheManager.get<IClientMap>(SYS_CLIENT_KEY);
+      if (!clientMap) {
+        WinstonLogger.info('No client map found in cache', {
+          contextName: 'SystemMongooseService',
+          methodName: 'getClientMapFromCache',
+        });
+        const foundSys = await this.findOne();
+        await this.setCache(foundSys);
+        clientMap = await this.cacheManager.get<IClientMap>(SYS_CLIENT_KEY);
+      }
+      return clientMap;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  @MethodLogger()
   public async syncHttpEndpointFromSwagger(): Promise<ISystem> {
     try {
       const app = await NestFactory.create(AppModule);
