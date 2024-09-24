@@ -1,7 +1,7 @@
-import { AUTH_METHOD, IAuthSocialSignInUp } from '@gdk-iam/auth/types';
-import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { AUTH_METHOD, IAuthSocialSignInUp } from '@gdk-iam/auth/types';
+import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import {
   ERROR_CODE,
   ERROR_SOURCE,
