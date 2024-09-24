@@ -19,7 +19,6 @@ import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { UserMongooseService } from './user/providers/user.mongoose/user.mongoose.service';
 
-import identityAccessManagementConfig from './identity-access-management.config';
 import { AuthRevokedTokenModel } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.schema';
 import { AccessTokenGuard } from './auth-jwt/guards/access-token/access-token.guard';
 
@@ -30,6 +29,7 @@ import { AuthorizationGuard } from './auth/guards/authorization/authorization.gu
 import { ClientGuard } from './auth/guards/client/client.guard';
 
 import appConfig from 'src/app.config';
+import identityAccessManagementConfig from './identity-access-management.config';
 @Module({
   imports: [
     ConfigModule.forFeature(identityAccessManagementConfig),
