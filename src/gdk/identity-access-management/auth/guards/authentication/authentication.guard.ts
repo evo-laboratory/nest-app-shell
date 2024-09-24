@@ -15,7 +15,7 @@ export class AuthenticationGuard implements CanActivate {
   private static readonly defaultAuthType = AUTH_TYPE.BEARER;
   private readonly authTypeGuardMap: Record<AUTH_TYPE, CanActivate> = {
     [AUTH_TYPE.BEARER]: this.accessTokenGuard,
-    [AUTH_TYPE.NONE]: { canActivate: () => true },
+    [AUTH_TYPE.PUBLIC]: { canActivate: () => true },
   };
 
   constructor(

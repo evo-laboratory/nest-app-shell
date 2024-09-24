@@ -48,14 +48,14 @@ import { AUTHZ_TYPE } from './enums';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)
   @ApiResponse({ status: 201, type: EmailSignUpRes })
   async emailSignUpV1(@Body() dto: EmailSignUpDto) {
     return await this.authService.emailSignUp(dto);
   }
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${VERIFICATION_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthVerifyRes })
@@ -63,7 +63,7 @@ export class AuthController {
     return await this.authService.verifyAuth(dto);
   }
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_VERIFICATION_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthEmailVerificationRes })
@@ -71,14 +71,14 @@ export class AuthController {
     return await this.authService.emailVerification(dto);
   }
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_SIGN_IN_PATH}`)
   @ApiResponse({ status: 201, type: AuthSignInRes })
   async emailSignInV1(@Body() dto: AuthEmailSignInDto) {
     return await this.authService.emailSignIn(dto);
   }
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @AuthZType(AUTHZ_TYPE.USER)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
   @ApiResponse({ type: AuthExchangeNewAccessTokenRes })
@@ -86,7 +86,7 @@ export class AuthController {
     return await this.authService.exchangeAccessToken(dto);
   }
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${CHECK_PATH}/${REFRESH_TOKEN_PATH}`)
   @ApiResponse({ status: 202, type: AuthCheckResult })
   async checkRefreshTokenStateV1(@Body() dto: AuthCheckRefreshTokenDto) {

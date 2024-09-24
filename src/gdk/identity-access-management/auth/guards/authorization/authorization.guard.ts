@@ -33,9 +33,9 @@ export class AuthorizationGuard implements CanActivate {
       AUTHZ_TYPE_KEY,
       [context.getHandler(), context.getClass()],
     ) ?? [AUTHZ_TYPE.ROLE];
-    if (authTypes.length === 1 && authTypes[0] === AUTH_TYPE.NONE) {
+    if (authTypes.length === 1 && authTypes[0] === AUTH_TYPE.PUBLIC) {
       WinstonLogger.info(
-        `AuthTypes: ${AUTH_TYPE.NONE} skipped Authz guarding.`,
+        `AuthTypes: ${AUTH_TYPE.PUBLIC} skipped Authz guarding.`,
         {
           contextName: AuthorizationGuard.name,
           methodName: 'canActivate',

@@ -12,7 +12,7 @@ import { FlexUpdateSystemDto } from './dto';
 export class SystemController {
   constructor(private readonly systemService: SystemService) {}
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @Put(`${V1}/${SYNC_HTTP_ENDPOINTS_PATH}`)
   async syncHttpEndpointsV1() {
     return await this.systemService.syncHttpEndpointFromSwagger();

@@ -12,7 +12,7 @@ export class AppController {
     return this.appService.getPublicEnv();
   }
 
-  @AuthType(AUTH_TYPE.NONE)
+  @AuthType(AUTH_TYPE.PUBLIC)
   @Get('test')
   async getTest() {
     return await this.appService.getSwaggerJson();
