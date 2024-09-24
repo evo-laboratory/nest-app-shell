@@ -15,6 +15,7 @@ export interface IAuth {
   identifierType: AUTH_IDENTIFIER_TYPE;
   provider: AUTH_PROVIDER;
   signUpMethodList: AUTH_METHOD[];
+  googleSignInId: string;
   userId: Types.ObjectId | IUser;
   password: string;
   code: string;
