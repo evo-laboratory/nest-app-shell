@@ -21,10 +21,12 @@ export class MailSendgridService implements MailService {
   ) {
     this.init();
   }
+
   private init(): void {
     SendGrid.setApiKey(this.mailEnvConfig.SENDGRID_API_KEY);
     this.DEFAULT_SENDER = this.mailEnvConfig.SENDGRID_SENDER_EMAIL;
   }
+
   @MethodLogger()
   public async send(dto: ISendMail): Promise<ISendMailRes> {
     try {

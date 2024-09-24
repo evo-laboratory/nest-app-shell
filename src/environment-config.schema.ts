@@ -26,6 +26,9 @@ export const EnvironmentConfigSchema = Joi.object({
   JWT_ACCESS_TOKEN_TTL: Joi.number().default(3600),
   JWT_REFRESH_TOKEN_TTL: Joi.number().default(86400),
   JWT_PAYLOAD_PROPS_FROM_USER: Joi.string().default('_id,email'),
+  ENABLE_GOOGLE_SIGN_IN: Joi.boolean().default(false),
+  GOOGLE_CLIENT_ID: Joi.optional(),
+  GOOGLE_CLIENT_SECRET: Joi.optional(),
   SENDGRID_API_KEY: Joi.string(),
   SENDGRID_SENDER_EMAIL: Joi.string(),
 });

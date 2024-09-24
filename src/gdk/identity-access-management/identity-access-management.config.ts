@@ -22,4 +22,7 @@ export default registerAs(IAM_CONFIG_KEY, () => ({
   JWT_REFRESH_TOKEN_TTL: parseInt(process.env.JWT_REFRESH_TOKEN_TTL, 10),
   JWT_PAYLOAD_PROPS_FROM_USER:
     process.env.JWT_PAYLOAD_PROPS_FROM_USER.split(','),
+  ENABLE_GOOGLE_SIGN_IN: ParseAnyToBoolean(process.env.ENABLE_GOOGLE_SIGN_IN),
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 }));
