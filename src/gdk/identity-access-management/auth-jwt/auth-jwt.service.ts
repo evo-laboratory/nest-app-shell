@@ -1,6 +1,5 @@
-import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
+import { AUTH_TOKEN_TYPE, IAuthSignedResult } from '@gdk-iam/auth/types';
 import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
-import { IAuthSignedResult } from '@gdk-iam/auth/types/auth-signed-result.interface';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 import { Inject, Injectable } from '@nestjs/common';

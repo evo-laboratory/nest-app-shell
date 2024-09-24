@@ -22,6 +22,7 @@ import {
   AuthSignInRes,
   AuthSignOutDto,
   AuthSignOutRes,
+  AuthSocialSignInUpDto,
   AuthVerifyDto,
   AuthVerifyRes,
   EmailSignUpDto,
@@ -38,6 +39,7 @@ import {
   IAuthDecodedToken,
   REFRESH_TOKEN_PATH,
   SIGN_OUT_PATH,
+  SOCIAL_SIGN_IN_UP_PATH,
   VERIFICATION_PATH,
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
@@ -79,6 +81,13 @@ export class AuthController {
   }
 
   @AuthType(AUTH_TYPE.PUBLIC)
+  @Post(`${V1}/${SOCIAL_SIGN_IN_UP_PATH}`)
+  @ApiResponse({ status: 201, type: AuthSignInRes })
+  async socialSignInUpV1(@Body() dto: AuthSocialSignInUpDto) {
+    return await this.authService.socialSignInUp(dto);
+  }
+
+  @AuthType(AUTH_TYPE.PUBLIC)
   @AuthZType(AUTHZ_TYPE.USER)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
   @ApiResponse({ type: AuthExchangeNewAccessTokenRes })
@@ -105,7 +114,6 @@ export class AuthController {
     return await this.authService.signOut(token.sub, dto);
   }
 
-  // TODO Implement API Key
   // TODO List All Auth
   // TODO Find Auth ById
   // TODO Revoke Refresh token by admin
@@ -113,8 +121,6 @@ export class AuthController {
   // TODO Delete Auth and User
   // TODO 3rd party OAuth Login
   // TODO Google Login
-  // TODO FB Login
-  // TODO Github Login
   // TODO Implement Event(Auth) webhooks / triggers
   // TODO User APIs
   // TODO E2E testing

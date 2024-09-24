@@ -7,6 +7,7 @@ export * from './auth-exchange-new-access-token.dto';
 export * from './auth-sign-in-res.dto';
 export * from './auth-sign-out-res.dto';
 export * from './auth-sign-out.dto';
+export * from './auth-social-sign-in-up.dto';
 export * from './auth-verify.dto';
 export * from './change-password.dto';
 export * from './create-auth.dto';

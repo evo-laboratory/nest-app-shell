@@ -7,6 +7,7 @@ import {
   AuthCheckRefreshTokenDto,
   AuthExchangeNewAccessTokenDto,
   AuthSignOutDto,
+  AuthSocialSignInUpDto,
 } from './dto';
 import {
   IEmailSignUpRes,
@@ -26,6 +27,7 @@ export abstract class AuthService {
     dto: AuthEmailVerificationDto,
   ): Promise<IAuthEmailVerificationRes>;
   abstract emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes>;
+  abstract socialSignInUp(dto: AuthSocialSignInUpDto): Promise<IAuthSignInRes>;
   abstract verifyRefreshToken(
     dto: AuthCheckRefreshTokenDto,
     returnDecodedToken?: boolean,

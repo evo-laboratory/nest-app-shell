@@ -43,6 +43,7 @@ import {
   AuthEmailVerificationDto,
   AuthExchangeNewAccessTokenDto,
   AuthSignOutDto,
+  AuthSocialSignInUpDto,
   AuthVerifyDto,
   CreateAuthDto,
   EmailSignUpDto,
@@ -497,6 +498,137 @@ export class AuthMongooseService implements AuthService {
           errorCode: ERROR_CODE.AUTH_PASSWORD_INVALID,
           ipAddress: '',
           failedPassword: dto.password,
+          createdAt: Date.now(),
+        });
+        const error = this.buildError(
+          ERROR_CODE.AUTH_PASSWORD_INVALID,
+          `Invalid password`,
+          403,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 4. Issue JWT
+      const tokenResults = await this.authJwt.generateCustomToken(
+        `${auth._id}`,
+        user,
+      );
+      const aToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.accessToken,
+      );
+      const rToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.refreshToken,
+      );
+      // * STEP 5. Push into Auth
+      session.startTransaction();
+      const refreshItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.REFRESH,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.refreshTokenId,
+        tokenContent: tokenResults.refreshToken,
+        issuer: rToken.iss,
+        expiredAt: rToken.exp * 1000,
+        createdAt: Date.now(),
+      };
+      const pushedRefreshItem = await this.pushRefreshTokenItemById(
+        auth._id,
+        refreshItem,
+        session,
+      );
+      assert.ok(pushedRefreshItem, 'Pushed Refresh Token');
+      const accessItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.ACCESS,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.accessTokenId,
+        tokenContent: tokenResults.accessToken,
+        issuer: aToken.iss,
+        expiredAt: aToken.exp * 1000,
+        createdAt: Date.now(),
+      };
+      const pushedAccessItem = await this.pushAccessTokenItemById(
+        auth._id,
+        accessItem,
+        session,
+      );
+      assert.ok(pushedAccessItem, 'Pushed Access Token');
+      await session.commitTransaction();
+      await session.endSession();
+      return {
+        accessToken: tokenResults.accessToken,
+        refreshToken: tokenResults.refreshToken,
+      };
+    } catch (error) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async socialSignInUp(
+    dto: AuthSocialSignInUpDto,
+    session?: ClientSession,
+  ): Promise<IAuthSignInRes> {
+    if (!session) {
+      session = await this.connection.startSession();
+    }
+    try {
+      // * STEP 1. Check email exist in both Auth and User
+      const auth = await this.AuthModel.findOne({ identifier: dto.token });
+      if (auth === null) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Identifier: ${dto.token} not found`,
+          404,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      const user = await this.userService.findByEmail(dto.token);
+      if (user === null) {
+        const error = this.buildError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User: ${dto.token} not found`,
+          404,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 2. Check is Identity Verified
+      if (!auth.isIdentifierVerified) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED,
+          `Identifier: ${dto.token} not verified`,
+          403,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 2. Check Auth sign in failed attempts
+      const isLocked = this.authUtil.isExceedAttemptLimit(auth.toJSON());
+      if (isLocked) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
+          `Attempt rate limit, please try again after 1 hour`,
+          406,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      // * STEP 3. Compare password => Record Fail
+      const validPassword = await this.encryptService.comparePassword(
+        dto.token,
+        auth.password,
+      );
+      if (!validPassword) {
+        // * STEP 3-1. Add FailRecord
+        await this.pushFailedRecordItemById(auth._id, {
+          signInMethod: AUTH_METHOD.EMAIL_PASSWORD,
+          errorCode: ERROR_CODE.AUTH_PASSWORD_INVALID,
+          ipAddress: '',
+          failedPassword: dto.token,
           createdAt: Date.now(),
         });
         const error = this.buildError(

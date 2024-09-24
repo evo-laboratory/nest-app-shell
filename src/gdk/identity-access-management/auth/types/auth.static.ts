@@ -9,6 +9,7 @@ export const AUTH_SIGN_IN_FAIL_RECORD_ITEM_MODEL_NAME =
 
 export const EMAIL_SIGN_UP_PATH = 'email-sign-up';
 export const EMAIL_SIGN_IN_PATH = 'email-sign-in';
+export const SOCIAL_SIGN_IN_UP_PATH = 'social-sign-in-up';
 export const VERIFICATION_PATH = 'verification';
 export const EMAIL_VERIFICATION_PATH = 'email-verification';
 export const SIGN_OUT_PATH = 'sign-out';
