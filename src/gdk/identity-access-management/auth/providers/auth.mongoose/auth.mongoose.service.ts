@@ -57,6 +57,7 @@ import { ExtractPropertiesFromObj } from '@shared/helper';
 import { IUserTokenPayload } from '@gdk-iam/user/types';
 
 import { Auth, AuthDocument } from './auth.schema';
+import { OauthClientService } from '@gdk-iam/oauth-client/oauth-client.service';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -74,6 +75,7 @@ export class AuthMongooseService implements AuthService {
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
     private readonly revokeService: AuthRevokedTokenService,
+    private readonly oauthClientService: OauthClientService,
   ) {}
 
   @MethodLogger()
@@ -575,22 +577,14 @@ export class AuthMongooseService implements AuthService {
       session = await this.connection.startSession();
     }
     try {
-      if (dto.method !== AUTH_METHOD.GOOGLE_SIGN_IN) {
-        const error = this.buildError(
-          ERROR_CODE.AUTH_METHOD_NOT_ALLOW,
-          `${dto.method} not supported`,
-          400,
-          'socialSignInUp',
-        );
-        throw new UniteHttpException(error);
-      }
+      const oauthUser = await this.oauthClientService.socialAuthenticate(dto);
       // * STEP 1. Verify from OAuthClient
       // * STEP 2. Check by oauthId
       // * STEP 2.a -> NonExist, Create
       // * STEP 2.b -> Exist, Update
       // * STEP 3. Issue JWT
       // * STEP 4. Push into Auth
-      return {} as any;
+      return oauthUser as any;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
