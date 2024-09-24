@@ -51,7 +51,7 @@ export class OauthClientService implements OnModuleInit {
   }
 
   @MethodLogger()
-  public socialAuthenticate(dto: IAuthSocialSignInUp) {
+  public async socialAuthenticate(dto: IAuthSocialSignInUp) {
     try {
       if (!this.supportedMethods.includes(dto.method)) {
         const error = this.buildError(
@@ -62,7 +62,7 @@ export class OauthClientService implements OnModuleInit {
         );
         throw new UniteHttpException(error);
       }
-      return 'ok';
+      return await this.googleAuthenticate(dto.token);
     } catch (error) {
       return Promise.reject(error);
     }
