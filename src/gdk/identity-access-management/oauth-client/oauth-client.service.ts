@@ -41,13 +41,15 @@ export class OauthClientService implements OnModuleInit {
         .getInstance();
       this.supportedMethods.push(AUTH_METHOD.GOOGLE_SIGN_IN);
     }
-    WinstonLogger.info(
-      `Supported OAuth methods: ${this.supportedMethods.join(',')}`,
-      {
-        contextName: 'OauthClientService',
-        methodName: 'onModuleInit',
-      },
-    );
+    if (this.supportedMethods.length > 0) {
+      WinstonLogger.info(
+        `Supported OAuth methods: ${this.supportedMethods.join(',')}`,
+        {
+          contextName: 'OauthClientService',
+          methodName: 'onModuleInit',
+        },
+      );
+    }
   }
 
   @MethodLogger()
