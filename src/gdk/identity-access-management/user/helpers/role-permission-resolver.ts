@@ -10,14 +10,16 @@ function RolePermissionResolver(roles: IRole[], permissionId: string): boolean {
       thisRole.endpointPermissions.length === 0
     ) {
       // * Already consider as SuperUser
-      return true;
+      allow = true;
+      return allow;
     }
     if (
       thisRole.setMethod === ROLE_SET_METHOD.BLACK_LIST &&
-      thisRole.endpointPermissions.includes(permissionId)
+      !thisRole.endpointPermissions.includes(permissionId)
     ) {
       // * BlackList is superior than whitelist
-      return false;
+      allow = true;
+      return allow;
     }
     if (thisRole.setMethod === ROLE_SET_METHOD.WHITE_LIST) {
       allow = thisRole.endpointPermissions.includes(permissionId);

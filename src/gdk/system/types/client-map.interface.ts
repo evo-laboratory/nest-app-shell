@@ -1,3 +1,3 @@
 import { IClient } from './client.interface';
 
-export type IClientMap = { [key: string]: IClient };
+export type IClientMap = Map<string, IClient>;

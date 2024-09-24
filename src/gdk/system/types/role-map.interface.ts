@@ -1,3 +1,3 @@
 import { IRole } from './role.interface';
 
-export type IRoleMap = { [key: string]: IRole };
+export type IRoleMap = Map<string, IRole>;

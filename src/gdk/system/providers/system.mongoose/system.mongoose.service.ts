@@ -83,7 +83,7 @@ export class SystemMongooseService implements SystemService {
         await this.setCache(foundSys);
         roleMap = await this.cacheManager.get<IRoleMap>(SYS_ROLE_MAP_KEY);
       }
-      const roles = names.map((name) => roleMap[name]).filter((r) => r);
+      const roles = names.map((name) => roleMap.get(name)).filter((r) => r);
       return roles;
     } catch (error) {
       return Promise.reject(error);
