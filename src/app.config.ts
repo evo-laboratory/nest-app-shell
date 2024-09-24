@@ -9,7 +9,7 @@ export default registerAs(APP_CONFIG_KEY, () => ({
   ENABLE_SWAGGER: ParseAnyToBoolean(process.env.ENABLE_SWAGGER),
   SYS_CACHE_TTL: parseInt(process.env.SYS_CACHE_TTL),
   SYS_OWNER_EMAIL: process.env.SYS_OWNER_EMAIL,
-  API_KEY_NAME: process.env.API_KEY_NAME,
+  CLIENT_KEY_NAME: process.env.CLIENT_KEY_NAME,
   MONGO_URI: process.env.MONGO_URI,
   MONGO_DB_NAME: process.env.MONGO_DB_NAME,
 }));

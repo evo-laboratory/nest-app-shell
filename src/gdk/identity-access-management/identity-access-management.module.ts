@@ -27,9 +27,9 @@ import { AuthenticationGuard } from './auth/guards/authentication/authentication
 import { AuthRevokedTokenService } from './auth-revoked-token/auth-revoked-token.service';
 import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/auth-revoked-token.mongoose/auth-revoked-token.mongoose.service';
 import { AuthorizationGuard } from './auth/guards/authorization/authorization.guard';
-import appConfig from 'src/app.config';
-import { ApiKeyGuard } from './auth/guards/api-key/api-key.guard';
+import { ClientGuard } from './auth/guards/client/client.guard';
 
+import appConfig from 'src/app.config';
 @Module({
   imports: [
     ConfigModule.forFeature(identityAccessManagementConfig),
@@ -65,7 +65,7 @@ import { ApiKeyGuard } from './auth/guards/api-key/api-key.guard';
     },
     {
       provide: APP_GUARD,
-      useClass: ApiKeyGuard,
+      useClass: ClientGuard,
     },
     {
       provide: APP_GUARD,

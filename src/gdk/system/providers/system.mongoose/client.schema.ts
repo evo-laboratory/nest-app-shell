@@ -11,8 +11,6 @@ export class Client implements IClient {
   id: string;
   @Prop({ type: String, default: '' })
   name: string;
-  @Prop({ type: String, default: '' })
-  secret: string;
   @Prop({ type: Boolean, default: true })
   willExpire: boolean;
   @Prop({ type: Number, default: 0 })

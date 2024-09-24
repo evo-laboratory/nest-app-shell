@@ -182,14 +182,10 @@ export class SystemMongooseService implements SystemService {
         sys,
         this.appEnvConfig.SYS_CACHE_TTL * 1000,
       );
-      const roleMap: IRoleMap = sys.roles.reduce((obj, role) => {
-        obj[role.name] = role;
-        return obj;
-      }, {});
-      const clientMap: IClientMap = sys.clients.reduce((obj, client) => {
-        obj[client.id] = client;
-        return obj;
-      }, {});
+      const roleMap = new Map();
+      const clientMap = new Map();
+      sys.roles.forEach((role) => roleMap.set(role.name, role));
+      sys.clients.forEach((client) => clientMap.set(client.id, client));
       await this.cacheManager.set(
         SYS_ROLE_MAP_KEY,
         roleMap,

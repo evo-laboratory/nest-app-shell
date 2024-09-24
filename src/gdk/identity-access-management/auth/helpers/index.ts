@@ -1,1 +1,1 @@
-export * from './validate-api-key-client';
+export * from './validate-client';
