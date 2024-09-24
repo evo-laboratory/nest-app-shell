@@ -19,8 +19,7 @@ export class ClientGuard implements CanActivate {
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const clientMap = await this.sys.getClientMapFromCache();
-    const keys = Object.keys(clientMap);
-    if (keys.length === 0) {
+    if (clientMap.size === 0) {
       WinstonLogger.info(`No Clients required`, {
         contextName: ClientGuard.name,
         methodName: 'canActivate',
@@ -28,7 +27,7 @@ export class ClientGuard implements CanActivate {
       return true;
     }
     const request = context.switchToHttp().getRequest();
-    const inboundClientId = request[this.appEnvConfig.CLIENT_KEY_NAME];
+    const inboundClientId = request.headers[this.appEnvConfig.CLIENT_KEY_NAME];
     if (!inboundClientId) {
       WinstonLogger.info(`Client required`, {
         contextName: ClientGuard.name,
@@ -36,7 +35,7 @@ export class ClientGuard implements CanActivate {
       });
       return false;
     }
-    const inboundClient = clientMap[inboundClientId];
+    const inboundClient = clientMap.get(inboundClientId);
     if (!inboundClient) {
       WinstonLogger.info(`No client match id ${inboundClientId}`, {
         contextName: ClientGuard.name,

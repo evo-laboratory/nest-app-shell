@@ -117,11 +117,13 @@ export class SystemMongooseService implements SystemService {
       const endpoints = OpenAPIConvertToHttpEndpoints(swaggerDoc);
       const check = await this.SystemModel.findOne({});
       if (check === null) {
-        return await this.SystemModel.create({
+        const newSys = await this.SystemModel.create({
           endpoints: endpoints,
         });
+        await this.setCache(newSys);
+        return newSys;
       } else {
-        return await this.SystemModel.findByIdAndUpdate(
+        const updatedSys = await this.SystemModel.findByIdAndUpdate(
           check._id,
           {
             $set: {
@@ -131,6 +133,8 @@ export class SystemMongooseService implements SystemService {
           },
           { new: true },
         );
+        await this.setCache(updatedSys);
+        return updatedSys;
       }
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
@@ -157,13 +161,17 @@ export class SystemMongooseService implements SystemService {
           contextName: 'SystemMongooseService',
           methodName: 'updateById',
         });
-        return await this.SystemModel.findById(id);
+        const sys = await this.SystemModel.findById(id);
+        await this.setCache(sys);
+        return sys;
       }
-      return await this.SystemModel.findByIdAndUpdate(
+      const updatedSys = await this.SystemModel.findByIdAndUpdate(
         id,
         { $set: updateObj },
         { new: true },
       );
+      await this.setCache(updatedSys);
+      return updatedSys;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
