@@ -36,8 +36,17 @@ export class UserMongooseService implements UserService {
     session?: ClientSession,
   ): Promise<IUser> {
     try {
+      // * While create user, set default role that set in Sys.
+      const defaultRoleList = [];
+      const system = await this.sys.getCached();
+      const defaultRole = system.newSignUpDefaultUserRole;
+      const roleCheck = system.roles.filter((r) => r.name === defaultRole);
+      if (system.newSignUpDefaultUserRole && roleCheck.length > 0) {
+        defaultRoleList.push(system.newSignUpDefaultUserRole);
+      }
       const newData: UserDocument = await new this.UserModel({
         ...dto,
+        roleList: defaultRoleList,
       }).save({ session: session });
       return newData.toJSON();
     } catch (error) {

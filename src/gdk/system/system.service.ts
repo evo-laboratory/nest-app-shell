@@ -6,7 +6,7 @@ import { IClientMap, IRole, ISystem } from './types';
 export abstract class SystemService {
   abstract create(dto: any): Promise<any>;
   abstract findOne(): Promise<any>;
-  abstract getCached(): Promise<any>;
+  abstract getCached(): Promise<ISystem>;
   abstract listRoleByNamesFromCache(names: string[]): Promise<IRole[]>;
   abstract getClientMapFromCache(): Promise<IClientMap>;
   abstract syncHttpEndpointFromSwagger(): Promise<ISystem>;

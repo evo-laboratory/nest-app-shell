@@ -27,6 +27,8 @@ export class System implements ISystem {
     default: [],
   })
   clients: IClient[];
+  @Prop({ type: String, default: '' })
+  newSignUpDefaultUserRole: string;
   @Prop({ type: Number, default: Date.now() })
   clientUpdatedAt: number;
   @Prop({ type: Number, default: Date.now() })

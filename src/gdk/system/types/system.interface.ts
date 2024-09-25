@@ -8,6 +8,7 @@ export interface ISystem {
   endpoints: IHttpEndpoint[];
   endpointUpdatedAt: number;
   clients: IClient[];
+  newSignUpDefaultUserRole: string;
   clientUpdatedAt: number;
   createdAt: number;
   updatedAt: number;
