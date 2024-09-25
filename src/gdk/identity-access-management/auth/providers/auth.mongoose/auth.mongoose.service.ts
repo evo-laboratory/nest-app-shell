@@ -458,6 +458,16 @@ export class AuthMongooseService implements AuthService {
         );
         throw new UniteHttpException(error);
       }
+      if (!auth.isActive) {
+        // TODO NOT TESTED YET.
+        const error = this.buildError(
+          ERROR_CODE.AUTH_INACTIVE,
+          `Auth inactive, cannot sign in`,
+          404,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
       const user = await this.userService.findByEmail(dto.email);
       if (user === null) {
         const error = this.buildError(
