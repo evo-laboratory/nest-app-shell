@@ -435,7 +435,7 @@ export class AuthMongooseService implements AuthService {
     try {
       // * STEP 1. Check Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
-      const authJson = auth.toJSON();
+      const authJson = auth === null ? null : auth.toJSON();
       // * Always return true, throw error inside
       this.authUtil.checkAuthAllowSignIn(dto.email, authJson);
       // * STEP 2. Check User
@@ -472,7 +472,6 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
-      session.startTransaction();
       const tokenResults = await this.issueJWTAndRecord(
         authJson,
         user,
@@ -504,51 +503,73 @@ export class AuthMongooseService implements AuthService {
     try {
       // * STEP 1. Verify from OAuthClient
       const oauthUser = await this.oauthClientService.socialAuthenticate(dto);
-      // * STEP 2. Check Auth
-      const auth = await this.AuthModel.findOne({
-        identifier: oauthUser.email,
-      });
-      const authJson = auth.toJSON();
-      this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
-      // * STEP 3. Check User
-      const user = await this.userService.findByEmail(oauthUser.email);
-      if (user === null) {
-        const error = this.buildError(
-          ERROR_CODE.USER_NOT_FOUND,
-          `User: ${oauthUser.email} not found`,
-          404,
-          'emailSignIn',
-        );
-        throw new UniteHttpException(error);
-      }
+      let user: IUser;
+      let auth: IAuth;
       session.startTransaction();
-      // * STEP 4. Auth Data matchup
-      // TODO Typing
-      const updateAuth: any = {};
-      if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
-        updateAuth.googleSignInId = oauthUser.sub;
-        updateAuth['$push']['signUpMethodList'] = {
-          $each: [AUTH_METHOD.GOOGLE_SIGN_IN],
+      // * STEP 3. Check Auth
+      auth = await this.AuthModel.findOne({
+        identifier: oauthUser.email,
+      }).lean();
+      const authJson = auth === null ? null : auth;
+      if (auth !== null) {
+        // * STEP 3A. Already have auth, check allow Sign In
+        this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
+        // * STEP 3B. Check User
+        user = await this.userService.findByEmail(oauthUser.email);
+        if (user === null) {
+          const error = this.buildError(
+            ERROR_CODE.USER_NOT_FOUND,
+            `User: ${oauthUser.email} not found`,
+            404,
+            'socialEmailSignInUp',
+          );
+          throw new UniteHttpException(error);
+        }
+        // * STEP 4. Auth Data matchup
+        // TODO Typing
+        const updateAuth: any = {};
+        if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
+          updateAuth.googleSignInId = oauthUser.sub;
+          updateAuth['$push']['signUpMethodList'] = {
+            $each: [AUTH_METHOD.GOOGLE_SIGN_IN],
+          };
+          updateAuth.updatedAt = Date.now();
+        }
+        console.log(updateAuth);
+        if (Object.keys(updateAuth).length > 0) {
+          const updatedAuth = await this.AuthModel.findByIdAndUpdate(
+            auth._id,
+            {
+              $set: updateAuth,
+            },
+            { session: session },
+          );
+          assert.ok(updatedAuth, 'Updated Auth');
+        }
+      } else {
+        // * STEP 3C. Create New Auth
+        const createDto: IAuthCreateAuthWithUser = {
+          identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
+          email: oauthUser.email,
+          firstName: oauthUser.firstName,
+          lastName: oauthUser.lastName,
+          displayName: oauthUser.displayName,
+          signUpMethod: AUTH_METHOD.GOOGLE_SIGN_IN,
+          password: '',
+          codeUsage: AUTH_CODE_USAGE.NOT_SET,
         };
-        updateAuth.updatedAt = Date.now();
-      }
-      console.log(updateAuth);
-      if (Object.keys(updateAuth).length > 0) {
-        const updatedAuth = await this.AuthModel.findByIdAndUpdate(
-          auth._id,
-          {
-            $set: updateAuth,
-          },
-          { session: session },
+        // * STEP 3. Create New User and New Auth
+        const setup = await this.createWithUser(
+          createDto,
+          false,
+          false,
+          session,
         );
-        assert.ok(updatedAuth, 'Updated Auth');
+        user = setup.newUser;
+        auth = setup.newAuth;
       }
       // * STEP 5. Issue JWT
-      const tokenResults = await this.issueJWTAndRecord(
-        authJson,
-        user,
-        session,
-      );
+      const tokenResults = await this.issueJWTAndRecord(auth, user, session);
       await session.commitTransaction();
       await session.endSession();
       return {
@@ -556,6 +577,10 @@ export class AuthMongooseService implements AuthService {
         refreshToken: tokenResults.refreshToken,
       };
     } catch (error) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
