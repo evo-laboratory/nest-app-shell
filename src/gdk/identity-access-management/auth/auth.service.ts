@@ -43,9 +43,6 @@ export abstract class AuthService {
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;
   abstract list(): void;
-  abstract updateById(): void;
-  abstract createCustomToken(): void;
-  abstract signInWithCustomToken(): void;
   abstract enable(): void;
   abstract disable(): void;
 }

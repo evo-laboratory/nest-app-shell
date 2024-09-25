@@ -715,15 +715,6 @@ export class AuthMongooseService implements AuthService {
   list(): void {
     throw new Error('Method not implemented.');
   }
-  updateById(): void {
-    throw new Error('Method not implemented.');
-  }
-  createCustomToken(): void {
-    throw new Error('Method not implemented.');
-  }
-  signInWithCustomToken(): void {
-    throw new Error('Method not implemented.');
-  }
   enable(): void {
     throw new Error('Method not implemented.');
   }
