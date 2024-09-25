@@ -21,6 +21,7 @@ async function Bootstrap() {
       whitelist: true,
     }),
   );
+  app.enableCors();
   await app.listen(PORT);
   WinstonLogger.info(`${STAGE}`, {
     contextName: 'Main',

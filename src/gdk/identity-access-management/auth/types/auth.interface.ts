@@ -26,6 +26,7 @@ export interface IAuth {
   signInFailRecordList: IAuthSignInFailedRecordItem[]; // * Only tracks latest 1000
   isIdentifierVerified: boolean;
   isActive: boolean;
+  inactiveAt: number;
   createdAt: number;
   updatedAt: number;
   lastSignInAt: number;

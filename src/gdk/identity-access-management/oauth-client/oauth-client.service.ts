@@ -11,7 +11,8 @@ import {
 import GoogleAuthClient from '@shared/google/google.auth-client';
 import { MethodLogger } from '@shared/winston-logger';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
-import { LoginTicket, OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from 'google-auth-library';
+import { IUnifiedOAuthUser } from './types';
 @Injectable()
 export class OauthClientService implements OnModuleInit {
   private OAuthClient: OAuth2Client;
@@ -53,7 +54,9 @@ export class OauthClientService implements OnModuleInit {
   }
 
   @MethodLogger()
-  public async socialAuthenticate(dto: IAuthSocialSignInUp) {
+  public async socialAuthenticate(
+    dto: IAuthSocialSignInUp,
+  ): Promise<IUnifiedOAuthUser> {
     try {
       if (!this.supportedMethods.includes(dto.method)) {
         const error = this.buildError(
@@ -64,19 +67,51 @@ export class OauthClientService implements OnModuleInit {
         );
         throw new UniteHttpException(error);
       }
-      return await this.googleAuthenticate(dto.token);
+      let oauthUser: IUnifiedOAuthUser;
+      if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN) {
+        oauthUser = await this.googleAuthenticate(dto.token);
+        return oauthUser;
+      } else {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_METHOD_NOT_ALLOW,
+          `${dto.method} not supported`,
+          400,
+          'socialAuthenticate',
+        );
+        throw new UniteHttpException(error);
+      }
     } catch (error) {
       return Promise.reject(error);
     }
   }
 
   @MethodLogger()
-  public async googleAuthenticate(token: string): Promise<LoginTicket> {
+  public async googleAuthenticate(token: string): Promise<IUnifiedOAuthUser> {
     try {
       const loginTicket = await this.OAuthClient.verifyIdToken({
         idToken: token,
       });
-      return loginTicket;
+      const payload = loginTicket.getPayload();
+      if (!payload) {
+        const error = this.buildError(
+          ERROR_CODE.GOOGLE_AUTH_FAILED,
+          'Google authentication failed',
+          401,
+          'googleAuthenticate',
+        );
+        throw new UniteHttpException(error);
+      }
+      const unified: IUnifiedOAuthUser = {
+        aud: payload.aud,
+        sourceAuthMethod: AUTH_METHOD.GOOGLE_SIGN_IN,
+        sub: payload.sub,
+        email: payload.email,
+        firstName: payload.given_name,
+        lastName: payload.family_name,
+        displayName: '',
+        avatarURL: payload.picture,
+      };
+      return unified;
     } catch (error) {
       return Promise.reject(error);
     }

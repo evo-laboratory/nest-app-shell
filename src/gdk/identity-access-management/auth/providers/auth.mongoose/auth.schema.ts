@@ -72,6 +72,8 @@ export class Auth implements IAuth {
   signInFailRecordList: IAuthSignInFailedRecordItem[];
   @Prop({ type: Boolean, default: true })
   isActive: boolean;
+  @Prop({ type: Number, default: 0 })
+  inactiveAt: number;
   @Prop({ type: Boolean, default: false })
   isIdentifierVerified: boolean;
   @Prop({ type: Number, default: Date.now() })
