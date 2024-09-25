@@ -79,7 +79,10 @@ export class AuthorizationGuard implements CanActivate {
       return true;
     }
     const pathId = PathToPermissionIdPath(req.route.path);
-    const permissionId = `${req.method.toUpperCase()}:${pathId}`;
+    const permissionId = `${req.method.toUpperCase()}:${pathId}`.replace(
+      /::([^:]+)$/,
+      ':{$1}',
+    );
     const userRoleMap = await this.sys.listRoleByNamesFromCache(
       verifiedJwtPayload.roleList,
     );
