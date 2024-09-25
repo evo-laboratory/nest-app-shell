@@ -86,13 +86,10 @@ export class AuthorizationGuard implements CanActivate {
     const userRoleMap = await this.sys.listRoleByNamesFromCache(
       verifiedJwtPayload.roleList,
     );
-    WinstonLogger.info(
-      `Authz guarding use RolePermissionResolver: ${permissionId}`,
-      {
-        contextName: AuthorizationGuard.name,
-        methodName: 'canActivate',
-      },
-    );
+    WinstonLogger.info(`Use RolePermissionResolver: ${permissionId}`, {
+      contextName: AuthorizationGuard.name,
+      methodName: 'canActivate',
+    });
     return RolePermissionResolver(userRoleMap, permissionId);
   }
 }
