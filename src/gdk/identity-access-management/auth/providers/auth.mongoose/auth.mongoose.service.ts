@@ -36,6 +36,8 @@ import {
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuth,
+  IAuthCreateAuthWithUser,
+  IAuthCreateAuthWithUserRes,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
@@ -112,41 +114,26 @@ export class AuthMongooseService implements AuthService {
       }
       // * STEP 2. Setup Transaction Session
       session.startTransaction();
-      // * STEP 3. Create New User
-      const newUser = await this.userService.create(
-        {
-          email: dto.email,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          displayName: dto.displayName
-            ? dto.displayName
-            : `${dto.firstName} ${dto.lastName}`,
-        },
-        session,
-      );
-      assert.ok(newUser, 'New User Created');
-      // * STEP 4. Create New Auth
-      const newAuth = await this.create(
-        {
-          identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
-          identifier: dto.email,
-          signUpMethodList: [AUTH_METHOD.EMAIL_PASSWORD],
-          provider: AUTH_PROVIDER.MONGOOSE,
-          userId: newUser._id,
-          password: dto.password,
-          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
-        },
-        session,
-        true,
-        true,
-      );
-      assert.ok(newAuth, 'New Auth Created');
+      const createDto: IAuthCreateAuthWithUser = {
+        identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
+        email: dto.email,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        displayName: dto.displayName
+          ? dto.displayName
+          : `${dto.firstName} ${dto.lastName}`,
+        signUpMethod: AUTH_METHOD.EMAIL_PASSWORD,
+        password: dto.password,
+        codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+      };
+      // * STEP 3. Create New User and New Auth
+      const setup = await this.createWithUser(createDto, true, true, session);
       // * STEP 5. Send Email
       const mail: ISendMail = {
         to: dto.email,
         subject: '註冊驗證碼',
-        text: newAuth.code,
-        html: `<h1>驗證碼 : ${newAuth.code}</h1>`,
+        text: setup.newAuth.code,
+        html: `<h1>驗證碼 : ${setup.newAuth.code}</h1>`,
       };
       const sent = await this.mailService.send(mail);
       assert.ok(sent, 'Verify Email Sent');
@@ -156,7 +143,7 @@ export class AuthMongooseService implements AuthService {
       const res: IEmailSignUpRes = {
         email: dto.email,
         isEmailSent: true,
-        canResendAt: newAuth.codeExpiredAt,
+        canResendAt: setup.newAuth.codeExpiredAt,
         provider: AUTH_PROVIDER.MONGOOSE,
       };
       return res;
@@ -739,31 +726,6 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  private async create(
-    dto: CreateAuthDto,
-    session?: ClientSession,
-    hashPassword = true,
-    resolveCode = true,
-  ): Promise<AuthDocument> {
-    try {
-      const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
-      let authPassword = dto.password;
-      if (hashPassword) {
-        authPassword = await this.encryptService.hashPassword(authPassword);
-      }
-      const newAuth = await new this.AuthModel({
-        ...dto,
-        password: authPassword,
-        code: resolveCode ? generated.code : '',
-        codeExpiredAt: resolveCode ? generated.codeExpiredAt : 0,
-      }).save({ session });
-      return newAuth;
-    } catch (error) {
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
-
-  @MethodLogger()
   private async pushFailedRecordItemById(
     authId: Types.ObjectId,
     item: IAuthSignInFailedRecordItem,
@@ -839,6 +801,49 @@ export class AuthMongooseService implements AuthService {
         { session: session },
       );
       return updated;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  private async createWithUser(
+    dto: IAuthCreateAuthWithUser,
+    hashPassword = true,
+    resolveCode = true,
+    session?: ClientSession,
+  ): Promise<IAuthCreateAuthWithUserRes> {
+    try {
+      const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
+      let authPassword = dto.password;
+      if (hashPassword) {
+        authPassword = await this.encryptService.hashPassword(authPassword);
+      }
+      const newUser = await this.userService.create(
+        {
+          email: dto.email,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          displayName: dto.displayName,
+        },
+        session,
+      );
+      assert.ok(newUser, 'New User Created');
+      const newAuth = await new this.AuthModel({
+        identifierType: dto.identifierType,
+        identifier: dto.email,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        userId: newUser._id,
+        password: authPassword,
+        code: resolveCode ? generated.code : '',
+        codeExpiredAt: resolveCode ? generated.codeExpiredAt : 0,
+      }).save({ session });
+      assert.ok(newAuth, 'New Auth Created');
+      const authJson = newAuth.toJSON();
+      return {
+        newUser,
+        newAuth: authJson,
+      };
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

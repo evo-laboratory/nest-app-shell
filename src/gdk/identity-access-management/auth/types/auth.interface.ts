@@ -10,7 +10,7 @@ import {
 import { IUser } from '@gdk-iam/user/types/user.interface';
 
 export interface IAuth {
-  _id?: string;
+  _id?: string | Types.ObjectId;
   identifier: string;
   identifierType: AUTH_IDENTIFIER_TYPE;
   provider: AUTH_PROVIDER;
