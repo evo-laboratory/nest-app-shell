@@ -10,8 +10,3 @@ export type ICreateAuth = Pick<
   | 'userId'
   | 'codeUsage'
 >;
-
-export type ICreateAuthResult = Pick<
-  IAuth,
-  'identifierType' | 'identifier' | 'code' | 'codeUsage' | 'codeExpiredAt'
->;

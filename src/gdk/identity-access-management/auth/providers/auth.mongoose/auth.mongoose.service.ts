@@ -20,7 +20,6 @@ import { EncryptService } from '@gdk-iam/encrypt/encrypt.service';
 import {
   AUTH_MODEL_NAME,
   IEmailSignUpRes,
-  ICreateAuthResult,
   AUTH_IDENTIFIER_TYPE,
   AUTH_METHOD,
   AUTH_PROVIDER,
@@ -745,7 +744,7 @@ export class AuthMongooseService implements AuthService {
     session?: ClientSession,
     hashPassword = true,
     resolveCode = true,
-  ): Promise<ICreateAuthResult> {
+  ): Promise<AuthDocument> {
     try {
       const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
       let authPassword = dto.password;
@@ -758,14 +757,7 @@ export class AuthMongooseService implements AuthService {
         code: resolveCode ? generated.code : '',
         codeExpiredAt: resolveCode ? generated.codeExpiredAt : 0,
       }).save({ session });
-      const result: ICreateAuthResult = {
-        identifierType: dto.identifierType,
-        identifier: newAuth.identifier,
-        code: newAuth.code,
-        codeUsage: newAuth.codeUsage,
-        codeExpiredAt: resolveCode ? generated.codeExpiredAt : 0,
-      };
-      return result;
+      return newAuth;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
