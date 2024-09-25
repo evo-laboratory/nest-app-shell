@@ -84,7 +84,7 @@ export class AuthController {
   @Post(`${V1}/${SOCIAL_SIGN_IN_UP_PATH}`)
   @ApiResponse({ status: 201, type: AuthSignInRes })
   async socialSignInUpV1(@Body() dto: AuthSocialSignInUpDto) {
-    return await this.authService.socialSignInUp(dto);
+    return await this.authService.socialEmailSignInUp(dto);
   }
 
   @AuthType(AUTH_TYPE.PUBLIC)

@@ -27,7 +27,9 @@ export abstract class AuthService {
     dto: AuthEmailVerificationDto,
   ): Promise<IAuthEmailVerificationRes>;
   abstract emailSignIn(dto: AuthEmailSignInDto): Promise<IAuthSignInRes>;
-  abstract socialSignInUp(dto: AuthSocialSignInUpDto): Promise<IAuthSignInRes>;
+  abstract socialEmailSignInUp(
+    dto: AuthSocialSignInUpDto,
+  ): Promise<IAuthSignInRes>;
   abstract verifyRefreshToken(
     dto: AuthCheckRefreshTokenDto,
     returnDecodedToken?: boolean,
@@ -39,7 +41,6 @@ export abstract class AuthService {
     authId: string,
     dto: AuthSignOutDto,
   ): Promise<IAuthSignOutRes>;
-  abstract createAuth(): void;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;
   abstract list(): void;

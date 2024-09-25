@@ -35,9 +35,10 @@ import {
   IAuthSignOutRes,
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
-  IAuth,
   IAuthCreateAuthWithUser,
   IAuthCreateAuthWithUserRes,
+  IAuth,
+  IAuthGenerateCustomTokenResult,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
@@ -47,7 +48,6 @@ import {
   AuthSignOutDto,
   AuthSocialSignInUpDto,
   AuthVerifyDto,
-  CreateAuthDto,
   EmailSignUpDto,
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
@@ -472,48 +472,12 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
-      const tokenResults = await this.authJwt.generateCustomToken(
-        `${auth._id}`,
-        user,
-      );
-      const aToken = this.authJwt.decode<IAuthDecodedToken>(
-        tokenResults.accessToken,
-      );
-      const rToken = this.authJwt.decode<IAuthDecodedToken>(
-        tokenResults.refreshToken,
-      );
-      // * STEP 5. Push into Auth
       session.startTransaction();
-      const refreshItem: IAuthTokenItem = {
-        type: AUTH_TOKEN_TYPE.REFRESH,
-        provider: AUTH_PROVIDER.MONGOOSE,
-        tokenId: tokenResults.refreshTokenId,
-        tokenContent: tokenResults.refreshToken,
-        issuer: rToken.iss,
-        expiredAt: rToken.exp * 1000,
-        createdAt: Date.now(),
-      };
-      const pushedRefreshItem = await this.pushRefreshTokenItemById(
-        auth._id,
-        refreshItem,
+      const tokenResults = await this.issueJWTAndRecord(
+        authJson,
+        user,
         session,
       );
-      assert.ok(pushedRefreshItem, 'Pushed Refresh Token');
-      const accessItem: IAuthTokenItem = {
-        type: AUTH_TOKEN_TYPE.ACCESS,
-        provider: AUTH_PROVIDER.MONGOOSE,
-        tokenId: tokenResults.accessTokenId,
-        tokenContent: tokenResults.accessToken,
-        issuer: aToken.iss,
-        expiredAt: aToken.exp * 1000,
-        createdAt: Date.now(),
-      };
-      const pushedAccessItem = await this.pushAccessTokenItemById(
-        auth._id,
-        accessItem,
-        session,
-      );
-      assert.ok(pushedAccessItem, 'Pushed Access Token');
       await session.commitTransaction();
       await session.endSession();
       return {
@@ -530,7 +494,7 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async socialSignInUp(
+  public async socialEmailSignInUp(
     dto: AuthSocialSignInUpDto,
     session?: ClientSession,
   ): Promise<IAuthSignInRes> {
@@ -544,7 +508,53 @@ export class AuthMongooseService implements AuthService {
       const auth = await this.AuthModel.findOne({
         identifier: oauthUser.email,
       });
-      return oauthUser as any;
+      const authJson = auth.toJSON();
+      this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
+      // * STEP 3. Check User
+      const user = await this.userService.findByEmail(oauthUser.email);
+      if (user === null) {
+        const error = this.buildError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User: ${oauthUser.email} not found`,
+          404,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
+      session.startTransaction();
+      // * STEP 4. Auth Data matchup
+      // TODO Typing
+      const updateAuth: any = {};
+      if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
+        updateAuth.googleSignInId = oauthUser.sub;
+        updateAuth['$push']['signUpMethodList'] = {
+          $each: [AUTH_METHOD.GOOGLE_SIGN_IN],
+        };
+        updateAuth.updatedAt = Date.now();
+      }
+      console.log(updateAuth);
+      if (Object.keys(updateAuth).length > 0) {
+        const updatedAuth = await this.AuthModel.findByIdAndUpdate(
+          auth._id,
+          {
+            $set: updateAuth,
+          },
+          { session: session },
+        );
+        assert.ok(updatedAuth, 'Updated Auth');
+      }
+      // * STEP 5. Issue JWT
+      const tokenResults = await this.issueJWTAndRecord(
+        authJson,
+        user,
+        session,
+      );
+      await session.commitTransaction();
+      await session.endSession();
+      return {
+        accessToken: tokenResults.accessToken,
+        refreshToken: tokenResults.refreshToken,
+      };
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -673,10 +683,6 @@ export class AuthMongooseService implements AuthService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-
-  createAuth(): void {
-    throw new Error('Method not implemented.');
-  }
   getAuthById(): void {
     throw new Error('Method not implemented.');
   }
@@ -695,7 +701,7 @@ export class AuthMongooseService implements AuthService {
 
   @MethodLogger()
   private async pushFailedRecordItemById(
-    authId: Types.ObjectId,
+    authId: Types.ObjectId | string,
     item: IAuthSignInFailedRecordItem,
     session?: ClientSession,
   ): Promise<AuthDocument> {
@@ -722,7 +728,7 @@ export class AuthMongooseService implements AuthService {
 
   @MethodLogger()
   private async pushRefreshTokenItemById(
-    authId: Types.ObjectId,
+    authId: Types.ObjectId | string,
     item: IAuthTokenItem,
     session?: ClientSession,
   ): Promise<AuthDocument> {
@@ -749,7 +755,7 @@ export class AuthMongooseService implements AuthService {
 
   @MethodLogger()
   private async pushAccessTokenItemById(
-    authId: Types.ObjectId,
+    authId: Types.ObjectId | string,
     item: IAuthTokenItem,
     session?: ClientSession,
   ): Promise<AuthDocument> {
@@ -812,6 +818,59 @@ export class AuthMongooseService implements AuthService {
         newUser,
         newAuth: authJson,
       };
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  private async issueJWTAndRecord(
+    auth: IAuth,
+    user: IUser,
+    session: ClientSession,
+  ): Promise<IAuthGenerateCustomTokenResult> {
+    try {
+      const tokenResults = await this.authJwt.generateCustomToken(
+        `${auth._id}`,
+        user,
+      );
+      const aToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.accessToken,
+      );
+      const rToken = this.authJwt.decode<IAuthDecodedToken>(
+        tokenResults.refreshToken,
+      );
+      const refreshItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.REFRESH,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.refreshTokenId,
+        tokenContent: tokenResults.refreshToken,
+        issuer: rToken.iss,
+        expiredAt: rToken.exp * 1000,
+        createdAt: Date.now(),
+      };
+      const pushedRefreshItem = await this.pushRefreshTokenItemById(
+        auth._id,
+        refreshItem,
+        session,
+      );
+      assert.ok(pushedRefreshItem, 'Pushed Refresh Token');
+      const accessItem: IAuthTokenItem = {
+        type: AUTH_TOKEN_TYPE.ACCESS,
+        provider: AUTH_PROVIDER.MONGOOSE,
+        tokenId: tokenResults.accessTokenId,
+        tokenContent: tokenResults.accessToken,
+        issuer: aToken.iss,
+        expiredAt: aToken.exp * 1000,
+        createdAt: Date.now(),
+      };
+      const pushedAccessItem = await this.pushAccessTokenItemById(
+        auth._id,
+        accessItem,
+        session,
+      );
+      assert.ok(pushedAccessItem, 'Pushed Access Token');
+      return tokenResults;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
