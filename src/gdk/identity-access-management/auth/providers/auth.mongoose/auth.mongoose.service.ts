@@ -116,6 +116,7 @@ export class AuthMongooseService implements AuthService {
       session.startTransaction();
       const createDto: IAuthCreateAuthWithUser = {
         identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
+        googleSignInId: '',
         email: dto.email,
         firstName: dto.firstName,
         lastName: dto.lastName,
@@ -529,13 +530,14 @@ export class AuthMongooseService implements AuthService {
         // TODO Typing
         const updateAuth: any = {};
         if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
+          console.log('????');
           updateAuth.googleSignInId = oauthUser.sub;
           updateAuth['$push']['signUpMethodList'] = {
             $each: [AUTH_METHOD.GOOGLE_SIGN_IN],
           };
           updateAuth.updatedAt = Date.now();
+          console.log(updateAuth);
         }
-        console.log(updateAuth);
         if (Object.keys(updateAuth).length > 0) {
           const updatedAuth = await this.AuthModel.findByIdAndUpdate(
             auth._id,
@@ -550,6 +552,7 @@ export class AuthMongooseService implements AuthService {
         // * STEP 3C. Create New Auth
         const createDto: IAuthCreateAuthWithUser = {
           identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
+          googleSignInId: oauthUser.sub,
           email: oauthUser.email,
           firstName: oauthUser.firstName,
           lastName: oauthUser.lastName,
@@ -824,18 +827,24 @@ export class AuthMongooseService implements AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           displayName: dto.displayName,
+          isEmailVerified:
+            dto.signUpMethod === AUTH_METHOD.EMAIL_PASSWORD ? false : true,
         },
         session,
       );
       assert.ok(newUser, 'New User Created');
       const newAuth = await new this.AuthModel({
+        googleSignInId: dto.googleSignInId,
         identifierType: dto.identifierType,
         identifier: dto.email,
         provider: AUTH_PROVIDER.MONGOOSE,
+        signUpMethodList: [dto.signUpMethod],
         userId: newUser._id,
         password: authPassword,
         code: resolveCode ? generated.code : '',
         codeExpiredAt: resolveCode ? generated.codeExpiredAt : 0,
+        isIdentifierVerified:
+          dto.signUpMethod === AUTH_METHOD.EMAIL_PASSWORD ? false : true,
       }).save({ session });
       assert.ok(newAuth, 'New Auth Created');
       const authJson = newAuth.toJSON();

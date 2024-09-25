@@ -41,7 +41,7 @@ export class Auth implements IAuth {
   signUpMethodList: AUTH_METHOD[];
   @Prop({ type: Types.ObjectId, ref: USER_MODEL_NAME, required: true })
   userId: Types.ObjectId | IUser;
-  @Prop({ type: String })
+  @Prop({ type: String, default: '' })
   googleSignInId: string;
   @Prop({ type: String, default: '' })
   password: string;

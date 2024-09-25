@@ -4,6 +4,7 @@ import { AUTH_METHOD } from './auth-method.enum';
 
 export interface IAuthCreateAuthWithUser {
   identifierType: AUTH_IDENTIFIER_TYPE;
+  googleSignInId: string;
   email: string;
   firstName: string;
   lastName: string;

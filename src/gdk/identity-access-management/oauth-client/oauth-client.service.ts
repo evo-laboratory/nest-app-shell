@@ -108,7 +108,7 @@ export class OauthClientService implements OnModuleInit {
         email: payload.email,
         firstName: payload.given_name,
         lastName: payload.family_name,
-        displayName: '',
+        displayName: `${payload.given_name} ${payload.family_name}`,
         avatarURL: payload.picture,
       };
       return unified;
