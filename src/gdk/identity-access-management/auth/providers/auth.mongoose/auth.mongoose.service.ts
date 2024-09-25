@@ -433,54 +433,18 @@ export class AuthMongooseService implements AuthService {
       session = await this.connection.startSession();
     }
     try {
-      // * STEP 1. Check email exist in both Auth and User
+      // * STEP 1. Check Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
-      if (auth === null) {
-        const error = this.buildError(
-          ERROR_CODE.AUTH_NOT_FOUND,
-          `Identifier: ${dto.email} not found`,
-          404,
-          'emailSignIn',
-        );
-        throw new UniteHttpException(error);
-      }
-      if (!auth.isActive) {
-        // TODO NOT TESTED YET.
-        const error = this.buildError(
-          ERROR_CODE.AUTH_INACTIVE,
-          `Auth inactive, cannot sign in`,
-          404,
-          'emailSignIn',
-        );
-        throw new UniteHttpException(error);
-      }
+      const authJson = auth.toJSON();
+      // * Always return true, throw error inside
+      this.authUtil.checkAuthAllowSignIn(dto.email, authJson);
+      // * STEP 2. Check User
       const user = await this.userService.findByEmail(dto.email);
       if (user === null) {
         const error = this.buildError(
           ERROR_CODE.USER_NOT_FOUND,
           `User: ${dto.email} not found`,
           404,
-          'emailSignIn',
-        );
-        throw new UniteHttpException(error);
-      }
-      // * STEP 2. Check is Identity Verified
-      if (!auth.isIdentifierVerified) {
-        const error = this.buildError(
-          ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED,
-          `Identifier: ${dto.email} not verified`,
-          403,
-          'emailSignIn',
-        );
-        throw new UniteHttpException(error);
-      }
-      // * STEP 2. Check Auth sign in failed attempts
-      const isLocked = this.authUtil.isExceedAttemptLimit(auth.toJSON());
-      if (isLocked) {
-        const error = this.buildError(
-          ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
-          `Attempt rate limit, please try again after 1 hour`,
-          406,
           'emailSignIn',
         );
         throw new UniteHttpException(error);
@@ -576,6 +540,10 @@ export class AuthMongooseService implements AuthService {
     try {
       // * STEP 1. Verify from OAuthClient
       const oauthUser = await this.oauthClientService.socialAuthenticate(dto);
+      // * STEP 2. Check Auth
+      const auth = await this.AuthModel.findOne({
+        identifier: oauthUser.email,
+      });
       return oauthUser as any;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
