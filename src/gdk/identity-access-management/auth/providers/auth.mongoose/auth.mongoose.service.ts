@@ -600,6 +600,13 @@ export class AuthMongooseService implements AuthService {
         dto.token,
         AUTH_TOKEN_TYPE.REFRESH,
       );
+      const auth = await this.AuthModel.findById(token.sub);
+      if (!auth.isActive) {
+        // TODO NOT TESTED YET.
+        result.isValid = false;
+        result.message = 'Auth is inactive';
+        return result;
+      }
       if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
         result.isValid = true;
         result.message = 'ok';
