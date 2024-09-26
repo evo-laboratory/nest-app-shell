@@ -9,6 +9,7 @@ export * from './auth-email-sign-in.interface';
 export * from './auth-email-verification.interface';
 export * from './auth-exchange-new-access-token-response.interface';
 export * from './auth-exchange-new-access-token.interface';
+export * from './auth-flex-update.interface';
 export * from './auth-generate-custom-token-result.interface';
 export * from './auth-generated-code.interface';
 export * from './auth-identifier-type';

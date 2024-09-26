@@ -17,6 +17,9 @@ import { AuthJwtService } from '@gdk-iam/auth-jwt/auth-jwt.service';
 import { MailService } from '@gdk-mail/mail.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { EncryptService } from '@gdk-iam/encrypt/encrypt.service';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
+import { OauthClientService } from '@gdk-iam/oauth-client/oauth-client.service';
+
 import {
   AUTH_MODEL_NAME,
   IEmailSignUpRes,
@@ -39,6 +42,7 @@ import {
   IAuthCreateAuthWithUserRes,
   IAuth,
   IAuthGenerateCustomTokenResult,
+  IAuthFlexUpdate,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
@@ -52,14 +56,12 @@ import {
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
-import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
 import { ExtractPropertiesFromObj } from '@shared/helper';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import { Auth, AuthDocument } from './auth.schema';
-import { OauthClientService } from '@gdk-iam/oauth-client/oauth-client.service';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -256,8 +258,7 @@ export class AuthMongooseService implements AuthService {
       // * STEP A. Setup Transaction Session
       session.startTransaction();
       // * STEP B. Reset Auth State
-      // TODO Typing
-      const updateQuery: any = {
+      const updateQuery: IAuthFlexUpdate = {
         codeExpiredAt: 0,
         code: '',
         codeUsage: AUTH_CODE_USAGE.NOT_SET,
@@ -528,8 +529,7 @@ export class AuthMongooseService implements AuthService {
           throw new UniteHttpException(error);
         }
         // * STEP 4. Auth Data matchup
-        // TODO Typing
-        const updateAuth: any = {};
+        const updateAuth: IAuthFlexUpdate = {};
         if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
           updateAuth.googleSignInId = oauthUser.sub;
           updateAuth.updatedAt = Date.now();
@@ -611,12 +611,7 @@ export class AuthMongooseService implements AuthService {
         AUTH_TOKEN_TYPE.REFRESH,
       );
       const auth = await this.AuthModel.findById(token.sub);
-      if (!auth.isActive) {
-        // TODO NOT TESTED YET.
-        result.isValid = false;
-        result.message = 'Auth is inactive';
-        return result;
-      }
+      this.authUtil.checkAuthAllowSignIn(token.email, auth, true);
       if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
         result.isValid = true;
         result.message = 'ok';

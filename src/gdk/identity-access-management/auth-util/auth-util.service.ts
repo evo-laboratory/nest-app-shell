@@ -35,7 +35,11 @@ export class AuthUtilService {
   }
 
   @MethodLogger()
-  public checkAuthAllowSignIn(identifier: string, auth: IAuth): true {
+  public checkAuthAllowSignIn(
+    identifier: string,
+    auth: IAuth,
+    skipCheckExceedLimit = false,
+  ): true {
     // * Always return true, throw error inside.
     // * STEP 1A. Check Existence
     if (auth === null) {
@@ -59,7 +63,6 @@ export class AuthUtilService {
     }
     // * STEP 1C. Check is active
     if (!auth.isActive) {
-      // TODO NOT TESTED YET.
       const error = this.buildError(
         ERROR_CODE.AUTH_INACTIVE,
         `Auth inactive, cannot sign in`,
@@ -69,15 +72,17 @@ export class AuthUtilService {
       throw new UniteHttpException(error);
     }
     // * STEP 1D. Check Auth sign in failed attempts
-    const isLocked = this.isExceedAttemptLimit(auth);
-    if (isLocked) {
-      const error = this.buildError(
-        ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
-        `Attempt rate limit, please try again after 1 hour`,
-        406,
-        'emailSignIn',
-      );
-      throw new UniteHttpException(error);
+    if (!skipCheckExceedLimit) {
+      const isLocked = this.isExceedAttemptLimit(auth);
+      if (isLocked) {
+        const error = this.buildError(
+          ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
+          `Attempt rate limit, please try again after 1 hour`,
+          406,
+          'emailSignIn',
+        );
+        throw new UniteHttpException(error);
+      }
     }
     return true;
   }
