@@ -473,6 +473,7 @@ export class AuthMongooseService implements AuthService {
         throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
+      session.startTransaction();
       const tokenResults = await this.issueJWTAndRecord(
         authJson,
         user,
@@ -530,19 +531,26 @@ export class AuthMongooseService implements AuthService {
         // TODO Typing
         const updateAuth: any = {};
         if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
-          console.log('????');
           updateAuth.googleSignInId = oauthUser.sub;
-          updateAuth['$push']['signUpMethodList'] = {
-            $each: [AUTH_METHOD.GOOGLE_SIGN_IN],
-          };
           updateAuth.updatedAt = Date.now();
-          console.log(updateAuth);
         }
         if (Object.keys(updateAuth).length > 0) {
+          const newMethod = [];
+          if (
+            dto.method === AUTH_METHOD.GOOGLE_SIGN_IN &&
+            !auth.googleSignInId
+          ) {
+            newMethod.push(AUTH_METHOD.GOOGLE_SIGN_IN);
+          }
           const updatedAuth = await this.AuthModel.findByIdAndUpdate(
             auth._id,
             {
               $set: updateAuth,
+              $push: {
+                signUpMethodList: {
+                  $each: newMethod,
+                },
+              },
             },
             { session: session },
           );
@@ -843,6 +851,7 @@ export class AuthMongooseService implements AuthService {
         password: authPassword,
         code: resolveCode ? generated.code : '',
         codeExpiredAt: resolveCode ? generated.codeExpiredAt : 0,
+        codeUsage: dto.codeUsage,
         isIdentifierVerified:
           dto.signUpMethod === AUTH_METHOD.EMAIL_PASSWORD ? false : true,
       }).save({ session });

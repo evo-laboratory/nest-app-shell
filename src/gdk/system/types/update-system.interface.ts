@@ -6,4 +6,5 @@ export interface IUpdateSystem {
   rolesUpdatedAt?: number;
   clients?: IClient[];
   clientsUpdatedAt?: number;
+  newSignUpDefaultUserRole?: string;
 }

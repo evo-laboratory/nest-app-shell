@@ -4,4 +4,5 @@ import { IRole } from './role.interface';
 export interface IFlexUpdateSystem {
   roles: IRole[];
   clients: IClient[];
+  newSignUpDefaultUserRole: string;
 }

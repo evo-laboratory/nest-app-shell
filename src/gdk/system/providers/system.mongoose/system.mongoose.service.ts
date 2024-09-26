@@ -156,6 +156,9 @@ export class SystemMongooseService implements SystemService {
         updateObj.clients = dto.clients;
         updateObj.clientsUpdatedAt = Date.now();
       }
+      if (dto.newSignUpDefaultUserRole) {
+        updateObj.newSignUpDefaultUserRole = dto.newSignUpDefaultUserRole;
+      }
       if (Object.keys(updateObj).length === 0) {
         WinstonLogger.info('No update required', {
           contextName: 'SystemMongooseService',
