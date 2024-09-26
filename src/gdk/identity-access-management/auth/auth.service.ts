@@ -17,6 +17,7 @@ import {
   IAuthSignOutRes,
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
+  IAuth,
 } from './types';
 
 @Injectable()
@@ -43,7 +44,7 @@ export abstract class AuthService {
   ): Promise<IAuthSignOutRes>;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;
-  abstract list(): void;
+  abstract list(): Promise<IAuth[]>;
   abstract enable(): void;
   abstract disable(): void;
 }

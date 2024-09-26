@@ -720,7 +720,7 @@ export class AuthMongooseService implements AuthService {
   getAuthByEmail(): void {
     throw new Error('Method not implemented.');
   }
-  list(): void {
+  list(): any {
     throw new Error('Method not implemented.');
   }
   enable(): void {

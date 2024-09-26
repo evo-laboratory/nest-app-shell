@@ -8,7 +8,7 @@ import {
   Delete,
   HttpCode,
 } from '@nestjs/common';
-import { CHECK_PATH, GPI, V1 } from '@shared/statics';
+import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -112,6 +112,12 @@ export class AuthController {
     @Body() dto: AuthSignOutDto,
   ) {
     return await this.authService.signOut(token.sub, dto);
+  }
+
+  @Get(`${V1}/${LIST_PATH}`)
+  @HttpCode(200)
+  async listV1() {
+    return await this.authService.list();
   }
 
   // TODO List All Auth
