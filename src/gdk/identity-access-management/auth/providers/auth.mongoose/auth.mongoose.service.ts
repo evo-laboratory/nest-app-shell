@@ -724,7 +724,7 @@ export class AuthMongooseService implements AuthService {
     throw new Error('Method not implemented.');
   }
   @MethodLogger()
-  public async list(): Promise<IGetResponseWrapper<IAuth[]>> {
+  public async listAll(): Promise<IGetResponseWrapper<IAuth[]>> {
     try {
       const authList = await this.AuthModel.find().lean();
       return GetResponseWrap(authList);

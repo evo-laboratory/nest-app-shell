@@ -1,3 +1,3 @@
-export interface ResponseMeta {
+export interface IResponseMeta {
   count?: number;
 }

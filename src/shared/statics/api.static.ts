@@ -3,4 +3,5 @@ export const API = 'api'; // * API = Application Programming Interface
 
 export const V1 = 'v1';
 export const LIST_PATH = 'list';
+export const QUERY_PATH = 'query';
 export const CHECK_PATH = 'check';

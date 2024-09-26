@@ -45,7 +45,7 @@ export abstract class AuthService {
   ): Promise<IAuthSignOutRes>;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;
-  abstract list(): Promise<IGetResponseWrapper<IAuth[]>>;
+  abstract listAll(): Promise<IGetResponseWrapper<IAuth[]>>;
   abstract enable(): void;
   abstract disable(): void;
 }
