@@ -116,6 +116,7 @@ export class AuthController {
 
   @Get(`${V1}/${LIST_PATH}`)
   @HttpCode(200)
+  @ApiResponse({ status: 200 })
   async listV1() {
     return await this.authService.list();
   }

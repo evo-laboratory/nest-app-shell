@@ -61,6 +61,9 @@ import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
 import { ExtractPropertiesFromObj } from '@shared/helper';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
+import GetResponseWrap from '@shared/helper/get-response-wrapper';
+import { IGetResponseWrapper } from '@shared/types';
+
 import { Auth, AuthDocument } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -720,8 +723,14 @@ export class AuthMongooseService implements AuthService {
   getAuthByEmail(): void {
     throw new Error('Method not implemented.');
   }
-  list(): any {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async list(): Promise<IGetResponseWrapper<IAuth[]>> {
+    try {
+      const authList = await this.AuthModel.find().lean();
+      return GetResponseWrap(authList);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   enable(): void {
     throw new Error('Method not implemented.');
