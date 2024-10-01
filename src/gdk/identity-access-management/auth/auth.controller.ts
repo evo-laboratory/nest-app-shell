@@ -14,12 +14,12 @@ import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
   AuthCheckResult,
-  AuthDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
   AuthExchangeNewAccessTokenDto,
   AuthExchangeNewAccessTokenRes,
+  AuthListAuthResDto,
   AuthSignInRes,
   AuthSignOutDto,
   AuthSignOutRes,
@@ -45,7 +45,6 @@ import {
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
-import { GetResponseWrapper } from '@shared/dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -118,7 +117,7 @@ export class AuthController {
 
   @Get(`${V1}/${LIST_PATH}`)
   @HttpCode(200)
-  @ApiResponse({ status: 200, type: GetResponseWrapper<AuthDto[]> })
+  @ApiResponse({ status: 200, type: AuthListAuthResDto })
   async listAllV1() {
     return await this.authService.listAll();
   }

@@ -1,1 +1,1 @@
-export * from './get-response-wrapper.dto';
+export * from './response-meta.dto';
