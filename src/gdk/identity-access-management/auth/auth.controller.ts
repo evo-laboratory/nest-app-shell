@@ -7,8 +7,15 @@ import {
   Param,
   Delete,
   HttpCode,
+  Query,
 } from '@nestjs/common';
-import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
+import {
+  CHECK_PATH,
+  GPI,
+  LIST_PATH,
+  QUERY_PAGINATION_METHOD,
+  V1,
+} from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -45,6 +52,8 @@ import {
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
+import { PAGINATION_METHOD } from '@shared/enums';
+import { GetQueryOptionsDto } from '@shared/dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -118,7 +127,8 @@ export class AuthController {
   @Get(`${V1}/${LIST_PATH}`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthListAuthResDto })
-  async listAllV1() {
+  async listAllV1(@Query() queryOptions: GetQueryOptionsDto) {
+    console.log(queryOptions);
     return await this.authService.listAll();
   }
 
