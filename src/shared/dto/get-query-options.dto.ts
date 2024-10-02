@@ -1,3 +1,4 @@
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { PAGINATION_METHOD } from '@shared/enums';
 import {
   IGetQueryFilter,
@@ -5,8 +6,7 @@ import {
   IGetQuerySortFields,
 } from '@shared/types';
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsObject, IsOptional, IsString } from 'class-validator';
-import { GetQuerySortFieldsDto } from './get-query-sort-fields.dto';
+import { IsValidSortFields } from '@shared/validator-constraints';
 
 export class GetQueryOptionsDto implements IGetQueryOptions {
   @IsOptional()
@@ -25,12 +25,7 @@ export class GetQueryOptionsDto implements IGetQueryOptions {
   pageLimit?: number;
   @IsOptional()
   @Transform(({ value }) => JSON.parse(value))
-  @Type((test) => {
-    const json = JSON.parse(test.object[test.property]);
-    const sortFields = new GetQuerySortFieldsDto(json);
-    return () => sortFields;
-  })
-  @IsObject()
+  @IsValidSortFields()
   sortFields?: IGetQuerySortFields;
   @IsOptional()
   @Transform(({ value }) => JSON.parse(value))
