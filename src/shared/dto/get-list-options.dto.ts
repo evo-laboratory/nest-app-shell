@@ -1,11 +1,11 @@
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { PAGINATION_METHOD } from '@shared/enums';
 import {
   IGetListFilters,
   IGetListOptions,
   IGetListSortFields,
 } from '@shared/types';
-import { Transform, Type } from 'class-transformer';
 import {
   IsValidGetListFilters,
   IsValidSortFields,
