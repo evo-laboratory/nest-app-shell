@@ -53,7 +53,7 @@ import {
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
 import { PAGINATION_METHOD } from '@shared/enums';
-import { GetQueryOptionsDto } from '@shared/dto';
+import { GetListOptionsDto } from '@shared/dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -127,8 +127,8 @@ export class AuthController {
   @Get(`${V1}/${LIST_PATH}`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthListAuthResDto })
-  async listAllV1(@Query() queryOptions: GetQueryOptionsDto) {
-    console.log(queryOptions);
+  async listAllV1(@Query() listOptions: GetListOptionsDto) {
+    console.log(listOptions);
     return await this.authService.listAll();
   }
 

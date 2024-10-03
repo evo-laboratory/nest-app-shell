@@ -1,5 +1,5 @@
 import { SORT } from '@shared/enums';
 
-export interface IGetQuerySortFields {
+export interface IGetListSortFields {
   [key: string]: SORT;
 }

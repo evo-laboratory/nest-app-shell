@@ -1,9 +1,9 @@
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { PAGINATION_METHOD } from '@shared/enums';
 import {
-  IGetQueryFilter,
-  IGetQueryOptions,
-  IGetQuerySortFields,
+  IGetListFilters,
+  IGetListOptions,
+  IGetListSortFields,
 } from '@shared/types';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -11,7 +11,7 @@ import {
   IsValidSortFields,
 } from '@shared/validator-constraints';
 
-export class GetQueryOptionsDto implements IGetQueryOptions {
+export class GetListOptionsDto implements IGetListOptions {
   @IsOptional()
   @IsEnum(PAGINATION_METHOD)
   paginationMethod?: PAGINATION_METHOD;
@@ -29,11 +29,11 @@ export class GetQueryOptionsDto implements IGetQueryOptions {
   @IsOptional()
   @Transform(({ value }) => JSON.parse(value))
   @IsValidSortFields()
-  sortFields?: IGetQuerySortFields;
+  sortFields?: IGetListSortFields;
   @IsOptional()
   @Transform(({ value }) => JSON.parse(value))
   @IsValidGetListFilters()
-  filters?: IGetQueryFilter;
+  filters?: IGetListFilters;
   @IsOptional()
   @IsString()
   fieldSelection?: string;
