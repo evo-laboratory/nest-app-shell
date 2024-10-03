@@ -6,7 +6,10 @@ import {
   IGetQuerySortFields,
 } from '@shared/types';
 import { Transform, Type } from 'class-transformer';
-import { IsValidSortFields } from '@shared/validator-constraints';
+import {
+  IsValidGetListFilters,
+  IsValidSortFields,
+} from '@shared/validator-constraints';
 
 export class GetQueryOptionsDto implements IGetQueryOptions {
   @IsOptional()
@@ -29,6 +32,7 @@ export class GetQueryOptionsDto implements IGetQueryOptions {
   sortFields?: IGetQuerySortFields;
   @IsOptional()
   @Transform(({ value }) => JSON.parse(value))
+  @IsValidGetListFilters()
   filters?: IGetQueryFilter;
   @IsOptional()
   @IsString()
