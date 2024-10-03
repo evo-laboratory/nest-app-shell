@@ -62,9 +62,10 @@ import { ExtractPropertiesFromObj } from '@shared/helper';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import GetResponseWrap from '@shared/helper/get-response-wrapper';
-import { IGetResponseWrapper } from '@shared/types';
+import { IGetListOptions, IGetResponseWrapper } from '@shared/types';
 
 import { Auth, AuthDocument } from './auth.schema';
+import { GetListOptionsDto } from '@shared/dto';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
@@ -724,7 +725,9 @@ export class AuthMongooseService implements AuthService {
     throw new Error('Method not implemented.');
   }
   @MethodLogger()
-  public async listAll(): Promise<IGetResponseWrapper<IAuth[]>> {
+  public async listAll(
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IAuth[]>> {
     try {
       const authList = await this.AuthModel.find().lean();
       return GetResponseWrap(authList);

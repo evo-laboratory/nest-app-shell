@@ -9,13 +9,7 @@ import {
   HttpCode,
   Query,
 } from '@nestjs/common';
-import {
-  CHECK_PATH,
-  GPI,
-  LIST_PATH,
-  QUERY_PAGINATION_METHOD,
-  V1,
-} from '@shared/statics';
+import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -129,7 +123,7 @@ export class AuthController {
   @ApiResponse({ status: 200, type: AuthListAuthResDto })
   async listAllV1(@Query() listOptions: GetListOptionsDto) {
     console.log(listOptions);
-    return await this.authService.listAll();
+    return await this.authService.listAll(listOptions);
   }
 
   // TODO Find Auth ById
