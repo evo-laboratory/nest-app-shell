@@ -19,7 +19,8 @@ import {
   IAuthExchangeNewAccessTokenRes,
   IAuth,
 } from './types';
-import { IGetListOptions, IGetResponseWrapper } from '@shared/types';
+import { IGetResponseWrapper } from '@shared/types';
+import { GetListOptionsDto } from '@shared/dto';
 
 @Injectable()
 export abstract class AuthService {
@@ -45,7 +46,9 @@ export abstract class AuthService {
   ): Promise<IAuthSignOutRes>;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;
-  abstract listAll(opt: IGetListOptions): Promise<IGetResponseWrapper<IAuth[]>>;
+  abstract listAll(
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IAuth[]>>;
   abstract enable(): void;
   abstract disable(): void;
 }
