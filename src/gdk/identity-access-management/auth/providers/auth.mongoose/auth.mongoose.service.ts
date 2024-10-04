@@ -62,10 +62,11 @@ import { ExtractPropertiesFromObj } from '@shared/helper';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import GetResponseWrap from '@shared/helper/get-response-wrapper';
-import { IGetListOptions, IGetResponseWrapper } from '@shared/types';
+import { IGetResponseWrapper } from '@shared/types';
+import { GetListOptionsDto } from '@shared/dto';
 
 import { Auth, AuthDocument } from './auth.schema';
-import { GetListOptionsDto } from '@shared/dto';
+
 @Injectable()
 export class AuthMongooseService implements AuthService {
   constructor(
