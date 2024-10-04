@@ -126,6 +126,7 @@ export class AuthController {
     return await this.authService.listAll(listOptions);
   }
 
+  // TODO LogLevel in ENV
   // TODO Find Auth ById
   // TODO Revoke Refresh token by admin
   // TODO Disable Auth
