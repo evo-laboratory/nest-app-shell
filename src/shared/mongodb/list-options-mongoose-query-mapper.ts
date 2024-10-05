@@ -3,10 +3,19 @@ import { IGetListOptions } from '@shared/types';
 export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
   const mapped = {
     filterQ: {},
-    sortQ: {},
+    sortObjs: {},
     populateFields: '',
     selectedFields: '',
   };
+  if (
+    typeof opt.sortFields === 'object' &&
+    JSON.stringify(opt.sortFields) !== '{}'
+  ) {
+    mapped.sortObjs = Object.keys(opt.sortFields).reduce((prev, currKey) => {
+      prev[currKey] = opt.sortFields[currKey].toLocaleLowerCase();
+      return prev;
+    }, {});
+  }
   if (opt.relationFields) {
     const splitted = opt.relationFields.split(',');
     mapped.populateFields = splitted.join(' ');
