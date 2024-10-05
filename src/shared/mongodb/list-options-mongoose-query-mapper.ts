@@ -1,3 +1,4 @@
+import { PAGINATION_METHOD } from '@shared/enums';
 import { IGetListOptions } from '@shared/types';
 
 export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
@@ -7,7 +8,15 @@ export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
     sortObjs: {},
     populateFields: '',
     selectedFields: '',
+    skip: 0,
+    limit: 0,
   };
+  if (opt.paginationMethod === PAGINATION_METHOD.OFFSET) {
+    mapped.skip = opt.pageLimit * opt.pageNumber;
+    mapped.limit = opt.pageLimit;
+  } else if (opt.paginationMethod === PAGINATION_METHOD.CURSOR) {
+    mapped.limit = opt.pageLimit;
+  }
   if (typeof opt.filters === 'object' && JSON.stringify(opt.filters) !== '{}') {
     // TODO Below only handled as PAGINATION_METHOD.LIST_ALL
     mapped.filterObjs = Object.keys(opt.filters).reduce((accMap, currKey) => {

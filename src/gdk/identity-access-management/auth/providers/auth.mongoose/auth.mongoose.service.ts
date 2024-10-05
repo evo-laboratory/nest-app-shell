@@ -732,10 +732,13 @@ export class AuthMongooseService implements AuthService {
   ): Promise<IGetResponseWrapper<IAuth[]>> {
     try {
       const mappedOpts = ListOptionsMongooseQueryMapper(opt);
+      console.log(mappedOpts);
       const authList = await this.AuthModel.find(mappedOpts.filterObjs)
         .sort(mappedOpts.sortObjs)
         .populate(mappedOpts.populateFields)
         .select(mappedOpts.selectedFields)
+        .skip(mappedOpts.skip)
+        .limit(mappedOpts.limit)
         .lean();
       return GetResponseWrap(authList);
     } catch (error) {

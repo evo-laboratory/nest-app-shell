@@ -46,7 +46,6 @@ import {
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
-import { PAGINATION_METHOD } from '@shared/enums';
 import { GetListOptionsDto } from '@shared/dto';
 
 @ApiTags(AUTH_API)

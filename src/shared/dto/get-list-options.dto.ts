@@ -21,7 +21,7 @@ export class GetListOptionsDto implements IGetListOptions {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  pageOffset?: number;
+  pageNumber?: number;
   @IsOptional()
   @IsInt()
   @Type(() => Number)

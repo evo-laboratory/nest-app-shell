@@ -6,8 +6,8 @@ import { IGetListSortFields } from './get-list-sort-field.interface';
 export interface IGetListOptions {
   paginationMethod?: PAGINATION_METHOD;
   pageCursorToken?: string; // * When paginationMethod is CURSOR
-  pageOffset?: number; // * When paginationMethod is OFFSET
-  pageLimit?: number; // * When paginationMethod is CURSOR and OFFSET
+  pageLimit?: number; // * Consider as PageSize, when paginationMethod is CURSOR and OFFSET
+  pageNumber?: number; // * * When paginationMethod is OFFSET
   sortFields?: IGetListSortFields;
   filters?: IGetListFilters;
   fieldSelection?: string;
