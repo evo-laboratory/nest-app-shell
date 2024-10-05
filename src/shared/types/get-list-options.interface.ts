@@ -7,7 +7,7 @@ export interface IGetListOptions {
   paginationMethod?: PAGINATION_METHOD;
   pageCursorToken?: string; // * When paginationMethod is CURSOR
   pageOffset?: number; // * When paginationMethod is OFFSET
-  pageLimit?: number; // * When paginationMethod is OFFSET
+  pageLimit?: number; // * When paginationMethod is CURSOR and OFFSET
   sortFields?: IGetListSortFields;
   filters?: IGetListFilters;
   fieldSelection?: string;

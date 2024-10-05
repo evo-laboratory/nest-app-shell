@@ -9,6 +9,7 @@ export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
     selectedFields: '',
   };
   if (typeof opt.filters === 'object' && JSON.stringify(opt.filters) !== '{}') {
+    // TODO Below only handled as PAGINATION_METHOD.LIST_ALL
     mapped.filterObjs = Object.keys(opt.filters).reduce((accMap, currKey) => {
       const val = opt.filters[currKey];
       if (typeof val === 'boolean') {
