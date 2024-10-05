@@ -11,7 +11,7 @@ import { ConfigType } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Model } from 'mongoose';
-import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
+import { MongoDBErrorHandler } from '@shared/mongodb';
 import OpenAPIConvertToHttpEndpoints from '@shared/swagger/openapi-convertor';
 import SwaggerDocumentBuilder from '@shared/swagger/swagger-document-builder';
 import WinstonLogger from '@shared/winston-logger/winston.logger';

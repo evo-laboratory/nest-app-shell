@@ -8,8 +8,7 @@ import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
-
-import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
+import { MongoDBErrorHandler } from '@shared/mongodb';
 import { MethodLogger } from '@shared/winston-logger';
 import {
   ERROR_CODE,
@@ -22,6 +21,7 @@ import {
   AuthRevokedToken,
   AuthRevokedTokenDocument,
 } from './auth-revoked-token.schema';
+
 @Injectable()
 export class AuthRevokedTokenMongooseService
   implements AuthRevokedTokenService

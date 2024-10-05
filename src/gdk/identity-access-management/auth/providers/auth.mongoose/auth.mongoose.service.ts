@@ -815,7 +815,7 @@ export class AuthMongooseService implements AuthService {
     session?: ClientSession,
   ): Promise<AuthDocument> {
     try {
-      const SLICE_COUNT = 100;
+      const SLICE_COUNT = 100; // TODO Move to .ENV
       const updated = await this.AuthModel.findByIdAndUpdate(
         authId,
         {
@@ -842,7 +842,7 @@ export class AuthMongooseService implements AuthService {
     session?: ClientSession,
   ): Promise<AuthDocument> {
     try {
-      const SLICE_COUNT = 100;
+      const SLICE_COUNT = 100; // TODO Move to .ENV
       const updated = await this.AuthModel.findByIdAndUpdate(
         authId,
         {

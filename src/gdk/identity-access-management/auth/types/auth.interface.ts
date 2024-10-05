@@ -22,8 +22,8 @@ export interface IAuth {
   codeUsage: AUTH_CODE_USAGE;
   codeExpiredAt: number;
   activeRefreshTokenList: IAuthTokenItem[];
-  accessTokenHistoryList: IAuthTokenItem[]; // * Only tracks latest 1000
-  signInFailRecordList: IAuthSignInFailedRecordItem[]; // * Only tracks latest 1000
+  accessTokenHistoryList: IAuthTokenItem[]; // * Only tracks latest 100
+  signInFailRecordList: IAuthSignInFailedRecordItem[]; // * Only tracks latest 100
   isIdentifierVerified: boolean;
   isActive: boolean;
   inactiveAt: number;

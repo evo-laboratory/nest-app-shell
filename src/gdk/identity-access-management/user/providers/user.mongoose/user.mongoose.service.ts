@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
-
-import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
+import { MongoDBErrorHandler } from '@shared/mongodb';
 import { MethodLogger } from '@shared/winston-logger';
 import {
   CreateUserDto,
@@ -22,6 +21,7 @@ import {
 
 import { User, UserDocument } from './user.schema';
 import { UserService } from '../../user.service';
+
 @Injectable()
 export class UserMongooseService implements UserService {
   constructor(
