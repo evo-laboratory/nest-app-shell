@@ -62,8 +62,9 @@ import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import GetResponseWrap from '@shared/helper/get-response-wrapper';
 import { IGetResponseWrapper } from '@shared/types';
-import { GetListOptionsDto } from '@shared/dto';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import {
+  GetOptionsMongooseQueryMapper,
   ListOptionsMongooseQueryMapper,
   MongoDBErrorHandler,
 } from '@shared/mongodb';
@@ -734,7 +735,6 @@ export class AuthMongooseService implements AuthService {
   ): Promise<IGetResponseWrapper<IAuth[]>> {
     try {
       const mappedOpts = ListOptionsMongooseQueryMapper(opt);
-      console.log(mappedOpts);
       const authList = await this.AuthModel.find(mappedOpts.filterObjs)
         .sort(mappedOpts.sortObjs)
         .populate(mappedOpts.populateFields)
@@ -750,10 +750,15 @@ export class AuthMongooseService implements AuthService {
   @MethodLogger()
   public async getById(
     id: string,
+    opt: GetOptionsDto,
     canBeNull = true,
   ): Promise<IGetResponseWrapper<IAuth>> {
     try {
-      const auth = await this.AuthModel.findById(id).lean();
+      const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+      const auth = await this.AuthModel.findById(id)
+        .select(mappedOpts.selectedFields)
+        .populate(mappedOpts.populateFields)
+        .lean();
       if (auth === null && !canBeNull) {
         // * Throw 404
         const error = this.buildError(

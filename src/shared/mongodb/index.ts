@@ -1,3 +1,4 @@
+export * from './get-options-mongoose-query-mapper';
 export * from './list-options-mongoose-query-mapper';
 export * from './mongodb-error-handler';
 export * from './mongodb-model-builder';

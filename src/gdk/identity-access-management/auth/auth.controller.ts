@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
-import { GetListOptionsDto } from '@shared/dto';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
@@ -129,9 +129,8 @@ export class AuthController {
   @Get(`${V1}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthGetByIdResDto })
-  async getByIdV1(@Param('id') id: string) {
-    // TODO Maybe a good idea supports selection and populate
-    return await this.authService.getById(id, false);
+  async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
+    return await this.authService.getById(id, options, false);
   }
 
   // TODO LogLevel in ENV

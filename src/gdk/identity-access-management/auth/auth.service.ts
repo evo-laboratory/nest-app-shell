@@ -20,7 +20,7 @@ import {
   IAuth,
 } from './types';
 import { IGetResponseWrapper } from '@shared/types';
-import { GetListOptionsDto } from '@shared/dto';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 
 @Injectable()
 export abstract class AuthService {
@@ -51,6 +51,7 @@ export abstract class AuthService {
   ): Promise<IGetResponseWrapper<IAuth[]>>;
   abstract getById(
     id: string,
+    dto: GetOptionsDto,
     canBeNull: boolean,
   ): Promise<IGetResponseWrapper<IAuth>>;
   abstract enable(): void;
