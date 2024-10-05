@@ -36,8 +36,8 @@ export class GetListOptionsDto implements IGetListOptions {
   filters?: IGetListFilters;
   @IsOptional()
   @IsString()
-  fieldSelection?: string;
+  fieldSelection?: string; // TODO Regex test -field1,-field2 or field,field2
   @IsOptional()
   @IsString()
-  relationFields?: string;
+  relationFields?: string; // TODO Regex test name | name,age,email
 }

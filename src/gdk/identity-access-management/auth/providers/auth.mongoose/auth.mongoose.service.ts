@@ -66,6 +66,7 @@ import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto } from '@shared/dto';
 
 import { Auth, AuthDocument } from './auth.schema';
+import { ListOptionsMongooseQueryMapper } from '@shared/mongodb';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -730,7 +731,11 @@ export class AuthMongooseService implements AuthService {
     opt: GetListOptionsDto,
   ): Promise<IGetResponseWrapper<IAuth[]>> {
     try {
-      const authList = await this.AuthModel.find().lean();
+      const mappedOpts = ListOptionsMongooseQueryMapper(opt);
+      const authList = await this.AuthModel.find()
+        .populate(mappedOpts.populateFields)
+        .select(mappedOpts.selectedFields)
+        .lean();
       return GetResponseWrap(authList);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
