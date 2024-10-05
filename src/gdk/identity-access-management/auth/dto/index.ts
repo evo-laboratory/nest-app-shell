@@ -4,6 +4,7 @@ export * from './auth-email-sign-in.dto';
 export * from './auth-email-verification.dto';
 export * from './auth-exchange-new-access-token-res.dto';
 export * from './auth-exchange-new-access-token.dto';
+export * from './auth-get-by-id-res.dto';
 export * from './auth-list-auth-res.dto';
 export * from './auth-sign-in-failed-record-item.dto';
 export * from './auth-sign-in-res.dto';

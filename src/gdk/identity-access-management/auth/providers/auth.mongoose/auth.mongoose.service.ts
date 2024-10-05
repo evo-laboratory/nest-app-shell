@@ -4,7 +4,6 @@ import { ConfigType } from '@nestjs/config';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { strict as assert } from 'assert';
 import { MethodLogger } from '@shared/winston-logger';
-import { MongoDBErrorHandler } from '@shared/mongodb/mongodb-error-handler';
 import {
   ERROR_CODE,
   ERROR_SOURCE,
@@ -64,9 +63,12 @@ import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 import GetResponseWrap from '@shared/helper/get-response-wrapper';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto } from '@shared/dto';
+import {
+  ListOptionsMongooseQueryMapper,
+  MongoDBErrorHandler,
+} from '@shared/mongodb';
 
 import { Auth, AuthDocument } from './auth.schema';
-import { ListOptionsMongooseQueryMapper } from '@shared/mongodb';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -741,6 +743,28 @@ export class AuthMongooseService implements AuthService {
         .limit(mappedOpts.limit)
         .lean();
       return GetResponseWrap(authList);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+  @MethodLogger()
+  public async getById(
+    id: string,
+    canBeNull = true,
+  ): Promise<IGetResponseWrapper<IAuth>> {
+    try {
+      const auth = await this.AuthModel.findById(id).lean();
+      if (auth === null && !canBeNull) {
+        // * Throw 404
+        const error = this.buildError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Not found`,
+          404,
+          'getById',
+        );
+        throw new UniteHttpException(error);
+      }
+      return GetResponseWrap(auth);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

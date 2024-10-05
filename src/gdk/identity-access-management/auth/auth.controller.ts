@@ -9,8 +9,9 @@ import {
   HttpCode,
   Query,
 } from '@nestjs/common';
-import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
+import { GetListOptionsDto } from '@shared/dto';
 import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
@@ -20,6 +21,7 @@ import {
   AuthEmailVerificationRes,
   AuthExchangeNewAccessTokenDto,
   AuthExchangeNewAccessTokenRes,
+  AuthGetByIdResDto,
   AuthListAuthResDto,
   AuthSignInRes,
   AuthSignOutDto,
@@ -46,7 +48,6 @@ import {
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
-import { GetListOptionsDto } from '@shared/dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -125,8 +126,15 @@ export class AuthController {
     return await this.authService.listAll(listOptions);
   }
 
+  @Get(`${V1}/:id`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthGetByIdResDto })
+  async getByIdV1(@Param('id') id: string) {
+    // TODO Maybe a good idea supports selection and populate
+    return await this.authService.getById(id, false);
+  }
+
   // TODO LogLevel in ENV
-  // TODO Find Auth ById
   // TODO Revoke Refresh token by admin
   // TODO Disable Auth
   // TODO Delete Auth and User
