@@ -1,5 +1,6 @@
 import { PAGINATION_METHOD } from '@shared/enums';
 import { IGetListOptions } from '@shared/types';
+import StringToObjectId from './string-to-object-id';
 
 export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
   // * Expected from GetListOptionsDto
@@ -18,7 +19,6 @@ export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
     mapped.limit = opt.pageLimit;
   }
   if (typeof opt.filters === 'object' && JSON.stringify(opt.filters) !== '{}') {
-    // TODO Below only handled as PAGINATION_METHOD.LIST_ALL
     mapped.filterObjs = Object.keys(opt.filters).reduce((accMap, currKey) => {
       const val = opt.filters[currKey];
       if (typeof val === 'boolean') {
@@ -34,6 +34,14 @@ export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
       }
       return accMap;
     }, {});
+  }
+  if (
+    opt.paginationMethod === PAGINATION_METHOD.CURSOR &&
+    opt.pageCursorToken
+  ) {
+    mapped.filterObjs['_id'] = {
+      $gt: StringToObjectId(opt.pageCursorToken),
+    };
   }
   if (
     typeof opt.sortFields === 'object' &&

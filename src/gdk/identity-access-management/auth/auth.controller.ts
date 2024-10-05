@@ -131,7 +131,6 @@ export class AuthController {
   // TODO Disable Auth
   // TODO Delete Auth and User
   // TODO 3rd party OAuth Login
-  // TODO Google Login
   // TODO Implement Event(Auth) webhooks / triggers
   // TODO User APIs
   // TODO E2E testing
