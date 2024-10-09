@@ -22,7 +22,7 @@ import {
   AuthExchangeNewAccessTokenDto,
   AuthExchangeNewAccessTokenRes,
   AuthGetByIdResDto,
-  AuthListAuthResDto,
+  AuthListResDto,
   AuthSignInRes,
   AuthSignOutDto,
   AuthSignOutRes,
@@ -120,7 +120,7 @@ export class AuthController {
 
   @Get(`${V1}/${LIST_PATH}`)
   @HttpCode(200)
-  @ApiResponse({ status: 200, type: AuthListAuthResDto })
+  @ApiResponse({ status: 200, type: AuthListResDto })
   async listAllV1(@Query() listOptions: GetListOptionsDto) {
     console.log(listOptions);
     return await this.authService.listAll(listOptions);
