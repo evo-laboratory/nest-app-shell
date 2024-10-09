@@ -8,6 +8,7 @@ import {
   AuthExchangeNewAccessTokenDto,
   AuthSignOutDto,
   AuthSocialSignInUpDto,
+  AuthRevokeRefreshTokenDto,
 } from './dto';
 import {
   IEmailSignUpRes,
@@ -18,9 +19,11 @@ import {
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuth,
+  IAuthDecodedToken,
 } from './types';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
+import { IAuthRevokedRefreshTokenRes } from './types/auth-revoked-refresh-token-response.interface';
 
 @Injectable()
 export abstract class AuthService {
@@ -41,7 +44,7 @@ export abstract class AuthService {
     dto: AuthExchangeNewAccessTokenDto,
   ): Promise<IAuthExchangeNewAccessTokenRes>;
   abstract signOut(
-    authId: string,
+    verifiedToken: IAuthDecodedToken,
     dto: AuthSignOutDto,
   ): Promise<IAuthSignOutRes>;
   abstract getAuthById(): void;
@@ -54,6 +57,10 @@ export abstract class AuthService {
     dto: GetOptionsDto,
     canBeNull: boolean,
   ): Promise<IGetResponseWrapper<IAuth>>;
+  abstract revokeRefreshToken(
+    verifiedToken: IAuthDecodedToken,
+    dto: AuthRevokeRefreshTokenDto,
+  ): Promise<IAuthRevokedRefreshTokenRes>;
   abstract enable(): void;
   abstract disable(): void;
 }

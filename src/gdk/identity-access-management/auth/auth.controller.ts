@@ -115,7 +115,7 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,
   ) {
-    return await this.authService.signOut(token.sub, dto);
+    return await this.authService.signOut(token, dto);
   }
 
   @Get(`${V1}/${LIST_PATH}`)
@@ -131,6 +131,12 @@ export class AuthController {
   @ApiResponse({ status: 200, type: AuthGetByIdResDto })
   async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
     return await this.authService.getById(id, options, false);
+  }
+
+  @Delete()
+  @HttpCode(202)
+  async revokeRefreshTokenV1() {
+    return 'ok';
   }
 
   // TODO LogLevel in ENV

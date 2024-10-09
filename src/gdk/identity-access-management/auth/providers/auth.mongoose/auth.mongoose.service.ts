@@ -42,12 +42,14 @@ import {
   IAuth,
   IAuthGenerateCustomTokenResult,
   IAuthFlexUpdate,
+  IAuthRevokedRefreshTokenRes,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthExchangeNewAccessTokenDto,
+  AuthRevokeRefreshTokenDto,
   AuthSignOutDto,
   AuthSocialSignInUpDto,
   AuthVerifyDto,
@@ -676,7 +678,7 @@ export class AuthMongooseService implements AuthService {
 
   @MethodLogger()
   public async signOut(
-    authId: string,
+    verifiedToken: IAuthDecodedToken,
     dto: AuthSignOutDto,
   ): Promise<IAuthSignOutRes> {
     if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
@@ -692,7 +694,7 @@ export class AuthMongooseService implements AuthService {
         AUTH_TOKEN_TYPE.REFRESH,
       );
       await this.revokeService.insert(
-        authId,
+        verifiedToken.sub,
         token.tokenId,
         AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
         AUTH_TOKEN_TYPE.REFRESH,
@@ -760,6 +762,38 @@ export class AuthMongooseService implements AuthService {
   }
   disable(): void {
     throw new Error('Method not implemented.');
+  }
+
+  @MethodLogger()
+  public async revokeRefreshToken(
+    verifiedToken: IAuthDecodedToken,
+    dto: AuthRevokeRefreshTokenDto,
+  ): Promise<IAuthRevokedRefreshTokenRes> {
+    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: false,
+      };
+    }
+    try {
+      // * Validate refresh token
+      const token = await this.authJwt.verify<IAuthDecodedToken>(
+        dto.token,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      await this.revokeService.insert(
+        verifiedToken.sub,
+        token.tokenId,
+        AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: true,
+      };
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
   @MethodLogger()
@@ -962,6 +996,5 @@ export class AuthMongooseService implements AuthService {
       methodName: `${methodName}`,
     };
     throw new UniteHttpException(errorObj);
-    // return errorObj;
   }
 }
