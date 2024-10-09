@@ -55,10 +55,10 @@ import {
 } from '@gdk-iam/auth/dto';
 import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
+import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
 import { ExtractPropertiesFromObj } from '@shared/helper';
-import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import GetResponseWrap from '@shared/helper/get-response-wrapper';
 import { IGetResponseWrapper } from '@shared/types';
@@ -103,25 +103,23 @@ export class AuthMongooseService implements AuthService {
       // * STEP 1. Check Email Existence(Both Auth And User)
       const checkUserEmail = await this.userService.findByEmail(dto.email);
       if (checkUserEmail !== null) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_EMAIL_EXIST,
           `Email: ${dto.email} already existed`,
           400,
           'emailSignUp.checkUserEmail',
         );
-        throw new UniteHttpException(error);
       }
       const checkAuthIdentifier = await this.AuthModel.findOne({
         identifier: dto.email,
       });
       if (checkAuthIdentifier !== null) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_EXIST,
           `Identifier: ${dto.email} already existed`,
           400,
           'emailSignUp.checkAuthIdentifier',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 2. Setup Transaction Session
       session.startTransaction();
@@ -181,37 +179,34 @@ export class AuthMongooseService implements AuthService {
       // * STEP 1. Get Current Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.identifier });
       if (auth === null) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_NOT_FOUND,
           `Identifier: ${dto.identifier} not exist`,
           404,
           'verifyAuth',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 2. Check User Exist
       const user = await this.userService.findById(`${auth.userId}`);
       if (user === null) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.USER_NOT_FOUND,
           `User not exist`,
           404,
           'verifyAuth',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 2. Check if already verified
       if (
         dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY &&
         auth.isIdentifierVerified
       ) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED,
           `Identifier: ${dto.identifier} already verified`,
           401,
           'verifyAuth',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 3. SIGN_UP_VERIFY
       if (
@@ -229,13 +224,12 @@ export class AuthMongooseService implements AuthService {
         const isNotExpired = auth.codeExpiredAt > currentTimeStamp;
         const isValid = isMatchUsage && isCodeMatched && isNotExpired;
         if (!isValid) {
-          const error = this.buildError(
+          this.throwHttpError(
             ERROR_CODE.AUTH_CODE_INVALID,
             `Invalid code`,
             400,
             'verifyAuth',
           );
-          throw new UniteHttpException(error);
         }
       }
       // * STEP 4. CHANGE_PASSWORD
@@ -243,25 +237,23 @@ export class AuthMongooseService implements AuthService {
         dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD &&
         auth.codeUsage !== AUTH_CODE_USAGE.FORGOT_PASSWORD
       ) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_CODE_USAGE_NOW_ALLOW,
           `Usage not matched`,
           403,
           'verifyAuth',
         );
-        throw new UniteHttpException(error);
       }
       if (
         dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD &&
         !dto.newPassword
       ) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_PASSWORD_REQUIRED,
           `Password is required`,
           400,
           'verifyAuth',
         );
-        throw new UniteHttpException(error);
       }
       // * Update Data
       // * STEP A. Setup Transaction Session
@@ -331,68 +323,62 @@ export class AuthMongooseService implements AuthService {
       const currentTimeStamp = Date.now();
       // * STEP 1. Check Usage
       if (!EMAIL_VERIFICATION_ALLOW_AUTH_USAGE.includes(dto.usage)) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_CODE_USAGE_NOW_ALLOW,
           `${dto.usage} not allowed`,
           400,
           'emailVerification',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 2. Get Current Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
       if (auth === null) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_NOT_FOUND,
           `Identifier: ${dto.email} not exist`,
           404,
           'verifyAuth',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 3. Check Usage match with auth state
       if (auth.identifierType !== AUTH_IDENTIFIER_TYPE.EMAIL) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_TYPE_NOT_EMAIL,
           `Identifier of ${dto.email} is not email`,
           400,
           'emailVerification',
         );
-        throw new UniteHttpException(error);
       }
       if (auth.codeExpiredAt > currentTimeStamp) {
         const EXPIRE_MIN = this.iamConfig.CODE_EXPIRE_MIN || 3;
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT,
           `Identifier: ${dto.email} cannot send within ${EXPIRE_MIN} minute`,
           401,
           'emailVerification',
         );
-        throw new UniteHttpException(error);
       }
       if (
         dto.usage === AUTH_CODE_USAGE.SIGN_UP_VERIFY &&
         auth.isIdentifierVerified
       ) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED,
           `Identifier: ${dto.email} already verified`,
           401,
           'emailVerification',
         );
-        throw new UniteHttpException(error);
       }
       if (
         dto.usage === AUTH_CODE_USAGE.FORGOT_PASSWORD &&
         !auth.isIdentifierVerified
       ) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED,
           `Identifier: ${dto.email} not verified, cannot proceed ${dto.usage}`,
           403,
           'emailVerification',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 4. Setup Transaction Session
       session.startTransaction();
@@ -452,13 +438,12 @@ export class AuthMongooseService implements AuthService {
       // * STEP 2. Check User
       const user = await this.userService.findByEmail(dto.email);
       if (user === null) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.USER_NOT_FOUND,
           `User: ${dto.email} not found`,
           404,
           'emailSignIn',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 3. Compare password => Record Fail
       const validPassword = await this.encryptService.comparePassword(
@@ -474,13 +459,12 @@ export class AuthMongooseService implements AuthService {
           failedPassword: dto.password,
           createdAt: Date.now(),
         });
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_PASSWORD_INVALID,
           `Invalid password`,
           403,
           'emailSignIn',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 4. Issue JWT
       session.startTransaction();
@@ -529,13 +513,12 @@ export class AuthMongooseService implements AuthService {
         // * STEP 3B. Check User
         user = await this.userService.findByEmail(oauthUser.email);
         if (user === null) {
-          const error = this.buildError(
+          this.throwHttpError(
             ERROR_CODE.USER_NOT_FOUND,
             `User: ${oauthUser.email} not found`,
             404,
             'socialEmailSignInUp',
           );
-          throw new UniteHttpException(error);
         }
         // * STEP 4. Auth Data matchup
         const updateAuth: IAuthFlexUpdate = {};
@@ -680,13 +663,12 @@ export class AuthMongooseService implements AuthService {
           accessToken: aToken.token,
         };
       }
-      const error = this.buildError(
+      this.throwHttpError(
         ERROR_CODE.AUTH_TOKEN_INVALID,
         `Invalid token`,
         403,
         'exchangeAccessToken',
       );
-      throw new UniteHttpException(error);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -761,13 +743,12 @@ export class AuthMongooseService implements AuthService {
         .lean();
       if (auth === null && !canBeNull) {
         // * Throw 404
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_NOT_FOUND,
           `Not found`,
           404,
           'getById',
         );
-        throw new UniteHttpException(error);
       }
       return GetResponseWrap(auth);
     } catch (error) {
@@ -966,7 +947,7 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  private buildError(
+  private throwHttpError(
     code: ERROR_CODE,
     msg: string,
     statusCode?: number,
@@ -980,6 +961,7 @@ export class AuthMongooseService implements AuthService {
       contextName: 'AuthMongooseService',
       methodName: `${methodName}`,
     };
-    return errorObj;
+    throw new UniteHttpException(errorObj);
+    // return errorObj;
   }
 }
