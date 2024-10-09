@@ -7,16 +7,15 @@ import {
   IAuthTokenItem,
   IAuthSignInFailedRecordItem,
 } from '.';
-import { IUser } from '@gdk-iam/user/types/user.interface';
 
-export interface IAuth {
-  _id?: string | Types.ObjectId;
+export interface IAuth<UserIdT = Types.ObjectId> {
+  _id?: Types.ObjectId;
   identifier: string;
   identifierType: AUTH_IDENTIFIER_TYPE;
   provider: AUTH_PROVIDER;
   signUpMethodList: AUTH_METHOD[];
   googleSignInId: string;
-  userId: Types.ObjectId | IUser;
+  userId: UserIdT;
   password: string;
   code: string;
   codeUsage: AUTH_CODE_USAGE;

@@ -8,13 +8,14 @@ import {
   Delete,
 } from '@nestjs/common';
 import { GPI, V1 } from '@shared/statics';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { USER_API, USER_ROLE_LIST_PATH } from './types/user.static';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
 import { UserRemoveRoleDto } from './dto';
+import { UserListResDto } from './dto/user-list-res.dto';
 
 @ApiTags(USER_API)
 @Controller(`${GPI}/${USER_API}`)
@@ -27,7 +28,8 @@ export class UserController {
   }
 
   @Get()
-  findAll() {
+  @ApiResponse({ status: 200, type: UserListResDto })
+  listAllV1() {
     return this.userService.findAll();
   }
 

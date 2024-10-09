@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsString } from 'class-validator';
 import { ICreateUser } from '../types/create-user.interface';
 
 export class CreateUserDto implements ICreateUser {

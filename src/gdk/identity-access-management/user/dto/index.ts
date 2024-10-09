@@ -1,3 +1,4 @@
 export * from './create-user.dto';
 export * from './update-user.dto';
 export * from './user-remove-role';
+export * from './user.dto';

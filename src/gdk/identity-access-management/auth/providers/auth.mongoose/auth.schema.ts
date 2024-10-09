@@ -12,7 +12,7 @@ import {
   IAuthTokenItem,
   IAuthSignInFailedRecordItem,
 } from '@gdk-iam/auth/types';
-import { IUser, USER_MODEL_NAME } from '@gdk-iam/user/types';
+import { USER_MODEL_NAME } from '@gdk-iam/user/types';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
 import { AuthSignInFailRecordItemSchema } from './auth-sign-in-fail-record-item.schema';
 
@@ -40,7 +40,7 @@ export class Auth implements IAuth {
   })
   signUpMethodList: AUTH_METHOD[];
   @Prop({ type: Types.ObjectId, ref: USER_MODEL_NAME, required: true })
-  userId: Types.ObjectId | IUser;
+  userId: Types.ObjectId;
   @Prop({ type: String, default: '' })
   googleSignInId: string;
   @Prop({ type: String, default: '' })
