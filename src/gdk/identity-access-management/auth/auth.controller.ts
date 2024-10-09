@@ -23,6 +23,8 @@ import {
   AuthExchangeNewAccessTokenRes,
   AuthGetByIdResDto,
   AuthListResDto,
+  AuthRevokeRefreshTokenDto,
+  AuthRevokeRefreshTokenRes,
   AuthSignInRes,
   AuthSignOutDto,
   AuthSignOutRes,
@@ -42,6 +44,7 @@ import {
   EMAIL_VERIFICATION_PATH,
   IAuthDecodedToken,
   REFRESH_TOKEN_PATH,
+  REVOKE_REFRESH_TOKEN_PATH,
   SIGN_OUT_PATH,
   SOCIAL_SIGN_IN_UP_PATH,
   VERIFICATION_PATH,
@@ -118,6 +121,17 @@ export class AuthController {
     return await this.authService.signOut(token, dto);
   }
 
+  @AuthZType(AUTHZ_TYPE.USER)
+  @Post(`${V1}/${REVOKE_REFRESH_TOKEN_PATH}`)
+  @HttpCode(202)
+  @ApiResponse({ status: 202, type: AuthRevokeRefreshTokenRes })
+  async revokeRefreshTokenV1(
+    @VerifiedToken() token: IAuthDecodedToken,
+    @Body() dto: AuthRevokeRefreshTokenDto,
+  ) {
+    return await this.authService.revokeRefreshToken(token, dto);
+  }
+
   @Get(`${V1}/${LIST_PATH}`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthListResDto })
@@ -133,14 +147,7 @@ export class AuthController {
     return await this.authService.getById(id, options, false);
   }
 
-  @Delete()
-  @HttpCode(202)
-  async revokeRefreshTokenV1() {
-    return 'ok';
-  }
-
   // TODO LogLevel in ENV
-  // TODO Revoke Refresh token by admin
   // TODO Disable Auth
   // TODO Delete Auth and User
   // TODO 3rd party OAuth Login

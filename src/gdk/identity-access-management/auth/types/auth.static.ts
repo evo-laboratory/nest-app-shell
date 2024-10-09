@@ -15,6 +15,7 @@ export const EMAIL_VERIFICATION_PATH = 'email-verification';
 export const SIGN_OUT_PATH = 'sign-out';
 export const REFRESH_TOKEN_PATH = 'refresh-token';
 export const ACCESS_TOKEN_PATH = 'access-token';
+export const REVOKE_REFRESH_TOKEN_PATH = 'revoke-refresh-token';
 
 export const EMAIL_VERIFICATION_ALLOW_AUTH_USAGE = [
   AUTH_CODE_USAGE.FORGOT_PASSWORD,
