@@ -155,11 +155,6 @@ export class AuthController {
   // TODO User APIs
   // TODO E2E testing
 
-  @Get()
-  findAll() {
-    // return this.authService.findAll();
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
     // return this.authService.update(+id, updateAuthDto);
