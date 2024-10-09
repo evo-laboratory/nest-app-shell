@@ -9,4 +9,5 @@ export interface IUnifiedOAuthUser {
   lastName: string;
   displayName: string;
   avatarURL: string;
+  meta?: { [key: string]: any };
 }
