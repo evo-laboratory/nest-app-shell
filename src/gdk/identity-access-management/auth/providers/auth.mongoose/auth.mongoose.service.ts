@@ -169,6 +169,106 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
+  public async socialEmailSignInUp(
+    dto: AuthSocialSignInUpDto,
+    session?: ClientSession,
+  ): Promise<IAuthSignInRes> {
+    if (!session) {
+      session = await this.connection.startSession();
+    }
+    try {
+      // * STEP 1. Verify from OAuthClient
+      const oauthUser = await this.oauthClientService.socialAuthenticate(dto);
+      let user: IUser;
+      let auth: IAuth;
+      session.startTransaction();
+      // * STEP 3. Check Auth
+      auth = await this.AuthModel.findOne({
+        identifier: oauthUser.email,
+      }).lean();
+      const authJson = auth === null ? null : auth;
+      if (auth !== null) {
+        // * STEP 3A. Already have auth, check allow Sign In
+        this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
+        // * STEP 3B. Check User
+        user = await this.userService.findByEmail(oauthUser.email);
+        if (user === null) {
+          this.throwHttpError(
+            ERROR_CODE.USER_NOT_FOUND,
+            `User: ${oauthUser.email} not found`,
+            404,
+            'socialEmailSignInUp',
+          );
+        }
+        // * STEP 4. Auth Data matchup
+        const updateAuth: IAuthFlexUpdate = {};
+        if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
+          updateAuth.googleSignInId = oauthUser.sub;
+          updateAuth.updatedAt = Date.now();
+        }
+        if (Object.keys(updateAuth).length > 0) {
+          const newMethod = [];
+          if (
+            dto.method === AUTH_METHOD.GOOGLE_SIGN_IN &&
+            !auth.googleSignInId
+          ) {
+            newMethod.push(AUTH_METHOD.GOOGLE_SIGN_IN);
+          }
+          const updatedAuth = await this.AuthModel.findByIdAndUpdate(
+            auth._id,
+            {
+              $set: updateAuth,
+              $push: {
+                signUpMethodList: {
+                  $each: newMethod,
+                },
+              },
+            },
+            { session: session },
+          );
+          assert.ok(updatedAuth, 'Updated Auth');
+        }
+      } else {
+        // * STEP 3C. Create New Auth
+        const createDto: IAuthCreateAuthWithUser = {
+          identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
+          googleSignInId: oauthUser.sub,
+          email: oauthUser.email,
+          firstName: oauthUser.firstName,
+          lastName: oauthUser.lastName,
+          displayName: oauthUser.displayName,
+          signUpMethod: AUTH_METHOD.GOOGLE_SIGN_IN,
+          password: '',
+          codeUsage: AUTH_CODE_USAGE.NOT_SET,
+        };
+        // * STEP 3. Create New User and New Auth
+        const setup = await this.createWithUser(
+          createDto,
+          false,
+          false,
+          session,
+        );
+        user = setup.newUser;
+        auth = setup.newAuth;
+      }
+      // * STEP 5. Issue JWT
+      const tokenResults = await this.issueJWTAndRecord(auth, user, session);
+      await session.commitTransaction();
+      await session.endSession();
+      return {
+        accessToken: tokenResults.accessToken,
+        refreshToken: tokenResults.refreshToken,
+      };
+    } catch (error) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
   public async verifyAuth(
     dto: AuthVerifyDto,
     session?: ClientSession,
@@ -475,106 +575,6 @@ export class AuthMongooseService implements AuthService {
         user,
         session,
       );
-      await session.commitTransaction();
-      await session.endSession();
-      return {
-        accessToken: tokenResults.accessToken,
-        refreshToken: tokenResults.refreshToken,
-      };
-    } catch (error) {
-      if (session.inTransaction()) {
-        await session.abortTransaction();
-        await session.endSession();
-      }
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
-
-  @MethodLogger()
-  public async socialEmailSignInUp(
-    dto: AuthSocialSignInUpDto,
-    session?: ClientSession,
-  ): Promise<IAuthSignInRes> {
-    if (!session) {
-      session = await this.connection.startSession();
-    }
-    try {
-      // * STEP 1. Verify from OAuthClient
-      const oauthUser = await this.oauthClientService.socialAuthenticate(dto);
-      let user: IUser;
-      let auth: IAuth;
-      session.startTransaction();
-      // * STEP 3. Check Auth
-      auth = await this.AuthModel.findOne({
-        identifier: oauthUser.email,
-      }).lean();
-      const authJson = auth === null ? null : auth;
-      if (auth !== null) {
-        // * STEP 3A. Already have auth, check allow Sign In
-        this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
-        // * STEP 3B. Check User
-        user = await this.userService.findByEmail(oauthUser.email);
-        if (user === null) {
-          this.throwHttpError(
-            ERROR_CODE.USER_NOT_FOUND,
-            `User: ${oauthUser.email} not found`,
-            404,
-            'socialEmailSignInUp',
-          );
-        }
-        // * STEP 4. Auth Data matchup
-        const updateAuth: IAuthFlexUpdate = {};
-        if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
-          updateAuth.googleSignInId = oauthUser.sub;
-          updateAuth.updatedAt = Date.now();
-        }
-        if (Object.keys(updateAuth).length > 0) {
-          const newMethod = [];
-          if (
-            dto.method === AUTH_METHOD.GOOGLE_SIGN_IN &&
-            !auth.googleSignInId
-          ) {
-            newMethod.push(AUTH_METHOD.GOOGLE_SIGN_IN);
-          }
-          const updatedAuth = await this.AuthModel.findByIdAndUpdate(
-            auth._id,
-            {
-              $set: updateAuth,
-              $push: {
-                signUpMethodList: {
-                  $each: newMethod,
-                },
-              },
-            },
-            { session: session },
-          );
-          assert.ok(updatedAuth, 'Updated Auth');
-        }
-      } else {
-        // * STEP 3C. Create New Auth
-        const createDto: IAuthCreateAuthWithUser = {
-          identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
-          googleSignInId: oauthUser.sub,
-          email: oauthUser.email,
-          firstName: oauthUser.firstName,
-          lastName: oauthUser.lastName,
-          displayName: oauthUser.displayName,
-          signUpMethod: AUTH_METHOD.GOOGLE_SIGN_IN,
-          password: '',
-          codeUsage: AUTH_CODE_USAGE.NOT_SET,
-        };
-        // * STEP 3. Create New User and New Auth
-        const setup = await this.createWithUser(
-          createDto,
-          false,
-          false,
-          session,
-        );
-        user = setup.newUser;
-        auth = setup.newAuth;
-      }
-      // * STEP 5. Issue JWT
-      const tokenResults = await this.issueJWTAndRecord(auth, user, session);
       await session.commitTransaction();
       await session.endSession();
       return {
