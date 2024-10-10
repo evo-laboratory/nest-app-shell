@@ -100,7 +100,7 @@ export const TRANSPORTS: winston.transport[] = [
 // * --- End of Defined Transports ---
 const WinstonLogger = winston.createLogger({
   levels: WINSTON_LEVELS,
-  level: process.env.LOG_LEVEL || 'verbose', // * Out of NestJs process env scope
+  level: process.env.LOG_LEVEL || 'verbose', // * Be aware this is before NestJs process env scope
   transports: TRANSPORTS,
 });
 

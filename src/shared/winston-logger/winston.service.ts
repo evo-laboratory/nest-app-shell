@@ -24,7 +24,7 @@ export class WinstonService extends ConsoleLogger {
       methodName: optParams.length === 1 ? '' : optParams[0],
     });
   }
-  // * Level: Debug
+  // * Level: Verbose
   public log(message: any, ...optionalParams: any[]) {
     // * Log supports original NestJs usage or pass in a IWinstonLogOpt to customize logging.
     // * If we use new WstLoggerService(<SERVICE_NAME>), params would be [SERVICE_NAME]
@@ -44,21 +44,22 @@ export class WinstonService extends ConsoleLogger {
           methodName: logOpt.methodName,
         });
       } else {
-        WinstonLogger.debug(message, {
+        WinstonLogger.verbose(message, {
           contextName: optParams[1],
           methodName: logOpt.methodName,
         });
       }
     } else {
-      WinstonLogger.debug(message, {
+      WinstonLogger.verbose(message, {
         contextName: optParams.length === 1 ? optParams[0] : optParams[1],
         methodName: optParams.length === 1 ? '' : optParams[0],
       });
     }
   }
+
   // * Level: Http is not support, please direct use WinstonLogger
   // * Http level is already using in HttpLoggerMiddleware, you should not use otherwise
-  // * You can use http with log with IWinstonLogOpt
+  // * You can use http with log with IWinstonLogOpt above
 
   // * Level: Debug
   public debug(message: any, ...optionalParams: any[]) {

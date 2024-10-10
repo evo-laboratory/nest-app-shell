@@ -29,7 +29,7 @@ export class OauthClientService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    Logger.verbose(
+    this.Logger.verbose(
       this.iamConfig.ENABLE_GOOGLE_SIGN_IN,
       'onModuleInit.ENABLE_GOOGLE_SIGN_IN',
     );
@@ -68,26 +68,24 @@ export class OauthClientService implements OnModuleInit {
     Logger.verbose(JsonStringify(dto), 'socialAuthenticate(dto)');
     try {
       if (!this.supportedMethods.includes(dto.method)) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_METHOD_NOT_ALLOW,
           `${dto.method} not supported`,
           400,
           'socialAuthenticate',
         );
-        throw new UniteHttpException(error);
       }
       let oauthUser: IUnifiedOAuthUser;
       if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN) {
         oauthUser = await this.googleAuthenticate(dto.token);
         return oauthUser;
       } else {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_METHOD_NOT_ALLOW,
           `${dto.method} not supported`,
           400,
           'socialAuthenticate',
         );
-        throw new UniteHttpException(error);
       }
     } catch (error) {
       return Promise.reject(error);
@@ -96,20 +94,20 @@ export class OauthClientService implements OnModuleInit {
 
   @MethodLogger()
   public async googleAuthenticate(token: string): Promise<IUnifiedOAuthUser> {
-    Logger.verbose(token, 'googleAuthenticate(token)');
+    this.Logger.verbose(token, 'googleAuthenticate(token)');
     try {
       const loginTicket = await this.OAuthClient.verifyIdToken({
         idToken: token,
       });
       const payload = loginTicket.getPayload();
+      this.Logger.verbose(JsonStringify(payload), 'googleAuthenticate.payload');
       if (!payload) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.GOOGLE_AUTH_FAILED,
           'Google authentication failed',
           401,
           'googleAuthenticate',
         );
-        throw new UniteHttpException(error);
       }
       const unified: IUnifiedOAuthUser = {
         aud: payload.aud,
@@ -128,7 +126,7 @@ export class OauthClientService implements OnModuleInit {
   }
 
   @MethodLogger()
-  private buildError(
+  private throwHttpError(
     code: ERROR_CODE,
     msg: string,
     statusCode?: number,
@@ -142,6 +140,6 @@ export class OauthClientService implements OnModuleInit {
       contextName: 'OauthClientService',
       methodName: `${methodName}`,
     };
-    return errorObj;
+    throw new UniteHttpException(errorObj);
   }
 }

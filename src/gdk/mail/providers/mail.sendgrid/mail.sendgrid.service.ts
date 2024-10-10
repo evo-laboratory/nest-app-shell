@@ -1,5 +1,5 @@
 import { MailService } from '@gdk-mail/mail.service';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as SendGrid from '@sendgrid/mail';
 import { ClientResponse } from '@sendgrid/mail';
 import { MethodLogger } from '@shared/winston-logger';
@@ -14,6 +14,7 @@ import mailConfig from '@gdk-mail/mail.config';
 @Injectable()
 export class MailSendgridService implements MailService {
   private DEFAULT_SENDER = '';
+  private readonly Logger = new Logger(MailSendgridService.name);
 
   constructor(
     @Inject(mailConfig.KEY)
@@ -25,10 +26,14 @@ export class MailSendgridService implements MailService {
   private init(): void {
     SendGrid.setApiKey(this.mailEnvConfig.SENDGRID_API_KEY);
     this.DEFAULT_SENDER = this.mailEnvConfig.SENDGRID_SENDER_EMAIL;
+    this.Logger.verbose(this.DEFAULT_SENDER, 'init.DEFAULT_SENDER');
   }
 
   @MethodLogger()
   public async send(dto: ISendMail): Promise<ISendMailRes> {
+    this.Logger.verbose(`${dto.from}`, 'send(dto.from)');
+    this.Logger.verbose(`${dto.to}`, 'send(dto.to)');
+    this.Logger.verbose(`${dto.subject}`, 'send(dto.subject)');
     try {
       const sent: [ClientResponse, object] = await SendGrid.send({
         to: dto.to,

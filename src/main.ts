@@ -30,10 +30,15 @@ async function Bootstrap() {
     contextName: 'Main',
     methodName: 'Stage',
   });
-  WinstonLogger.info(`Server Listen on PORT: ${PORT}`, {
-    contextName: 'Main',
-    methodName: Bootstrap.name,
-  });
+  WinstonLogger.info(
+    `${
+      process.env.APP_NAME || 'Nest App Shell'
+    } Server Listen on PORT: ${PORT}`,
+    {
+      contextName: 'Main',
+      methodName: Bootstrap.name,
+    },
+  );
   if (process.env.STAGE !== 'DEV') {
     if (process.env.ENABLE_SWAGGER) {
       WinstonLogger.warn('Swagger is enable in non DEV stage', {
@@ -47,5 +52,13 @@ async function Bootstrap() {
       });
     }
   }
+  WinstonLogger.verbose(`${process.env.CLIENT_KEY_NAME}`, {
+    contextName: 'Main',
+    methodName: 'CLIENT_KEY_NAME',
+  });
+  WinstonLogger.verbose(`${process.env.MONGO_DB_NAME}`, {
+    contextName: 'Main',
+    methodName: 'MONGO_DB_NAME',
+  });
 }
 Bootstrap();
