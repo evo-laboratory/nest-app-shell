@@ -150,10 +150,12 @@ export class AuthController {
   // TODO LogLevel in ENV
   // TODO Disable Auth
   // TODO Delete Auth and User
-  // TODO 3rd party OAuth Login
-  // TODO Implement Event(Auth) webhooks / triggers
+  // TODO Admin direct create auth and user
   // TODO User APIs
-  // TODO E2E testing
+  // TODO 3rd party OAuth Login
+  // TODO Separate Token List (Refresh and Access) for prepare different provider(Firebase Cognito)
+  // TODO E2E testing planning
+  // TODO Implement Event(Auth) webhooks / triggers
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
