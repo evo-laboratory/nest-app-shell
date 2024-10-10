@@ -109,10 +109,6 @@ export class AuthMongooseService implements AuthService {
     try {
       // * STEP 1. Check Email Existence(Both Auth And User)
       const checkUserEmail = await this.userService.findByEmail(dto.email);
-      this.Logger.verbose(
-        JsonStringify(checkUserEmail),
-        'emailSignUp.checkUserEmail',
-      );
       if (checkUserEmail !== null) {
         this.throwHttpError(
           ERROR_CODE.AUTH_EMAIL_EXIST,
@@ -148,7 +144,6 @@ export class AuthMongooseService implements AuthService {
         codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
         isManualVerified: isAlreadyVerified,
       };
-      this.Logger.verbose(JsonStringify(createDto), 'emailSignUp.createDto');
       // * STEP 3. Create New User and New Auth
       const setup = await this.createWithUser(createDto, true, true, session);
       this.Logger.verbose(JsonStringify(setup), 'emailSignUp.setup');
@@ -207,16 +202,11 @@ export class AuthMongooseService implements AuthService {
         identifier: oauthUser.email,
       }).lean();
       const authJson = auth === null ? null : auth;
-      this.Logger.verbose(
-        JsonStringify(authJson),
-        'socialEmailSignInUp.authJson',
-      );
       if (auth !== null) {
         // * STEP 3A. Already have auth, check allow Sign In
         this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
         // * STEP 3B. Check User
         user = await this.userService.findByEmail(oauthUser.email);
-        this.Logger.verbose(JsonStringify(user), 'socialEmailSignInUp.user');
         if (user === null) {
           this.throwHttpError(
             ERROR_CODE.USER_NOT_FOUND,
@@ -271,10 +261,6 @@ export class AuthMongooseService implements AuthService {
           codeUsage: AUTH_CODE_USAGE.NOT_SET,
           isManualVerified: true,
         };
-        this.Logger.verbose(
-          JsonStringify(createDto),
-          'socialEmailSignInUp.createDto',
-        );
         // * STEP 4. Create New User and New Auth
         const setup = await this.createWithUser(
           createDto,
@@ -308,6 +294,8 @@ export class AuthMongooseService implements AuthService {
     dto: AuthVerifyDto,
     session?: ClientSession,
   ): Promise<IAuthVerifyRes> {
+    this.Logger.verbose(JsonStringify(dto), 'verifyAuth(dto)');
+    this.Logger.verbose(session ? true : false, 'verifyAuth(session)');
     if (!session) {
       session = await this.connection.startSession();
     }
@@ -414,6 +402,7 @@ export class AuthMongooseService implements AuthService {
         );
         updateQuery.lastChangedPasswordAt = currentTimeStamp;
       }
+      this.Logger.verbose(JsonStringify(updateQuery), 'verifyAuth.updateQuery');
       const resetAuthState = await this.AuthModel.findByIdAndUpdate(
         auth._id,
         {
@@ -453,6 +442,8 @@ export class AuthMongooseService implements AuthService {
     dto: AuthEmailVerificationDto,
     session?: ClientSession,
   ): Promise<IAuthVerifyRes> {
+    this.Logger.verbose(JsonStringify(dto), 'emailVerification(dto)');
+    this.Logger.verbose(session ? true : false, 'emailVerification(session)');
     if (!session) {
       session = await this.connection.startSession();
     }
@@ -563,6 +554,8 @@ export class AuthMongooseService implements AuthService {
     dto: AuthEmailSignInDto,
     session?: ClientSession,
   ): Promise<IAuthSignInRes> {
+    this.Logger.verbose(JsonStringify(dto), 'emailSignIn(dto)');
+    this.Logger.verbose(session ? true : false, 'emailSignIn(session)');
     if (!session) {
       session = await this.connection.startSession();
     }
@@ -630,6 +623,11 @@ export class AuthMongooseService implements AuthService {
     dto: AuthCheckRefreshTokenDto,
     returnDecodedToken = false,
   ): Promise<IAuthCheckResult> {
+    this.Logger.verbose(JsonStringify(dto), 'verifyRefreshToken(dto)');
+    this.Logger.verbose(
+      returnDecodedToken,
+      'verifyRefreshToken(returnDecodedToken)',
+    );
     try {
       const result: IAuthCheckResult = {
         isValid: false,
@@ -673,6 +671,7 @@ export class AuthMongooseService implements AuthService {
   public async exchangeAccessToken(
     dto: AuthExchangeNewAccessTokenDto,
   ): Promise<IAuthExchangeNewAccessTokenRes> {
+    this.Logger.verbose(JsonStringify(dto), 'exchangeAccessToken(dto)');
     try {
       const validResult = await this.verifyRefreshToken(
         {
@@ -690,6 +689,10 @@ export class AuthMongooseService implements AuthService {
             user,
             this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
           );
+        this.Logger.verbose(
+          JsonStringify(userPayload),
+          'exchangeAccessToken.userPayload',
+        );
         const aToken = await this.authJwt.sign(
           validResult.decodedToken.sub,
           validResult.decodedToken.userId,
@@ -716,6 +719,15 @@ export class AuthMongooseService implements AuthService {
     verifiedToken: IAuthDecodedToken,
     dto: AuthSignOutDto,
   ): Promise<IAuthSignOutRes> {
+    this.Logger.verbose(
+      JsonStringify(verifiedToken),
+      'verifiedToken(verifiedToken)',
+    );
+    this.Logger.verbose(JsonStringify(dto), 'signOut(dto)');
+    this.Logger.verbose(
+      this.iamConfig.CHECK_REVOKED_TOKEN,
+      'signOut.CHECK_REVOKED_TOKEN',
+    );
     if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
       return {
         resultMessage: 'OK',
@@ -754,6 +766,7 @@ export class AuthMongooseService implements AuthService {
   ): Promise<IGetResponseWrapper<IAuth[]>> {
     try {
       const mappedOpts = ListOptionsMongooseQueryMapper(opt);
+      this.Logger.verbose(JsonStringify(mappedOpts), 'listAll(mappedOpts)');
       const authList = await this.AuthModel.find(mappedOpts.filterObjs)
         .sort(mappedOpts.sortObjs)
         .populate(mappedOpts.populateFields)
@@ -773,7 +786,10 @@ export class AuthMongooseService implements AuthService {
     canBeNull = true,
   ): Promise<IGetResponseWrapper<IAuth>> {
     try {
+      this.Logger.verbose(id, 'getById(id)');
+      this.Logger.verbose(canBeNull, 'getById(canBeNull)');
       const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+      this.Logger.verbose(JsonStringify(mappedOpts), 'getById(mappedOpts)');
       const auth = await this.AuthModel.findById(id)
         .select(mappedOpts.selectedFields)
         .populate(mappedOpts.populateFields)
@@ -805,6 +821,15 @@ export class AuthMongooseService implements AuthService {
     verifiedToken: IAuthDecodedToken,
     dto: AuthRevokeRefreshTokenDto,
   ): Promise<IAuthRevokedRefreshTokenRes> {
+    this.Logger.verbose(
+      JsonStringify(verifiedToken),
+      'revokeRefreshToken(verifiedToken)',
+    );
+    this.Logger.verbose(JsonStringify(dto), 'revokeRefreshToken(dto)');
+    this.Logger.verbose(
+      this.iamConfig.CHECK_REVOKED_TOKEN,
+      'revokeRefreshToken.CHECK_REVOKED_TOKEN',
+    );
     if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
       return {
         resultMessage: 'OK',
@@ -834,12 +859,24 @@ export class AuthMongooseService implements AuthService {
 
   @MethodLogger()
   private async pushFailedRecordItemById(
-    authId: Types.ObjectId | string,
+    authId: Types.ObjectId,
     item: IAuthSignInFailedRecordItem,
     session?: ClientSession,
   ): Promise<AuthDocument> {
     try {
-      const SLICE_COUNT = 20;
+      this.Logger.verbose(
+        `${authId}(${typeof authId})`,
+        'pushFailedRecordItemById(id)',
+      );
+      this.Logger.verbose(
+        JsonStringify(item),
+        'pushFailedRecordItemById(item)',
+      );
+      this.Logger.verbose(
+        session ? true : false,
+        'pushFailedRecordItemById(session)',
+      );
+      const SLICE_COUNT = 20; // TODO Move to .ENV
       const updated = await this.AuthModel.findByIdAndUpdate(
         authId,
         {
@@ -861,10 +898,19 @@ export class AuthMongooseService implements AuthService {
 
   @MethodLogger()
   private async pushRefreshTokenItemById(
-    authId: Types.ObjectId | string,
+    authId: Types.ObjectId,
     item: IAuthTokenItem,
     session?: ClientSession,
   ): Promise<AuthDocument> {
+    this.Logger.verbose(
+      `${authId}(${typeof authId})`,
+      'pushRefreshTokenItemById(id)',
+    );
+    this.Logger.verbose(JsonStringify(item), 'pushRefreshTokenItemById(item)');
+    this.Logger.verbose(
+      session ? true : false,
+      'pushRefreshTokenItemById(session)',
+    );
     try {
       const SLICE_COUNT = 100; // TODO Move to .ENV
       const updated = await this.AuthModel.findByIdAndUpdate(
@@ -892,6 +938,15 @@ export class AuthMongooseService implements AuthService {
     item: IAuthTokenItem,
     session?: ClientSession,
   ): Promise<AuthDocument> {
+    this.Logger.verbose(
+      `${authId}(${typeof authId})`,
+      'pushAccessTokenItemById(id)',
+    );
+    this.Logger.verbose(JsonStringify(item), 'pushAccessTokenItemById(item)');
+    this.Logger.verbose(
+      session ? true : false,
+      'pushAccessTokenItemById(session)',
+    );
     try {
       const SLICE_COUNT = 100; // TODO Move to .ENV
       const updated = await this.AuthModel.findByIdAndUpdate(
@@ -920,6 +975,13 @@ export class AuthMongooseService implements AuthService {
     resolveCode = true,
     session?: ClientSession,
   ): Promise<IAuthCreateAuthWithUserRes> {
+    this.Logger.verbose(JsonStringify(dto), 'createWithUser(dto)');
+    this.Logger.verbose(hashPassword, 'createWithUser(hashPassword)');
+    this.Logger.verbose(resolveCode, 'createWithUser(resolveCode)');
+    this.Logger.verbose(
+      session ? true : false,
+      'pushAccessTokenItemById(session)',
+    );
     try {
       const generated: IAuthGeneratedCode = this.authUtil.generateAuthCode();
       let authPassword = dto.password;
@@ -967,6 +1029,9 @@ export class AuthMongooseService implements AuthService {
     user: IUser,
     session: ClientSession,
   ): Promise<IAuthGenerateCustomTokenResult> {
+    this.Logger.verbose(auth._id, 'issueJWTAndRecord(auth._id)');
+    this.Logger.verbose(user._id, 'issueJWTAndRecord(user._id)');
+    this.Logger.verbose(session ? true : false, 'issueJWTAndRecord(session)');
     try {
       const tokenResults = await this.authJwt.generateCustomToken(
         `${auth._id}`,

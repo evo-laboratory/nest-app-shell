@@ -15,6 +15,7 @@ import {
 } from '@shared/winston-logger';
 import { OAuth2Client } from 'google-auth-library';
 import { IUnifiedOAuthUser } from './types';
+import { JsonStringify } from '@shared/helper';
 @Injectable()
 export class OauthClientService implements OnModuleInit {
   private OAuthClient: OAuth2Client;
@@ -64,7 +65,7 @@ export class OauthClientService implements OnModuleInit {
   public async socialAuthenticate(
     dto: IAuthSocialSignInUp,
   ): Promise<IUnifiedOAuthUser> {
-    Logger.verbose(dto, 'socialAuthenticate(dto)');
+    Logger.verbose(JsonStringify(dto), 'socialAuthenticate(dto)');
     try {
       if (!this.supportedMethods.includes(dto.method)) {
         const error = this.buildError(
