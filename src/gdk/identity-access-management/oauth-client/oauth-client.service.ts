@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { OAuth2Client } from 'google-auth-library';
 import { AUTH_METHOD, IAuthSocialSignInUp } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import {
@@ -13,9 +14,10 @@ import {
   MethodLogger,
   WINSTON_LOG_VARIANT_LEVEL,
 } from '@shared/winston-logger';
-import { OAuth2Client } from 'google-auth-library';
-import { IUnifiedOAuthUser } from './types';
 import { JsonStringify } from '@shared/helper';
+
+import { IUnifiedOAuthUser } from './types';
+
 @Injectable()
 export class OauthClientService implements OnModuleInit {
   private OAuthClient: OAuth2Client;
