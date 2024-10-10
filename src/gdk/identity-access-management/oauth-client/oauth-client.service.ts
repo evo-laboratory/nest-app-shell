@@ -9,8 +9,10 @@ import {
   UniteHttpException,
 } from '@shared/exceptions';
 import GoogleAuthClient from '@shared/google/google.auth-client';
-import { MethodLogger } from '@shared/winston-logger';
-import WinstonLogger from '@shared/winston-logger/winston.logger';
+import {
+  MethodLogger,
+  WINSTON_LOG_VARIANT_LEVEL,
+} from '@shared/winston-logger';
 import { OAuth2Client } from 'google-auth-library';
 import { IUnifiedOAuthUser } from './types';
 @Injectable()
@@ -26,11 +28,6 @@ export class OauthClientService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.Logger.verbose('Verbose log', 'TEST_VERBOSE');
-    this.Logger.debug('Debug log', 'TEST_DEBUG');
-    this.Logger.log('Log log', 'TEST_LOG');
-    this.Logger.warn('Warn Log', 'TEST_WARN');
-    this.Logger.error('Error Log', 'TEST_ERROR');
     if (this.iamConfig.ENABLE_GOOGLE_SIGN_IN) {
       if (
         !this.iamConfig.GOOGLE_CLIENT_ID ||
@@ -49,10 +46,10 @@ export class OauthClientService implements OnModuleInit {
       this.supportedMethods.push(AUTH_METHOD.GOOGLE_SIGN_IN);
     }
     if (this.supportedMethods.length > 0) {
-      WinstonLogger.info(
+      this.Logger.log(
         `Supported OAuth methods: ${this.supportedMethods.join(',')}`,
         {
-          contextName: 'OauthClientService',
+          level: WINSTON_LOG_VARIANT_LEVEL.INFO,
           methodName: 'onModuleInit',
         },
       );

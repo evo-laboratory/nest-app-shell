@@ -53,10 +53,21 @@ function _NestJSFormat(info: any): string {
   }
   if (scopePrefix.length > 0) {
     // eslint-disable-next-line prettier/prettier
-    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_LogPadding(info.levelText)} ${scopePrefix} ${info.message}`;
+    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_LogPadding(
+      info.levelText,
+    )} ${scopePrefix} ${info.message}`;
   } else {
     // eslint-disable-next-line prettier/prettier
-    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_LogPadding(info.levelText)} ${info.message}`;
+    if (typeof info.message === 'object') {
+      // eslint-disable-next-line prettier/prettier
+      return `[Wnst] ${process.pid}  - ${info.timestamp} ${_LogPadding(
+        info.levelText,
+      )} ${JSON.stringify(info.message, null, 2)}`;
+    }
+    // eslint-disable-next-line prettier/prettier
+    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_LogPadding(
+      info.levelText,
+    )} ${info.message}`;
   }
 }
 
@@ -87,10 +98,9 @@ export const TRANSPORTS: winston.transport[] = [
 ];
 
 // * --- End of Defined Transports ---
-
 const WinstonLogger = winston.createLogger({
   levels: WINSTON_LEVELS,
-  level: 'http',
+  level: process.env.LOG_LEVEL || 'verbose', // * Out of NestJs process env scope
   transports: TRANSPORTS,
 });
 

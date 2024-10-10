@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
+        "nestjs",
         "openapi",
+        "sendgrid",
         "SIGNIN",
-        "TYPEORM"
+        "TYPEORM",
+        "Wnst"
     ]
 }

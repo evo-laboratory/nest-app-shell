@@ -9,7 +9,9 @@ export const EnvironmentConfigSchema = Joi.object({
   ENABLE_SWAGGER: Joi.boolean().default(false),
   SYS_CACHE_TTL: Joi.number().default(3600),
   SYS_OWNER_EMAIL: Joi.string().email().optional(),
-  LOG_LEVEL: Joi.string().valid('DEBUG', 'INFO', 'WARN').default('DEBUG'),
+  LOG_LEVEL: Joi.string()
+    .valid('verbose', 'debug', 'info', 'http', 'warn', 'error')
+    .default('verbose'),
   CLIENT_KEY_NAME: Joi.string().default('shell-client-id'),
   MONGO_URI: Joi.string(),
   MONGO_DB_NAME: Joi.string(),

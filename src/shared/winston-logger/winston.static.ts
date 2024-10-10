@@ -1,20 +1,21 @@
 // * Application Shell Default File
 // * Define your severity levels.
+// * Use from WINSTON_LOGGER_LEVEL
 export const WINSTON_LEVELS: { [key: string]: number } = {
   error: 0,
   warn: 1,
-  info: 2,
-  http: 3,
-  debug: 4, // * Same as using Log
+  http: 2, // * WINSTON_LOG_VARIANT_LEVEL, if use with NestJs Common Logger.log(MSG>, <IWinstonLogOpt>)
+  info: 3, // * WINSTON_LOG_VARIANT_LEVEL, if use with NestJs Common Logger.log(MSG>, <IWinstonLogOpt>)
+  debug: 4, // * Same as if use with NestJs Common Logger.log
   verbose: 5,
 };
 
 export const WINSTON_COLORS: { [key: string]: string } = {
   error: 'red',
   warn: 'yellow',
-  info: 'blue',
   http: 'magenta',
-  debug: 'white', // * Same as using Log
+  info: 'blue',
+  debug: 'white',
   verbose: 'black whiteBG',
 };
 
