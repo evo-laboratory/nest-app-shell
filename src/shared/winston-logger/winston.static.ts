@@ -5,9 +5,8 @@ export const WINSTON_LEVELS: { [key: string]: number } = {
   warn: 1,
   info: 2,
   http: 3,
-  verbose: 4,
-  debug: 5,
-  silly: 6,
+  debug: 4, // * Same as using Log
+  verbose: 5,
 };
 
 export const WINSTON_COLORS: { [key: string]: string } = {
@@ -15,9 +14,8 @@ export const WINSTON_COLORS: { [key: string]: string } = {
   warn: 'yellow',
   info: 'blue',
   http: 'magenta',
-  verbose: 'cyan',
-  debug: 'gray',
-  silly: 'white',
+  debug: 'white', // * Same as using Log
+  verbose: 'black whiteBG',
 };
 
 export const LOGGER_TIMESTAMP_FORMAT = 'MM/DD/YYYY, h:mm:ss A';

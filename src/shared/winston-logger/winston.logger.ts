@@ -4,6 +4,7 @@ import * as DailyRotateFile from 'winston-daily-rotate-file';
 import {
   LOGGER_TIMESTAMP_FORMAT,
   WINSTON_COLORS,
+  WINSTON_LEVELS,
 } from '@shared/winston-logger/winston.static';
 
 // * --- Console Format Setups ---
@@ -88,7 +89,8 @@ export const TRANSPORTS: winston.transport[] = [
 // * --- End of Defined Transports ---
 
 const WinstonLogger = winston.createLogger({
-  level: 'silly',
+  levels: WINSTON_LEVELS,
+  level: 'http',
   transports: TRANSPORTS,
 });
 

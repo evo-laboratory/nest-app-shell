@@ -26,7 +26,11 @@ export class OauthClientService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.Logger.log('hello');
+    this.Logger.verbose('Verbose log', 'TEST_VERBOSE');
+    this.Logger.debug('Debug log', 'TEST_DEBUG');
+    this.Logger.log('Log log', 'TEST_LOG');
+    this.Logger.warn('Warn Log', 'TEST_WARN');
+    this.Logger.error('Error Log', 'TEST_ERROR');
     if (this.iamConfig.ENABLE_GOOGLE_SIGN_IN) {
       if (
         !this.iamConfig.GOOGLE_CLIENT_ID ||
