@@ -1,6 +1,12 @@
 // * Application Shell Default File
 // * Define your severity levels.
 // * Use from WINSTON_LOGGER_LEVEL
+
+// * Suggested ENV for difference STAGE:
+// * DEV => verbose / debug
+// * QA | TEST => info
+// * PROD => info / http
+// ! For security reason, don't use lower than info for PROD / TEST, in case of Logs leaks
 export const WINSTON_LEVELS: { [key: string]: number } = {
   error: 0,
   warn: 1,

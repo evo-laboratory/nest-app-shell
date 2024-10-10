@@ -156,7 +156,6 @@ export class AuthController {
     return await this.authService.getById(id, options, false);
   }
 
-  // TODO LogLevel in ENV
   // TODO Separate Token List (Refresh and Access) for prepare different provider(Firebase, Cognito)
   // TODO Disable Auth
   // TODO Delete Auth and User
