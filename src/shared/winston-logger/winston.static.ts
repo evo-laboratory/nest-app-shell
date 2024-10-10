@@ -3,7 +3,7 @@
 // * Use from WINSTON_LOGGER_LEVEL
 
 // * Suggested ENV for difference STAGE:
-// * DEV => verbose / debug
+// * DEV => verbose / debug, general "debug" should be enough, "verbose" is really verbose.
 // * QA | TEST => info
 // * PROD => info / http
 // ! For security reason, don't use lower than "info" for PROD / TEST, in case of Logs leaks
