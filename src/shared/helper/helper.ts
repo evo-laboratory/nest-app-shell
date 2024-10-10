@@ -102,3 +102,7 @@ export function PathToPermissionIdPath(path: string): string {
   }
   return converted.toUpperCase().replace(/\//g, ':');
 }
+
+export function JsonStringify(object: any, space = 2) {
+  return JSON.stringify(object, null, space);
+}

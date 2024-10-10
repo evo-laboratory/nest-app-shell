@@ -28,6 +28,10 @@ export class OauthClientService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
+    Logger.verbose(
+      this.iamConfig.ENABLE_GOOGLE_SIGN_IN,
+      'onModuleInit.ENABLE_GOOGLE_SIGN_IN',
+    );
     if (this.iamConfig.ENABLE_GOOGLE_SIGN_IN) {
       if (
         !this.iamConfig.GOOGLE_CLIENT_ID ||
@@ -60,6 +64,7 @@ export class OauthClientService implements OnModuleInit {
   public async socialAuthenticate(
     dto: IAuthSocialSignInUp,
   ): Promise<IUnifiedOAuthUser> {
+    Logger.verbose(dto, 'socialAuthenticate(dto)');
     try {
       if (!this.supportedMethods.includes(dto.method)) {
         const error = this.buildError(
@@ -90,6 +95,7 @@ export class OauthClientService implements OnModuleInit {
 
   @MethodLogger()
   public async googleAuthenticate(token: string): Promise<IUnifiedOAuthUser> {
+    Logger.verbose(token, 'googleAuthenticate(token)');
     try {
       const loginTicket = await this.OAuthClient.verifyIdToken({
         idToken: token,

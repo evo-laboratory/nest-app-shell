@@ -6,7 +6,8 @@
 // * DEV => verbose / debug
 // * QA | TEST => info
 // * PROD => info / http
-// ! For security reason, don't use lower than info for PROD / TEST, in case of Logs leaks
+// ! For security reason, don't use lower than "info" for PROD / TEST, in case of Logs leaks
+// ! Best practice should avoid using "verbose" in PROD / TEST
 export const WINSTON_LEVELS: { [key: string]: number } = {
   error: 0,
   warn: 1,
@@ -22,7 +23,7 @@ export const WINSTON_COLORS: { [key: string]: string } = {
   http: 'magenta',
   info: 'blue',
   debug: 'white',
-  verbose: 'black whiteBG',
+  verbose: 'grey',
 };
 
 export const LOGGER_TIMESTAMP_FORMAT = 'MM/DD/YYYY, h:mm:ss A';

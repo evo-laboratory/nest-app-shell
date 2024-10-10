@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ConfigType } from '@nestjs/config';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
@@ -60,7 +60,7 @@ import identityAccessManagementConfig from '@gdk-iam/identity-access-management.
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/types';
-import { ExtractPropertiesFromObj } from '@shared/helper';
+import { ExtractPropertiesFromObj, JsonStringify } from '@shared/helper';
 
 import GetResponseWrap from '@shared/helper/get-response-wrapper';
 import { IGetResponseWrapper } from '@shared/types';
@@ -75,6 +75,7 @@ import { Auth, AuthDocument } from './auth.schema';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
+  private readonly Logger = new Logger(AuthMongooseService.name);
   constructor(
     @Inject(identityAccessManagementConfig.KEY)
     private readonly iamConfig: ConfigType<
@@ -99,12 +100,19 @@ export class AuthMongooseService implements AuthService {
     isAlreadyVerified = false,
     session?: ClientSession,
   ): Promise<IEmailSignUpRes> {
+    this.Logger.verbose(JsonStringify(dto), 'emailSignUp(dto)');
+    this.Logger.verbose(isAlreadyVerified, 'emailSignUp(isAlreadyVerified)');
+    this.Logger.verbose(session ? true : false, 'emailSignUp(session)');
     if (!session) {
       session = await this.connection.startSession();
     }
     try {
       // * STEP 1. Check Email Existence(Both Auth And User)
       const checkUserEmail = await this.userService.findByEmail(dto.email);
+      this.Logger.verbose(
+        JsonStringify(checkUserEmail),
+        'emailSignUp.checkUserEmail',
+      );
       if (checkUserEmail !== null) {
         this.throwHttpError(
           ERROR_CODE.AUTH_EMAIL_EXIST,
@@ -140,8 +148,10 @@ export class AuthMongooseService implements AuthService {
         codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
         isManualVerified: isAlreadyVerified,
       };
+      this.Logger.verbose(JsonStringify(createDto), 'emailSignUp.createDto');
       // * STEP 3. Create New User and New Auth
       const setup = await this.createWithUser(createDto, true, true, session);
+      this.Logger.verbose(JsonStringify(setup), 'emailSignUp.setup');
       // * STEP 5. Send Email
       if (!isAlreadyVerified) {
         const mail: ISendMail = {

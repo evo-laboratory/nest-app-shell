@@ -2,14 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import SwaggerSetup from '@shared/swagger/swagger.setup';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
-
-import { AppModule } from './app.module';
 import { SWAGGER_DEFAULT_TITLE } from '@shared/swagger';
 import { WinstonService } from '@shared/winston-logger';
 
+import { AppModule } from './app.module';
+
 const PORT = process.env.PORT || 3000;
 const STAGE = process.env.STAGE || 'DEV';
-const LOG_LEVEL = process.env.LOG_LEVEL || 'DEBUG';
 
 async function Bootstrap() {
   const app = await NestFactory.create(AppModule, {
