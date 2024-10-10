@@ -765,7 +765,8 @@ export class AuthMongooseService implements AuthService {
   enable(): void {
     throw new Error('Method not implemented.');
   }
-  disable(): void {
+  @MethodLogger()
+  public async disable() {
     throw new Error('Method not implemented.');
   }
 

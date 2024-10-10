@@ -69,7 +69,7 @@ export class AuthController {
   @Post(`${V1}/${VERIFIED_EMAIL_SIGN_UP_PATH}`)
   @ApiResponse({ status: 201, type: EmailSignUpRes })
   async verifiedEmailSignUpV1(@Body() dto: EmailSignUpDto) {
-    // * Verified email sign-up process, commonly using from Admin
+    // * Verified email sign-up process, commonly using from Admin, set isAlreadyVerified = true
     return await this.authService.emailSignUp(dto, true);
   }
 
@@ -157,12 +157,11 @@ export class AuthController {
   }
 
   // TODO LogLevel in ENV
+  // TODO Separate Token List (Refresh and Access) for prepare different provider(Firebase, Cognito)
   // TODO Disable Auth
   // TODO Delete Auth and User
-  // TODO Admin direct create auth and user
   // TODO User APIs
   // TODO 3rd party OAuth Login
-  // TODO Separate Token List (Refresh and Access) for prepare different provider(Firebase Cognito)
   // TODO E2E testing planning
   // TODO Implement Event(Auth) webhooks / triggers
 
