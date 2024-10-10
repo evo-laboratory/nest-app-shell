@@ -12,4 +12,5 @@ export interface IAuthCreateAuthWithUser {
   password: string;
   signUpMethod: AUTH_METHOD;
   codeUsage: AUTH_CODE_USAGE;
+  isManualVerified: boolean;
 }

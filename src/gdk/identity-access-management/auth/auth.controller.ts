@@ -48,6 +48,7 @@ import {
   SIGN_OUT_PATH,
   SOCIAL_SIGN_IN_UP_PATH,
   VERIFICATION_PATH,
+  VERIFIED_EMAIL_SIGN_UP_PATH,
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
@@ -61,7 +62,15 @@ export class AuthController {
   @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)
   @ApiResponse({ status: 201, type: EmailSignUpRes })
   async emailSignUpV1(@Body() dto: EmailSignUpDto) {
-    return await this.authService.emailSignUp(dto);
+    // * General user sign-up process, we don't want it to be isAlreadyVerified
+    return await this.authService.emailSignUp(dto, false);
+  }
+
+  @Post(`${V1}/${VERIFIED_EMAIL_SIGN_UP_PATH}`)
+  @ApiResponse({ status: 201, type: EmailSignUpRes })
+  async verifiedEmailSignUpV1(@Body() dto: EmailSignUpDto) {
+    // * Verified email sign-up process, commonly using from Admin
+    return await this.authService.emailSignUp(dto, true);
   }
 
   @AuthType(AUTH_TYPE.PUBLIC)

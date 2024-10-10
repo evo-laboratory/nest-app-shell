@@ -27,7 +27,10 @@ import { IAuthRevokedRefreshTokenRes } from './types/auth-revoked-refresh-token-
 
 @Injectable()
 export abstract class AuthService {
-  abstract emailSignUp(dto: EmailSignUpDto): Promise<IEmailSignUpRes>;
+  abstract emailSignUp(
+    dto: EmailSignUpDto,
+    isManualVerified: boolean,
+  ): Promise<IEmailSignUpRes>;
   abstract verifyAuth(dto: AuthVerifyDto): Promise<IAuthVerifyRes>;
   abstract emailVerification(
     dto: AuthEmailVerificationDto,

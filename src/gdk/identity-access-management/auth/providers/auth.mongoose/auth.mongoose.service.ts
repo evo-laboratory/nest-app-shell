@@ -96,6 +96,7 @@ export class AuthMongooseService implements AuthService {
   @MethodLogger()
   public async emailSignUp(
     dto: EmailSignUpDto,
+    isAlreadyVerified = false,
     session?: ClientSession,
   ): Promise<IEmailSignUpRes> {
     if (!session) {
@@ -137,25 +138,28 @@ export class AuthMongooseService implements AuthService {
         signUpMethod: AUTH_METHOD.EMAIL_PASSWORD,
         password: dto.password,
         codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        isManualVerified: isAlreadyVerified,
       };
       // * STEP 3. Create New User and New Auth
       const setup = await this.createWithUser(createDto, true, true, session);
       // * STEP 5. Send Email
-      const mail: ISendMail = {
-        to: dto.email,
-        subject: '註冊驗證碼',
-        text: setup.newAuth.code,
-        html: `<h1>驗證碼 : ${setup.newAuth.code}</h1>`,
-      };
-      const sent = await this.mailService.send(mail);
-      assert.ok(sent, 'Verify Email Sent');
+      if (!isAlreadyVerified) {
+        const mail: ISendMail = {
+          to: dto.email,
+          subject: '註冊驗證碼',
+          text: setup.newAuth.code,
+          html: `<h1>驗證碼 : ${setup.newAuth.code}</h1>`,
+        };
+        const sent = await this.mailService.send(mail);
+        assert.ok(sent, 'Verify Email Sent');
+      }
       // * STEP 6. Complete session
       await session.commitTransaction();
       await session.endSession();
       const res: IEmailSignUpRes = {
         email: dto.email,
-        isEmailSent: true,
-        canResendAt: setup.newAuth.codeExpiredAt,
+        isEmailSent: isAlreadyVerified ? false : true,
+        canResendAt: isAlreadyVerified ? 0 : setup.newAuth.codeExpiredAt,
         provider: AUTH_PROVIDER.MONGOOSE,
       };
       return res;
@@ -240,8 +244,9 @@ export class AuthMongooseService implements AuthService {
           signUpMethod: AUTH_METHOD.GOOGLE_SIGN_IN,
           password: '',
           codeUsage: AUTH_CODE_USAGE.NOT_SET,
+          isManualVerified: true,
         };
-        // * STEP 3. Create New User and New Auth
+        // * STEP 4. Create New User and New Auth
         const setup = await this.createWithUser(
           createDto,
           false,
@@ -896,8 +901,7 @@ export class AuthMongooseService implements AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           displayName: dto.displayName,
-          isEmailVerified:
-            dto.signUpMethod === AUTH_METHOD.EMAIL_PASSWORD ? false : true,
+          isEmailVerified: dto.isManualVerified ? true : false,
         },
         session,
       );
@@ -913,8 +917,7 @@ export class AuthMongooseService implements AuthService {
         code: resolveCode ? generated.code : '',
         codeExpiredAt: resolveCode ? generated.codeExpiredAt : 0,
         codeUsage: dto.codeUsage,
-        isIdentifierVerified:
-          dto.signUpMethod === AUTH_METHOD.EMAIL_PASSWORD ? false : true,
+        isIdentifierVerified: dto.isManualVerified ? true : false,
       }).save({ session });
       assert.ok(newAuth, 'New Auth Created');
       const authJson = newAuth.toJSON();
