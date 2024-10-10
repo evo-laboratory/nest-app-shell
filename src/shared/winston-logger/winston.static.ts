@@ -16,7 +16,7 @@ export const WINSTON_COLORS: { [key: string]: string } = {
   info: 'blue',
   http: 'magenta',
   verbose: 'cyan',
-  debug: 'white',
+  debug: 'gray',
   silly: 'white',
 };
 

@@ -1,4 +1,5 @@
 import {
+  Logger,
   MiddlewareConsumer,
   Module,
   NestModule,

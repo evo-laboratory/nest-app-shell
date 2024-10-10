@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { AUTH_METHOD, IAuthSocialSignInUp } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
@@ -17,6 +17,7 @@ import { IUnifiedOAuthUser } from './types';
 export class OauthClientService implements OnModuleInit {
   private OAuthClient: OAuth2Client;
   private supportedMethods = [];
+  private readonly Logger = new Logger(OauthClientService.name);
   constructor(
     @Inject(identityAccessManagementConfig.KEY)
     private readonly iamConfig: ConfigType<
@@ -25,6 +26,7 @@ export class OauthClientService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
+    this.Logger.log('hello');
     if (this.iamConfig.ENABLE_GOOGLE_SIGN_IN) {
       if (
         !this.iamConfig.GOOGLE_CLIENT_ID ||

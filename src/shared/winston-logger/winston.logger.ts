@@ -11,8 +11,6 @@ import {
 export const winstonConsoleFormat = winston.format.combine(
   // * Add the message timestamp with the preferred format
   winston.format.timestamp({ format: LOGGER_TIMESTAMP_FORMAT }),
-  // * Tell Winston that the logs must be colored
-  winston.format.colorize({ colors: WINSTON_COLORS, all: true }),
   // * Define the format of levelUppercase (error => ERROR)
   winston.format((info) => {
     const levelSym: string = Object.getOwnPropertySymbols(
@@ -28,11 +26,13 @@ export const winstonConsoleFormat = winston.format.combine(
   })(),
   // * Define the format of the message showing the timestamp, the level and the message
   winston.format.printf((info) => {
-    return _nestJSFormat(info);
+    return _NestJSFormat(info);
   }),
+  // * Tell Winston that the logs must be colored
+  winston.format.colorize({ colors: WINSTON_COLORS, all: true }),
 );
 
-function _logPadding(logLevel: string): string {
+function _LogPadding(logLevel: string): string {
   const spaceCount = 7 - `${logLevel}`.length;
   if (spaceCount < 0) {
     return logLevel;
@@ -41,7 +41,7 @@ function _logPadding(logLevel: string): string {
   }
 }
 
-function _nestJSFormat(info: any): string {
+function _NestJSFormat(info: any): string {
   let scopePrefix = '';
   if (info.contextName && info.methodName) {
     scopePrefix = `[${info.contextName}.${info.methodName}]`;
@@ -52,10 +52,10 @@ function _nestJSFormat(info: any): string {
   }
   if (scopePrefix.length > 0) {
     // eslint-disable-next-line prettier/prettier
-    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_logPadding(info.levelText)} ${scopePrefix} ${info.message}`;
+    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_LogPadding(info.levelText)} ${scopePrefix} ${info.message}`;
   } else {
     // eslint-disable-next-line prettier/prettier
-    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_logPadding(info.levelText)} ${info.message}`;
+    return `[Wnst] ${process.pid}  - ${info.timestamp} ${_LogPadding(info.levelText)} ${info.message}`;
   }
 }
 
