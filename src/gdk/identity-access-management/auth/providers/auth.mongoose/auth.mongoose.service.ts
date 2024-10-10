@@ -187,12 +187,18 @@ export class AuthMongooseService implements AuthService {
     dto: AuthSocialSignInUpDto,
     session?: ClientSession,
   ): Promise<IAuthSignInRes> {
+    this.Logger.verbose(JsonStringify(dto), 'socialEmailSignInUp(dto)');
+    this.Logger.verbose(session ? true : false, 'socialEmailSignInUp(session)');
     if (!session) {
       session = await this.connection.startSession();
     }
     try {
       // * STEP 1. Verify from OAuthClient
       const oauthUser = await this.oauthClientService.socialAuthenticate(dto);
+      this.Logger.verbose(
+        JsonStringify(oauthUser),
+        'socialEmailSignInUp.oauthUser',
+      );
       let user: IUser;
       let auth: IAuth;
       session.startTransaction();
@@ -201,11 +207,16 @@ export class AuthMongooseService implements AuthService {
         identifier: oauthUser.email,
       }).lean();
       const authJson = auth === null ? null : auth;
+      this.Logger.verbose(
+        JsonStringify(authJson),
+        'socialEmailSignInUp.authJson',
+      );
       if (auth !== null) {
         // * STEP 3A. Already have auth, check allow Sign In
         this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
         // * STEP 3B. Check User
         user = await this.userService.findByEmail(oauthUser.email);
+        this.Logger.verbose(JsonStringify(user), 'socialEmailSignInUp.user');
         if (user === null) {
           this.throwHttpError(
             ERROR_CODE.USER_NOT_FOUND,
@@ -240,6 +251,10 @@ export class AuthMongooseService implements AuthService {
             },
             { session: session },
           );
+          this.Logger.verbose(
+            JsonStringify(updatedAuth),
+            'socialEmailSignInUp.updatedAuth',
+          );
           assert.ok(updatedAuth, 'Updated Auth');
         }
       } else {
@@ -256,6 +271,10 @@ export class AuthMongooseService implements AuthService {
           codeUsage: AUTH_CODE_USAGE.NOT_SET,
           isManualVerified: true,
         };
+        this.Logger.verbose(
+          JsonStringify(createDto),
+          'socialEmailSignInUp.createDto',
+        );
         // * STEP 4. Create New User and New Auth
         const setup = await this.createWithUser(
           createDto,
@@ -263,6 +282,7 @@ export class AuthMongooseService implements AuthService {
           false,
           session,
         );
+        this.Logger.verbose(JsonStringify(setup), 'socialEmailSignInUp.setup');
         user = setup.newUser;
         auth = setup.newAuth;
       }

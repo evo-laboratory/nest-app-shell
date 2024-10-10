@@ -104,5 +104,9 @@ export function PathToPermissionIdPath(path: string): string {
 }
 
 export function JsonStringify(object: any, space = 2) {
-  return JSON.stringify(object, null, space);
+  if (typeof object === 'object' && object !== null) {
+    return JSON.stringify(object, null, space);
+  } else {
+    return `${object}`;
+  }
 }
