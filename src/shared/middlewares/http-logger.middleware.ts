@@ -10,7 +10,8 @@ export class HttpLoggerMiddleware implements NestMiddleware {
     const originalSend: Response['send'] = res.send;
     res.send = function (body) {
       res.parsedBody = body;
-      WinstonLogger.debug(res.parsedBody);
+      // * It's already string, we would to view in better way
+      WinstonLogger.debug(JSON.parse(body));
       originalSend.call(this, body);
     };
     WinstonLogger.http(
