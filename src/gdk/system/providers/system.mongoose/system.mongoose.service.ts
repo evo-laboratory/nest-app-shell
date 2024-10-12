@@ -5,7 +5,7 @@ import {
   SYSTEM_MODEL_NAME,
 } from '@gdk-system/statics';
 import { SystemService } from '@gdk-system/system.service';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigType } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
@@ -14,8 +14,10 @@ import { Model } from 'mongoose';
 import { MongoDBErrorHandler } from '@shared/mongodb';
 import OpenAPIConvertToHttpEndpoints from '@shared/swagger/openapi-convertor';
 import SwaggerDocumentBuilder from '@shared/swagger/swagger-document-builder';
-import WinstonLogger from '@shared/winston-logger/winston.logger';
-import { MethodLogger } from '@shared/winston-logger';
+import {
+  MethodLogger,
+  WINSTON_LOG_VARIANT_LEVEL,
+} from '@shared/winston-logger';
 import { FlexUpdateSystemDto } from '@gdk-system/dto';
 import {
   IClientMap,
@@ -24,6 +26,7 @@ import {
   ISystem,
   IUpdateSystem,
 } from '@gdk-system/types';
+import { JsonStringify } from '@shared/helper';
 
 import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
@@ -31,6 +34,7 @@ import appConfig from 'src/app.config';
 
 @Injectable()
 export class SystemMongooseService implements SystemService {
+  private readonly Logger = new Logger(SystemMongooseService.name);
   constructor(
     @InjectModel(SYSTEM_MODEL_NAME)
     private readonly SystemModel: Model<System>,
@@ -58,6 +62,7 @@ export class SystemMongooseService implements SystemService {
   @MethodLogger()
   public async getCached(forceFromDB = false): Promise<ISystem> {
     try {
+      this.Logger.verbose(forceFromDB, 'getCached(forceFromDB)');
       const sys = await this.cacheManager.get<ISystem>(SYS_CACHE_KEY);
       if (!sys || forceFromDB) {
         const foundSys = await this.findOne();
@@ -75,8 +80,8 @@ export class SystemMongooseService implements SystemService {
     try {
       let roleMap = await this.cacheManager.get<IRoleMap>(SYS_ROLE_MAP_KEY);
       if (!roleMap) {
-        WinstonLogger.info('No role map found in cache', {
-          contextName: 'SystemMongooseService',
+        this.Logger.log('No role map found in cache', {
+          level: WINSTON_LOG_VARIANT_LEVEL.INFO,
           methodName: 'listRoleByNamesFromCache',
         });
         const foundSys = await this.findOne();
@@ -95,8 +100,8 @@ export class SystemMongooseService implements SystemService {
     try {
       let clientMap = await this.cacheManager.get<IClientMap>(SYS_CLIENT_KEY);
       if (!clientMap) {
-        WinstonLogger.info('No client map found in cache', {
-          contextName: 'SystemMongooseService',
+        this.Logger.log('No client map found in cach', {
+          level: WINSTON_LOG_VARIANT_LEVEL.INFO,
           methodName: 'getClientMapFromCache',
         });
         const foundSys = await this.findOne();
@@ -115,6 +120,10 @@ export class SystemMongooseService implements SystemService {
       const app = await NestFactory.create(AppModule);
       const swaggerDoc = SwaggerDocumentBuilder(app);
       const endpoints = OpenAPIConvertToHttpEndpoints(swaggerDoc);
+      this.Logger.verbose(
+        endpoints.length,
+        'syncHttpEndpointFromSwagger.endpoints(length)',
+      );
       const check = await this.SystemModel.findOne({});
       if (check === null) {
         const newSys = await this.SystemModel.create({
@@ -160,14 +169,12 @@ export class SystemMongooseService implements SystemService {
         updateObj.newSignUpDefaultUserRole = dto.newSignUpDefaultUserRole;
       }
       if (Object.keys(updateObj).length === 0) {
-        WinstonLogger.info('No update required', {
-          contextName: 'SystemMongooseService',
-          methodName: 'updateById',
-        });
+        this.Logger.verbose('No updated required', 'updateById');
         const sys = await this.SystemModel.findById(id);
         await this.setCache(sys);
         return sys;
       }
+      this.Logger.verbose(JsonStringify(updateObj), 'updateById.updateObj');
       const updatedSys = await this.SystemModel.findByIdAndUpdate(
         id,
         { $set: updateObj },
