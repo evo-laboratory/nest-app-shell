@@ -4,7 +4,7 @@ import {
   IAuthSignInFailedRecordItem,
 } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import {
   ERROR_CODE,
@@ -17,6 +17,7 @@ import { MethodLogger } from '@shared/winston-logger';
 
 @Injectable()
 export class AuthUtilService {
+  private readonly Logger = new Logger(AuthUtilService.name);
   constructor(
     @Inject(identityAccessManagementConfig.KEY)
     private readonly iamConfig: ConfigType<
@@ -27,6 +28,7 @@ export class AuthUtilService {
   public generateAuthCode(): IAuthGeneratedCode {
     const code = RandomNumber();
     const EXPIRE_MIN = this.iamConfig.CODE_EXPIRE_MIN || 3;
+    this.Logger.verbose(EXPIRE_MIN, 'generateAuthCode.EXPIRE_MIN');
     const expiredAt = Date.now() + MinToMilliseconds(EXPIRE_MIN);
     return {
       code: code,
@@ -40,49 +42,54 @@ export class AuthUtilService {
     auth: IAuth,
     skipCheckExceedLimit = false,
   ): true {
+    this.Logger.verbose(identifier, 'checkAuthAllowSignIn(identifier)');
+    this.Logger.verbose(
+      skipCheckExceedLimit,
+      'checkAuthAllowSignIn(skipCheckExceedLimit)',
+    );
     // * Always return true, throw error inside.
     // * STEP 1A. Check Existence
     if (auth === null) {
-      const error = this.buildError(
+      this.throwHttpError(
         ERROR_CODE.AUTH_NOT_FOUND,
         `Identifier: ${identifier} not found`,
         404,
         'emailSignIn',
       );
-      throw new UniteHttpException(error);
     }
+    this.Logger.verbose('STEP 1A Pass', 'checkAuthAllowSignIn');
     // * STEP 1B. Check is Identity Verified
     if (!auth.isIdentifierVerified) {
-      const error = this.buildError(
+      this.throwHttpError(
         ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED,
         `Identifier: ${identifier} not verified`,
         403,
         'emailSignIn',
       );
-      throw new UniteHttpException(error);
     }
+    this.Logger.verbose('STEP 1B Pass', 'checkAuthAllowSignIn');
     // * STEP 1C. Check is active
     if (!auth.isActive) {
-      const error = this.buildError(
+      this.throwHttpError(
         ERROR_CODE.AUTH_INACTIVE,
         `Auth inactive, cannot sign in`,
         403,
         'emailSignIn',
       );
-      throw new UniteHttpException(error);
     }
+    this.Logger.verbose('STEP 1C Pass', 'checkAuthAllowSignIn');
     // * STEP 1D. Check Auth sign in failed attempts
     if (!skipCheckExceedLimit) {
       const isLocked = this.isExceedAttemptLimit(auth);
       if (isLocked) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
           `Attempt rate limit, please try again after 1 hour`,
           406,
           'emailSignIn',
         );
-        throw new UniteHttpException(error);
       }
+      this.Logger.verbose('STEP 1D Pass', 'checkAuthAllowSignIn');
     }
     return true;
   }
@@ -112,6 +119,10 @@ export class AuthUtilService {
         }
       },
     );
+    this.Logger.verbose(
+      recentFailAttempts.length,
+      'isExceedAttemptLimit.recentFailAttempts',
+    );
     if (recentFailAttempts.length > ATTEMPT_LIMIT) {
       return true;
     }
@@ -119,7 +130,7 @@ export class AuthUtilService {
   }
 
   @MethodLogger()
-  private buildError(
+  private throwHttpError(
     code: ERROR_CODE,
     msg: string,
     statusCode?: number,
@@ -133,6 +144,6 @@ export class AuthUtilService {
       contextName: 'AuthUtilService',
       methodName: `${methodName}`,
     };
-    return errorObj;
+    throw new UniteHttpException(errorObj);
   }
 }
