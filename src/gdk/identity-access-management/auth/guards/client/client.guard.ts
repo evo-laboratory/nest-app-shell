@@ -5,13 +5,15 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import WinstonLogger from '@shared/winston-logger/winston.logger';
+import { WINSTON_LOG_VARIANT_LEVEL } from '@shared/winston-logger';
 import appConfig from 'src/app.config';
 
 @Injectable()
 export class ClientGuard implements CanActivate {
+  private readonly Logger = new Logger(ClientGuard.name);
   constructor(
     @Inject(appConfig.KEY)
     private readonly appEnvConfig: ConfigType<typeof appConfig>,
@@ -20,8 +22,8 @@ export class ClientGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const clientMap = await this.sys.getClientMapFromCache();
     if (clientMap.size === 0) {
-      WinstonLogger.info(`No Clients required`, {
-        contextName: ClientGuard.name,
+      this.Logger.log(`No Clients required`, {
+        level: WINSTON_LOG_VARIANT_LEVEL.INFO,
         methodName: 'canActivate',
       });
       return true;
@@ -29,16 +31,16 @@ export class ClientGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const inboundClientId = request.headers[this.appEnvConfig.CLIENT_KEY_NAME];
     if (!inboundClientId) {
-      WinstonLogger.info(`Client required`, {
-        contextName: ClientGuard.name,
+      this.Logger.log(`Client required`, {
+        level: WINSTON_LOG_VARIANT_LEVEL.INFO,
         methodName: 'canActivate',
       });
       return false;
     }
     const inboundClient = clientMap.get(inboundClientId);
     if (!inboundClient) {
-      WinstonLogger.info(`No client match id ${inboundClientId}`, {
-        contextName: ClientGuard.name,
+      this.Logger.log(`No client match id ${inboundClientId}`, {
+        level: WINSTON_LOG_VARIANT_LEVEL.INFO,
         methodName: 'canActivate',
       });
       return false;
