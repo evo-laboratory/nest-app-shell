@@ -1,9 +1,6 @@
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
-import {
-  AUTH_REVOKED_TOKEN_MODEL_NAME,
-  AUTH_REVOKED_TOKEN_SOURCE,
-  IAuthRevokedToken,
-} from '@gdk-iam/auth-revoked-token/types';
+import { IAuthRevokedToken } from '@gdk-iam/auth-revoked-token/types';
+import { AUTH_REVOKED_TOKEN_MODEL_NAME } from '@gdk-iam/auth-revoked-token/statics';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -21,6 +18,7 @@ import {
   AuthRevokedToken,
   AuthRevokedTokenDocument,
 } from './auth-revoked-token.schema';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 
 @Injectable()
 export class AuthRevokedTokenMongooseService

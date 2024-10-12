@@ -2,14 +2,19 @@ import { AUTH_TOKEN_TYPE, IAuthSignedResult } from '@gdk-iam/auth/types';
 import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ExtractPropertiesFromObj, GenerateUUID } from '@shared/helper';
+import {
+  ExtractPropertiesFromObj,
+  GenerateUUID,
+  JsonStringify,
+} from '@shared/helper';
 import { MethodLogger } from '@shared/winston-logger';
 
 @Injectable()
 export class AuthJwtService {
+  private readonly Logger = new Logger(AuthJwtService.name);
   constructor(
     @Inject(identityAccessManagementConfig.KEY)
     private readonly iamConfig: ConfigType<
@@ -24,11 +29,16 @@ export class AuthJwtService {
     user: IUser,
   ): Promise<IAuthGenerateCustomTokenResult> {
     try {
+      this.Logger.verbose(authId, 'generateCustomToken(authId)');
       const userPayload: IUserTokenPayload =
         ExtractPropertiesFromObj<IUserTokenPayload>(
           user,
           this.iamConfig.JWT_PAYLOAD_PROPS_FROM_USER,
         );
+      this.Logger.verbose(
+        JsonStringify(userPayload),
+        'generateCustomToken.userPayload',
+      );
       const access = await this.sign(
         authId,
         `${user._id}`,
@@ -59,12 +69,16 @@ export class AuthJwtService {
     payload: T,
     type: AUTH_TOKEN_TYPE = AUTH_TOKEN_TYPE.ACCESS,
   ): Promise<IAuthSignedResult> {
+    this.Logger.verbose(sub, 'sign(sub)');
+    this.Logger.verbose(sub, 'sign(userId)');
+    this.Logger.verbose(type, 'sign(type)');
     try {
       const tokenId = GenerateUUID();
       const expiresIn =
         type === AUTH_TOKEN_TYPE.ACCESS
           ? this.iamConfig.JWT_ACCESS_TOKEN_TTL
           : this.iamConfig.JWT_REFRESH_TOKEN_TTL;
+      this.Logger.verbose(expiresIn, 'sign.expiresIn');
       const token = await this.jwtService.signAsync(
         {
           tokenId: tokenId,
@@ -91,6 +105,7 @@ export class AuthJwtService {
 
   @MethodLogger()
   public decode<T>(tokenString: string): T {
+    this.Logger.verbose(tokenString, 'decode(tokenString)');
     try {
       const token = this.jwtService.decode(tokenString);
       return token;
@@ -104,6 +119,8 @@ export class AuthJwtService {
     tokenString: string,
     specificType?: AUTH_TOKEN_TYPE,
   ): Promise<T> {
+    this.Logger.verbose(tokenString, 'verify(tokenString)');
+    this.Logger.verbose(tokenString, 'verify(specificType)');
     try {
       const token = await this.jwtService.verifyAsync<any>(tokenString, {
         issuer: this.iamConfig.JWT_ISSUER,
