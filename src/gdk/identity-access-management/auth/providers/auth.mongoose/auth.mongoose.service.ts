@@ -72,6 +72,7 @@ import {
 
 import { Auth, AuthDocument } from './auth.schema';
 import { IAuthTokenItem } from '@gdk-iam/auth-issued-token/types';
+import { AuthIssuedTokenService } from '@gdk-iam/auth-issued-token/auth-issued-token.service';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -87,6 +88,7 @@ export class AuthMongooseService implements AuthService {
     private readonly AuthModel: Model<Auth>,
     private readonly authUtil: AuthUtilService,
     private readonly authJwt: AuthJwtService,
+    private readonly authIssuedToken: AuthIssuedTokenService,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
@@ -897,78 +899,6 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  private async pushRefreshTokenItemById(
-    authId: Types.ObjectId,
-    item: IAuthTokenItem,
-    session?: ClientSession,
-  ): Promise<AuthDocument> {
-    this.Logger.verbose(
-      `${authId}(${typeof authId})`,
-      'pushRefreshTokenItemById(id)',
-    );
-    this.Logger.verbose(JsonStringify(item), 'pushRefreshTokenItemById(item)');
-    this.Logger.verbose(
-      session ? true : false,
-      'pushRefreshTokenItemById(session)',
-    );
-    try {
-      const SLICE_COUNT = 100; // TODO Move to .ENV
-      const updated = await this.AuthModel.findByIdAndUpdate(
-        authId,
-        {
-          $push: {
-            activeRefreshTokenList: {
-              $each: [item],
-              $slice: -SLICE_COUNT,
-              $position: 0,
-            },
-          },
-        },
-        { session: session },
-      );
-      return updated;
-    } catch (error) {
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
-
-  @MethodLogger()
-  private async pushAccessTokenItemById(
-    authId: Types.ObjectId | string,
-    item: IAuthTokenItem,
-    session?: ClientSession,
-  ): Promise<AuthDocument> {
-    this.Logger.verbose(
-      `${authId}(${typeof authId})`,
-      'pushAccessTokenItemById(id)',
-    );
-    this.Logger.verbose(JsonStringify(item), 'pushAccessTokenItemById(item)');
-    this.Logger.verbose(
-      session ? true : false,
-      'pushAccessTokenItemById(session)',
-    );
-    try {
-      const SLICE_COUNT = 100; // TODO Move to .ENV
-      const updated = await this.AuthModel.findByIdAndUpdate(
-        authId,
-        {
-          $push: {
-            accessTokenHistoryList: {
-              $each: [item],
-              $slice: -SLICE_COUNT,
-              $position: 0,
-            },
-          },
-        },
-        { session: session },
-      );
-      return updated;
-    } catch (error) {
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
-
-  @MethodLogger()
   private async createWithUser(
     dto: IAuthCreateAuthWithUser,
     hashPassword = true,
@@ -1052,11 +982,12 @@ export class AuthMongooseService implements AuthService {
         expiredAt: rToken.exp * 1000,
         createdAt: Date.now(),
       };
-      const pushedRefreshItem = await this.pushRefreshTokenItemById(
-        auth._id,
-        refreshItem,
-        session,
-      );
+      const pushedRefreshItem =
+        await this.authIssuedToken.pushTokenItemByAuthId(
+          `${auth._id}`,
+          refreshItem,
+          session,
+        );
       assert.ok(pushedRefreshItem, 'Pushed Refresh Token');
       const accessItem: IAuthTokenItem = {
         type: AUTH_TOKEN_TYPE.ACCESS,
@@ -1067,8 +998,8 @@ export class AuthMongooseService implements AuthService {
         expiredAt: aToken.exp * 1000,
         createdAt: Date.now(),
       };
-      const pushedAccessItem = await this.pushAccessTokenItemById(
-        auth._id,
+      const pushedAccessItem = await this.authIssuedToken.pushTokenItemByAuthId(
+        `${auth._id}`,
         accessItem,
         session,
       );

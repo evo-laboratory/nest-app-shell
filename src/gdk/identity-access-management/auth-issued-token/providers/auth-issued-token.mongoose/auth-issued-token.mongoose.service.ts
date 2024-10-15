@@ -38,8 +38,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
 
   @MethodLogger()
   public async pushTokenItemByAuthId(
-    authId: Types.ObjectId | string,
-    type: AUTH_TOKEN_TYPE,
+    authId: string,
     item: IAuthTokenItem,
     session?: ClientSession,
   ): Promise<IAuthIssuedToken> {
@@ -58,7 +57,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
     );
     try {
       const updateQuery = {};
-      if (type === AUTH_TOKEN_TYPE.ACCESS) {
+      if (item.type === AUTH_TOKEN_TYPE.ACCESS) {
         updateQuery['$push'] = {
           accessTokenHistoryList: {
             $each: [item],
@@ -66,7 +65,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
             $position: 0,
           },
         };
-      } else {
+      } else if (item.type === AUTH_TOKEN_TYPE.REFRESH) {
         updateQuery['$push'] = {
           activeRefreshTokenList: {
             $each: [item],
@@ -74,6 +73,17 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
             $position: 0,
           },
         };
+      } else {
+        this.Logger.warn(
+          JsonStringify(updateQuery),
+          'pushTokenItemByAuthId.updateQuery',
+        );
+        this.throwHttpError(
+          ERROR_CODE.AUTH_TOKEN_TYPE_NOT_SUPPORTED,
+          `${item.type} not supported`,
+          400,
+          'pushTokenItemByAuthId',
+        );
       }
       this.Logger.verbose(
         JsonStringify(updateQuery),
