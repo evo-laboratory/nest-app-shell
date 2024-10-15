@@ -134,7 +134,10 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
   public async getByAuthId(authId: string): Promise<IAuthIssuedToken> {
     this.Logger.verbose(authId, 'getByAuthId(authId)');
     try {
-      const data = await this.AuthIssuedTokenModel.findOne({ authId }).lean();
+      const authObjectId = StringToObjectId(authId);
+      const data = await this.AuthIssuedTokenModel.findOne({
+        authId: authObjectId,
+      }).lean();
       return data;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
@@ -159,6 +162,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
     session?: ClientSession,
   ): Promise<IAuthIssuedToken> {
     try {
+      const authObjectId = StringToObjectId(authId);
       const updateQuery = {};
       if (all) {
         updateQuery['$set'] = {
@@ -188,12 +192,12 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
           `all is false, but didn't pass in tokenType, ignore update.`,
         );
         return await this.AuthIssuedTokenModel.findOne({
-          authId: authId,
+          authId: authObjectId,
         }).lean();
       }
       const newData = await this.AuthIssuedTokenModel.findOneAndUpdate(
         {
-          authId: authId,
+          authId: authObjectId,
         },
         updateQuery,
         { upsert: true, session: session },
