@@ -679,6 +679,7 @@ export class AuthMongooseService implements AuthService {
   ): Promise<IAuthExchangeNewAccessTokenRes> {
     this.Logger.verbose(JsonStringify(dto), 'exchangeAccessToken(dto)');
     try {
+      // TODO ADD checkAuthAllowSignIn
       const validResult = await this.verifyRefreshToken(
         {
           token: dto.token,

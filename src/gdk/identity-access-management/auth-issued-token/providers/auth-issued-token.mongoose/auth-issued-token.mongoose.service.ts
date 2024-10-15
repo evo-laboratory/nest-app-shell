@@ -73,7 +73,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
         authId: authObjectId,
       });
       if (check === null) {
-        // * STEP 2.A Create new one
+        // * STEP 2A. Create new one
         const newData = await new this.AuthIssuedTokenModel({
           authId: authObjectId,
           accessTokenHistoryList: accessItems,
@@ -83,7 +83,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
         }).save({ session });
         return newData;
       } else {
-        // * STEP 2.B Update exist
+        // * STEP 2B. Update exist
         const ACCESS_SLICE_COUNT =
           this.iamConfig.TRACK_ISSUED_ACCESS_TOKEN_COUNT || 100;
         const REFRESH_SLICE_COUNT =
@@ -104,6 +104,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
           $set: {},
         };
         const current = new Date().getTime();
+        // * Setup Update flexUpdateQuery
         items.forEach((it) => {
           if (it.type === AUTH_TOKEN_TYPE.ACCESS) {
             flexUpdateQuery['$set']['lastIssueAccessTokenAt'] = current;
@@ -116,6 +117,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
           JsonStringify(flexUpdateQuery),
           'pushTokenItemByAuthId.flexUpdateQuery',
         );
+        // * Update
         const updatedData = await this.AuthIssuedTokenModel.findOneAndUpdate(
           {
             authId: authObjectId,

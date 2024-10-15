@@ -57,7 +57,7 @@ export class AuthUtilService {
         'emailSignIn',
       );
     }
-    this.Logger.verbose('STEP 1A Pass', 'checkAuthAllowSignIn');
+    this.Logger.verbose('STEP 1A. Pass', 'checkAuthAllowSignIn');
     // * STEP 1B. Check is Identity Verified
     if (!auth.isIdentifierVerified) {
       this.throwHttpError(
@@ -67,7 +67,7 @@ export class AuthUtilService {
         'emailSignIn',
       );
     }
-    this.Logger.verbose('STEP 1B Pass', 'checkAuthAllowSignIn');
+    this.Logger.verbose('STEP 1B. Pass', 'checkAuthAllowSignIn');
     // * STEP 1C. Check is active
     if (!auth.isActive) {
       this.throwHttpError(
@@ -77,7 +77,7 @@ export class AuthUtilService {
         'emailSignIn',
       );
     }
-    this.Logger.verbose('STEP 1C Pass', 'checkAuthAllowSignIn');
+    this.Logger.verbose('STEP 1C. Pass', 'checkAuthAllowSignIn');
     // * STEP 1D. Check Auth sign in failed attempts
     if (!skipCheckExceedLimit) {
       const isLocked = this.isExceedAttemptLimit(auth);
@@ -89,7 +89,7 @@ export class AuthUtilService {
           'emailSignIn',
         );
       }
-      this.Logger.verbose('STEP 1D Pass', 'checkAuthAllowSignIn');
+      this.Logger.verbose('STEP 1D. Pass', 'checkAuthAllowSignIn');
     }
     return true;
   }
