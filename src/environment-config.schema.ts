@@ -22,6 +22,8 @@ export const EnvironmentConfigSchema = Joi.object({
   REVOKED_TOKEN_PROVIDER: Joi.string()
     .valid('DATABASE', 'REDIS')
     .default('DATABASE'),
+  TRACK_ISSUED_ACCESS_TOKEN_COUNT: Joi.number().default(100),
+  TRACK_ISSUED_REFRESH_TOKEN_COUNT: Joi.number().default(100),
   JWT_ISSUER: Joi.string().required(),
   JWT_AUDIENCE: Joi.string().required(),
   JWT_SECRET: Joi.string().required(),

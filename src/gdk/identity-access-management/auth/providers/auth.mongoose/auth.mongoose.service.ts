@@ -767,14 +767,14 @@ export class AuthMongooseService implements AuthService {
     try {
       const mappedOpts = ListOptionsMongooseQueryMapper(opt);
       this.Logger.verbose(JsonStringify(mappedOpts), 'listAll(mappedOpts)');
-      const authList = await this.AuthModel.find(mappedOpts.filterObjs)
+      const data = await this.AuthModel.find(mappedOpts.filterObjs)
         .sort(mappedOpts.sortObjs)
         .populate(mappedOpts.populateFields)
         .select(mappedOpts.selectedFields)
         .skip(mappedOpts.skip)
         .limit(mappedOpts.limit)
         .lean();
-      return GetResponseWrap(authList);
+      return GetResponseWrap(data);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -790,11 +790,11 @@ export class AuthMongooseService implements AuthService {
       this.Logger.verbose(canBeNull, 'getById(canBeNull)');
       const mappedOpts = GetOptionsMongooseQueryMapper(opt);
       this.Logger.verbose(JsonStringify(mappedOpts), 'getById(mappedOpts)');
-      const auth = await this.AuthModel.findById(id)
+      const data = await this.AuthModel.findById(id)
         .select(mappedOpts.selectedFields)
         .populate(mappedOpts.populateFields)
         .lean();
-      if (auth === null && !canBeNull) {
+      if (data === null && !canBeNull) {
         // * Throw 404
         this.throwHttpError(
           ERROR_CODE.AUTH_NOT_FOUND,
@@ -803,7 +803,7 @@ export class AuthMongooseService implements AuthService {
           'getById',
         );
       }
-      return GetResponseWrap(auth);
+      return GetResponseWrap(data);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

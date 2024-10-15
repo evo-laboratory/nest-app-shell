@@ -14,6 +14,12 @@ export default registerAs(IAM_CONFIG_KEY, () => ({
   ),
   CHECK_REVOKED_TOKEN: ParseAnyToBoolean(process.env.CHECK_REVOKED_TOKEN),
   REVOKED_TOKEN_PROVIDER: process.env.REVOKED_TOKEN_PROVIDER,
+  TRACK_ISSUED_ACCESS_TOKEN_COUNT: parseInt(
+    process.env.TRACK_ISSUED_ACCESS_TOKEN_COUNT,
+  ),
+  TRACK_ISSUED_REFRESH_TOKEN_COUNT: parseInt(
+    process.env.TRACK_ISSUED_REFRESH_TOKEN_COUNT,
+  ),
   JWT_ISSUER: process.env.JWT_ISSUER,
   JWT_AUDIENCE: process.env.JWT_AUDIENCE,
   JWT_SECRET: process.env.JWT_SECRET,
