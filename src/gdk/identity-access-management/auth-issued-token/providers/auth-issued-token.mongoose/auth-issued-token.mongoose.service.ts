@@ -20,10 +20,11 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
-import { MongoDBErrorHandler } from '@shared/mongodb';
+import { MongoDBErrorHandler, StringToObjectId } from '@shared/mongodb';
 import { JsonStringify } from '@shared/helper';
 
 import { AuthIssuedToken } from './auth-issued-token.schema';
+
 @Injectable()
 export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
   private readonly Logger = new Logger(AuthIssuedTokenMongooseService.name);
@@ -42,10 +43,6 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
     items: IAuthTokenItem[],
     session?: ClientSession,
   ): Promise<IAuthIssuedToken> {
-    const ACCESS_SLICE_COUNT =
-      this.iamConfig.TRACK_ISSUED_ACCESS_TOKEN_COUNT || 100;
-    const REFRESH_SLICE_COUNT =
-      this.iamConfig.TRACK_ISSUED_REFRESH_TOKEN_COUNT || 100;
     const accessItems = items.filter(
       (it) => it.type === AUTH_TOKEN_TYPE.ACCESS,
     );
@@ -70,38 +67,60 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
       'pushTokenItemByAuthId(session)',
     );
     try {
+      const authObjectId = StringToObjectId(authId);
       // * STEP 1. Check if created before
-      const check = await this.AuthIssuedTokenModel.findOne({ authId: authId });
+      const check = await this.AuthIssuedTokenModel.findOne({
+        authId: authObjectId,
+      });
       if (check === null) {
         // * STEP 2.A Create new one
         const newData = await new this.AuthIssuedTokenModel({
-          authId: authId,
+          authId: authObjectId,
           accessTokenHistoryList: accessItems,
           activeRefreshTokenList: refreshItems,
+          lastIssueAccessTokenAt: Date.now(),
+          lastIssueRefreshTokenAt: Date.now(),
         }).save({ session });
         return newData;
       } else {
         // * STEP 2.B Update exist
-        const updatedData = await this.AuthIssuedTokenModel.findOneAndUpdate(
-          {
-            authId: authId,
-          },
-          {
-            $push: {
-              accessTokenHistoryList: {
-                $each: accessItems,
-                $slice: -ACCESS_SLICE_COUNT,
-                $position: 0,
-              },
-              $push: {
-                activeRefreshTokenList: {
-                  $each: refreshItems,
-                  $slice: -REFRESH_SLICE_COUNT,
-                  $position: 0,
-                },
-              },
+        const ACCESS_SLICE_COUNT =
+          this.iamConfig.TRACK_ISSUED_ACCESS_TOKEN_COUNT || 100;
+        const REFRESH_SLICE_COUNT =
+          this.iamConfig.TRACK_ISSUED_REFRESH_TOKEN_COUNT || 100;
+        const flexUpdateQuery = {
+          $push: {
+            accessTokenHistoryList: {
+              $each: accessItems,
+              $slice: -ACCESS_SLICE_COUNT,
+              $position: 0,
+            },
+            activeRefreshTokenList: {
+              $each: refreshItems,
+              $slice: -REFRESH_SLICE_COUNT,
+              $position: 0,
             },
           },
+          $set: {},
+        };
+        const current = new Date().getTime();
+        items.forEach((it) => {
+          if (it.type === AUTH_TOKEN_TYPE.ACCESS) {
+            flexUpdateQuery['$set']['lastIssueAccessTokenAt'] = current;
+          }
+          if (it.type === AUTH_TOKEN_TYPE.REFRESH) {
+            flexUpdateQuery['$set']['lastIssueRefreshTokenAt'] = current;
+          }
+        });
+        this.Logger.verbose(
+          JsonStringify(flexUpdateQuery),
+          'pushTokenItemByAuthId.flexUpdateQuery',
+        );
+        const updatedData = await this.AuthIssuedTokenModel.findOneAndUpdate(
+          {
+            authId: authObjectId,
+          },
+          flexUpdateQuery,
           { session: session },
         );
         return updatedData;

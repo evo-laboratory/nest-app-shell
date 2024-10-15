@@ -8,9 +8,10 @@ import {
 } from '@gdk-iam/auth/types';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
-import { Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
 
+export type AuthIssuedTokenDocument = HydratedDocument<AuthIssuedToken>;
 @Schema()
 export class AuthIssuedToken implements IAuthIssuedToken {
   @Prop({ type: Types.ObjectId, ref: AUTH_MODEL_NAME, required: true })

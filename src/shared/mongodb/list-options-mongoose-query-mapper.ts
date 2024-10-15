@@ -1,6 +1,6 @@
 import { PAGINATION_METHOD } from '@shared/enums';
 import { IGetListOptions } from '@shared/types';
-import StringToObjectId from './string-to-object-id';
+import { StringToObjectId } from './string-to-object-id';
 
 export function ListOptionsMongooseQueryMapper(opt: IGetListOptions) {
   // * Expected from GetListOptionsDto
