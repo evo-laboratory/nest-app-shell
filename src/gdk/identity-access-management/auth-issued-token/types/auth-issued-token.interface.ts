@@ -1,5 +1,5 @@
-import { IAuthTokenItem } from '@gdk-iam/auth/types';
 import { Types } from 'mongoose';
+import { IAuthTokenItem } from './auth-token-item.interface';
 
 export interface IAuthIssuedToken {
   authId: Types.ObjectId;

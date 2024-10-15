@@ -30,7 +30,6 @@ import {
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
   IAuthSignInFailedRecordItem,
-  IAuthTokenItem,
   AUTH_TOKEN_TYPE,
   IAuthSignInRes,
   IAuthDecodedToken,
@@ -72,6 +71,7 @@ import {
 } from '@shared/mongodb';
 
 import { Auth, AuthDocument } from './auth.schema';
+import { IAuthTokenItem } from '@gdk-iam/auth-issued-token/types';
 
 @Injectable()
 export class AuthMongooseService implements AuthService {

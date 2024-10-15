@@ -1,6 +1,6 @@
-import { AUTH_PROVIDER, AUTH_TOKEN_TYPE, IAuthTokenItem } from '../types';
+import { AUTH_PROVIDER, AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
 
-export class AuthTokenItemDto implements IAuthTokenItem {
+export interface IAuthTokenItem {
   type: AUTH_TOKEN_TYPE;
   provider: AUTH_PROVIDER;
   tokenId: string;

@@ -28,6 +28,9 @@ import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/
 import { AuthorizationGuard } from './auth/guards/authorization/authorization.guard';
 import { ClientGuard } from './auth/guards/client/client.guard';
 import { OauthClientService } from './oauth-client/oauth-client.service';
+import { AuthIssuedTokenService } from './auth-issued-token/auth-issued-token.service';
+import { AuthIssuedTokenMongooseService } from './auth-issued-token/providers/auth-issued-token.mongoose/auth-issued-token.mongoose.service';
+import { AuthIssuedTokenRedisService } from './auth-issued-token/providers/auth-issued-token.redis/auth-issued-token.redis.service';
 
 import appConfig from 'src/app.config';
 import identityAccessManagementConfig from './identity-access-management.config';
@@ -65,6 +68,10 @@ import identityAccessManagementConfig from './identity-access-management.config'
       useClass: AuthRevokedTokenMongooseService,
     },
     {
+      provide: AuthIssuedTokenService,
+      useClass: AuthIssuedTokenMongooseService,
+    },
+    {
       provide: APP_GUARD,
       useClass: ClientGuard,
     },
@@ -83,6 +90,8 @@ import identityAccessManagementConfig from './identity-access-management.config'
     JwtService,
     ConfigService,
     OauthClientService,
+    AuthIssuedTokenMongooseService,
+    AuthIssuedTokenRedisService,
   ],
   controllers: [UserController, AuthController],
 })

@@ -9,11 +9,10 @@ import {
   AUTH_PROVIDER,
   AUTH_METHOD,
   IAuth,
-  IAuthTokenItem,
   IAuthSignInFailedRecordItem,
 } from '@gdk-iam/auth/types';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types';
-import { AuthTokenItemSchema } from './auth-token-item.schema';
+import { AuthTokenItemSchema } from '../../../auth-issued-token/providers/auth-issued-token.mongoose/auth-token-item.schema';
 import { AuthSignInFailRecordItemSchema } from './auth-sign-in-fail-record-item.schema';
 
 export type AuthDocument = HydratedDocument<Auth>;
@@ -55,20 +54,20 @@ export class Auth implements IAuth {
   code: string;
   @Prop({ type: Number, default: 0 })
   codeExpiredAt: number;
-  @Prop({
-    type: [AuthTokenItemSchema],
-    default: [],
-  })
-  activeRefreshTokenList: IAuthTokenItem[];
-  @Prop({
-    type: [AuthTokenItemSchema],
-    default: [],
-  })
-  accessTokenHistoryList: IAuthTokenItem[];
-  @Prop({
-    type: [AuthSignInFailRecordItemSchema],
-    default: [],
-  })
+  // @Prop({
+  //   type: [AuthTokenItemSchema],
+  //   default: [],
+  // })
+  // activeRefreshTokenList: IAuthTokenItem[];
+  // @Prop({
+  //   type: [AuthTokenItemSchema],
+  //   default: [],
+  // })
+  // accessTokenHistoryList: IAuthTokenItem[];
+  // @Prop({
+  //   type: [AuthSignInFailRecordItemSchema],
+  //   default: [],
+  // })
   signInFailRecordList: IAuthSignInFailedRecordItem[];
   @Prop({ type: Boolean, default: true })
   isActive: boolean;

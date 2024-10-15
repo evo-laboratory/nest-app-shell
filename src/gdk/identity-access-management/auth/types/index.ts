@@ -25,7 +25,6 @@ export * from './auth-sign-out-response.interface';
 export * from './auth-sign-out.interface';
 export * from './auth-signed-result.interface';
 export * from './auth-social-sign-in-up.interface';
-export * from './auth-token-item.interface';
 export * from './auth-token-type.enum';
 export * from './auth-type.enum';
 export * from './auth-verify.interface';

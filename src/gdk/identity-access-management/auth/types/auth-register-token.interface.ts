@@ -1,4 +1,4 @@
-import { IAuthTokenItem } from './auth-token-item.interface';
+import { IAuthTokenItem } from '@gdk-iam/auth-issued-token/types';
 
 // * Each Provider should set it's own provider
 export type IAuthRegisterToken = Pick<

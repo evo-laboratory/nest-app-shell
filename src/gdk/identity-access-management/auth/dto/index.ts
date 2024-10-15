@@ -13,7 +13,6 @@ export * from './auth-sign-in-res.dto';
 export * from './auth-sign-out-res.dto';
 export * from './auth-sign-out.dto';
 export * from './auth-social-sign-in-up.dto';
-export * from './auth-token-item.dto';
 export * from './auth-verify.dto';
 export * from './auth.dto';
 export * from './change-password.dto';

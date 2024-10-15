@@ -4,7 +4,6 @@ import {
   AUTH_IDENTIFIER_TYPE,
   AUTH_PROVIDER,
   AUTH_METHOD,
-  IAuthTokenItem,
   IAuthSignInFailedRecordItem,
 } from '.';
 import { IUser } from '@gdk-iam/user/types';
@@ -23,8 +22,8 @@ export interface IAuth<
   code: string;
   codeUsage: AUTH_CODE_USAGE;
   codeExpiredAt: number;
-  activeRefreshTokenList: IAuthTokenItem[];
-  accessTokenHistoryList: IAuthTokenItem[]; // * Only tracks latest 100
+  // activeRefreshTokenList: IAuthTokenItem[];
+  // accessTokenHistoryList: IAuthTokenItem[]; // * Only tracks latest 100
   signInFailRecordList: IAuthSignInFailedRecordItem[]; // * Only tracks latest 100
   isIdentifierVerified: boolean;
   isActive: boolean;
