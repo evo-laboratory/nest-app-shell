@@ -34,7 +34,7 @@ export class AuthRevokedToken implements IAuthRevokedToken {
 export const AuthRevokedTokenSchema =
   SchemaFactory.createForClass(AuthRevokedToken);
 AuthRevokedTokenSchema.index({ tokenId: 1, authId: 1 });
-AuthRevokedTokenSchema.index({ authId: 1 });
+AuthRevokedTokenSchema.index({ authId: 1 }, { unique: true });
 export const AuthRevokedTokenModel = MongoModelBuilder(
   AUTH_REVOKED_TOKEN_MODEL_NAME,
   AuthRevokedTokenSchema,

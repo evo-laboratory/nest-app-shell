@@ -69,16 +69,13 @@ export class Auth implements IAuth {
   @Prop({ type: Number, default: Date.now() })
   updatedAt: number;
   @Prop({ type: Number, default: 0 })
-  lastSignInAt: number;
-  @Prop({ type: Number, default: 0 })
   lastChangedPasswordAt: number;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);
-AuthSchema.index({ identifier: 1 });
-AuthSchema.index({ userId: 1 });
-AuthSchema.index({ googleSignInId: 1 });
+AuthSchema.index({ identifier: 1 }, { unique: true });
+AuthSchema.index({ userId: 1 }, { unique: true });
+AuthSchema.index({ googleSignInId: 1 }, { unique: true });
 AuthSchema.index({ isActive: 1 });
 AuthSchema.index({ createdAt: -1 });
-AuthSchema.index({ lastSignInAt: -1 });
 export const AuthModel = MongoModelBuilder(AUTH_MODEL_NAME, AuthSchema);

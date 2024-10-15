@@ -22,14 +22,11 @@ export interface IAuth<
   code: string;
   codeUsage: AUTH_CODE_USAGE;
   codeExpiredAt: number;
-  // activeRefreshTokenList: IAuthTokenItem[];
-  // accessTokenHistoryList: IAuthTokenItem[]; // * Only tracks latest 100
   signInFailRecordList: IAuthSignInFailedRecordItem[]; // * Only tracks latest 100
   isIdentifierVerified: boolean;
   isActive: boolean;
   inactiveAt: number;
   createdAt: number;
   updatedAt: number;
-  lastSignInAt: number;
   lastChangedPasswordAt: number;
 }

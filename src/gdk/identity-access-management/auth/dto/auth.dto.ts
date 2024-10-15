@@ -35,7 +35,6 @@ export class AuthDto implements IAuth {
   inactiveAt: number;
   createdAt: number;
   updatedAt: number;
-  lastSignInAt: number;
   lastChangedPasswordAt: number;
 }
 

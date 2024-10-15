@@ -25,11 +25,15 @@ export class AuthIssuedToken implements IAuthIssuedToken {
     default: [],
   })
   accessTokenHistoryList: IAuthTokenItem[];
+  @Prop({ type: Number, default: 0 })
+  lastIssueAccessTokenAt: number;
+  @Prop({ type: Number, default: 0 })
+  lastIssueRefreshTokenAt: number;
 }
 
 export const AuthIssuedTokenSchema =
   SchemaFactory.createForClass(AuthIssuedToken);
-AuthIssuedTokenSchema.index({ authId: 1 });
+AuthIssuedTokenSchema.index({ authId: 1 }, { unique: true });
 export const AuthIssuedTokenModel = MongoModelBuilder(
   AUTH_ISSUED_TOKEN_MODEL_NAME,
   AuthIssuedTokenSchema,
