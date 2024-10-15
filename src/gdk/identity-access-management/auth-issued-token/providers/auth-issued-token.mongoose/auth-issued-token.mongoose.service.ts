@@ -1,7 +1,7 @@
 import { ConfigType } from '@nestjs/config';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model, Types } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 
 import { AuthIssuedTokenService } from '@gdk-iam/auth-issued-token/auth-issued-token.service';
 import {
