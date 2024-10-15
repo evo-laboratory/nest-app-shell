@@ -39,64 +39,73 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
   @MethodLogger()
   public async pushTokenItemByAuthId(
     authId: string,
-    item: IAuthTokenItem,
+    items: IAuthTokenItem[],
     session?: ClientSession,
   ): Promise<IAuthIssuedToken> {
     const ACCESS_SLICE_COUNT =
       this.iamConfig.TRACK_ISSUED_ACCESS_TOKEN_COUNT || 100;
     const REFRESH_SLICE_COUNT =
       this.iamConfig.TRACK_ISSUED_REFRESH_TOKEN_COUNT || 100;
+    const accessItems = items.filter(
+      (it) => it.type === AUTH_TOKEN_TYPE.ACCESS,
+    );
+    const refreshItems = items.filter(
+      (it) => it.type === AUTH_TOKEN_TYPE.REFRESH,
+    );
+    if (accessItems.length + refreshItems.length !== items.length) {
+      this.throwHttpError(
+        ERROR_CODE.AUTH_TOKEN_TYPE_NOT_SUPPORTED,
+        `expected accessItems ${accessItems.length} + refreshItems ${refreshItems.length} equal to ${items.length}`,
+        400,
+        'pushTokenItemByAuthId',
+      );
+    }
     this.Logger.verbose(
       `${authId}(${typeof authId})`,
       'pushTokenItemByAuthId(id)',
     );
-    this.Logger.verbose(JsonStringify(item), 'pushTokenItemByAuthId(item)');
+    this.Logger.verbose(items.length, 'pushTokenItemByAuthId(items.length)');
     this.Logger.verbose(
       session ? true : false,
       'pushTokenItemByAuthId(session)',
     );
     try {
-      const updateQuery = {};
-      if (item.type === AUTH_TOKEN_TYPE.ACCESS) {
-        updateQuery['$push'] = {
-          accessTokenHistoryList: {
-            $each: [item],
-            $slice: -ACCESS_SLICE_COUNT,
-            $position: 0,
-          },
-        };
-      } else if (item.type === AUTH_TOKEN_TYPE.REFRESH) {
-        updateQuery['$push'] = {
-          activeRefreshTokenList: {
-            $each: [item],
-            $slice: -REFRESH_SLICE_COUNT,
-            $position: 0,
-          },
-        };
-      } else {
-        this.Logger.warn(
-          JsonStringify(updateQuery),
-          'pushTokenItemByAuthId.updateQuery',
-        );
-        this.throwHttpError(
-          ERROR_CODE.AUTH_TOKEN_TYPE_NOT_SUPPORTED,
-          `${item.type} not supported`,
-          400,
-          'pushTokenItemByAuthId',
-        );
-      }
-      this.Logger.verbose(
-        JsonStringify(updateQuery),
-        'pushTokenItemByAuthId.updateQuery',
-      );
-      const newData = await this.AuthIssuedTokenModel.findOneAndUpdate(
-        {
+      // * STEP 1. Check if created before
+      const check = await this.AuthIssuedTokenModel.findOne({ authId: authId });
+      if (check === null) {
+        // * STEP 2.A Create new one
+        const newData = await new this.AuthIssuedTokenModel({
           authId: authId,
-        },
-        updateQuery,
-        { upsert: true, session: session },
-      );
-      return newData;
+          accessTokenHistoryList: accessItems,
+          activeRefreshTokenList: refreshItems,
+        }).save({ session });
+        return newData;
+      } else {
+        // * STEP 2.B Update exist
+        const updatedData = await this.AuthIssuedTokenModel.findOneAndUpdate(
+          {
+            authId: authId,
+          },
+          {
+            $push: {
+              accessTokenHistoryList: {
+                $each: accessItems,
+                $slice: -ACCESS_SLICE_COUNT,
+                $position: 0,
+              },
+              $push: {
+                activeRefreshTokenList: {
+                  $each: refreshItems,
+                  $slice: -REFRESH_SLICE_COUNT,
+                  $position: 0,
+                },
+              },
+            },
+          },
+          { session: session },
+        );
+        return updatedData;
+      }
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

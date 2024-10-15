@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-// import { AuthIssuedTokenModel } from "./../../../../../../..//src/gdk/identity-access-management/auth-issued-token/providers/auth-issued-token.mongoose/auth-issued-token.schema";
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';

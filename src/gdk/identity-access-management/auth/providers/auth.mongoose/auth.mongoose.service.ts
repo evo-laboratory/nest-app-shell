@@ -982,13 +982,6 @@ export class AuthMongooseService implements AuthService {
         expiredAt: rToken.exp * 1000,
         createdAt: Date.now(),
       };
-      const pushedRefreshItem =
-        await this.authIssuedToken.pushTokenItemByAuthId(
-          `${auth._id}`,
-          refreshItem,
-          session,
-        );
-      assert.ok(pushedRefreshItem, 'Pushed Refresh Token');
       const accessItem: IAuthTokenItem = {
         type: AUTH_TOKEN_TYPE.ACCESS,
         provider: AUTH_PROVIDER.MONGOOSE,
@@ -998,12 +991,12 @@ export class AuthMongooseService implements AuthService {
         expiredAt: aToken.exp * 1000,
         createdAt: Date.now(),
       };
-      const pushedAccessItem = await this.authIssuedToken.pushTokenItemByAuthId(
+      const pushedBothItems = await this.authIssuedToken.pushTokenItemByAuthId(
         `${auth._id}`,
-        accessItem,
+        [accessItem, refreshItem],
         session,
       );
-      assert.ok(pushedAccessItem, 'Pushed Access Token');
+      assert.ok(pushedBothItems, 'Pushed Both Tokens');
       return tokenResults;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));

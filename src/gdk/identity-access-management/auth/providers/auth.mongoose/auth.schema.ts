@@ -12,7 +12,6 @@ import {
   IAuthSignInFailedRecordItem,
 } from '@gdk-iam/auth/types';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types';
-import { AuthTokenItemSchema } from '../../../auth-issued-token/providers/auth-issued-token.mongoose/auth-token-item.schema';
 import { AuthSignInFailRecordItemSchema } from './auth-sign-in-fail-record-item.schema';
 
 export type AuthDocument = HydratedDocument<Auth>;

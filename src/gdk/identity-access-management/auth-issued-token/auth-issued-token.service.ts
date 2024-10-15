@@ -6,7 +6,7 @@ import { IAuthIssuedToken, IAuthTokenItem } from './types';
 export abstract class AuthIssuedTokenService {
   abstract pushTokenItemByAuthId(
     authId: string,
-    item: IAuthTokenItem,
+    items: IAuthTokenItem[], // * Should be a RefreshToken and an AccessToken
     opts?: any,
   ): Promise<IAuthIssuedToken>;
   abstract getByAuthId(authId: string): Promise<IAuthIssuedToken>;
