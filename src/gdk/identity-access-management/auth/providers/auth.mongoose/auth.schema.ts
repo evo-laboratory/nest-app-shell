@@ -39,8 +39,18 @@ export class Auth implements IAuth {
   signUpMethodList: AUTH_METHOD[];
   @Prop({ type: Types.ObjectId, ref: USER_MODEL_NAME, required: true })
   userId: Types.ObjectId;
-  @Prop({ type: String, default: '' })
+  @Prop({ type: String, default: null, sparse: true })
   googleSignInId: string;
+  @Prop({ type: String, default: null, sparse: true })
+  appleSignInId: string;
+  @Prop({ type: String, default: null, sparse: true })
+  facebookSignId: string;
+  @Prop({ type: String, default: null, sparse: true })
+  githubSignId: string;
+  @Prop({ type: String, default: null, sparse: true })
+  gitlabSignId: string;
+  @Prop({ type: String, default: null, sparse: true })
+  microsoftSignId: string;
   @Prop({ type: String, default: '' })
   password: string;
   @Prop({

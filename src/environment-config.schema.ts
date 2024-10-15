@@ -24,6 +24,7 @@ export const EnvironmentConfigSchema = Joi.object({
     .default('DATABASE'),
   TRACK_ISSUED_ACCESS_TOKEN_COUNT: Joi.number().default(100),
   TRACK_ISSUED_REFRESH_TOKEN_COUNT: Joi.number().default(100),
+  TRACK_FAILED_SIGN_IN_COUNT: Joi.number().default(20),
   JWT_ISSUER: Joi.string().required(),
   JWT_AUDIENCE: Joi.string().required(),
   JWT_SECRET: Joi.string().required(),

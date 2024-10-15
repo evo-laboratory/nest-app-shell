@@ -20,6 +20,11 @@ export class AuthDto implements IAuth {
   provider: AUTH_PROVIDER;
   signUpMethodList: AUTH_METHOD[];
   googleSignInId: string;
+  appleSignInId: string;
+  facebookSignId: string;
+  githubSignId: string;
+  gitlabSignId: string;
+  microsoftSignId: string;
   @ApiProperty({
     oneOf: UserIdRefDto,
   })

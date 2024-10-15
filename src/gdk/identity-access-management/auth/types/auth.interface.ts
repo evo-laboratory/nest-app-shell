@@ -16,8 +16,13 @@ export interface IAuth<
   identifierType: AUTH_IDENTIFIER_TYPE;
   provider: AUTH_PROVIDER;
   signUpMethodList: AUTH_METHOD[];
-  googleSignInId: string;
   userId: UserIdT | null;
+  googleSignInId: string;
+  appleSignInId: string;
+  facebookSignId: string;
+  githubSignId: string;
+  gitlabSignId: string;
+  microsoftSignId: string;
   password: string;
   code: string;
   codeUsage: AUTH_CODE_USAGE;

@@ -3,13 +3,6 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ConfigType } from '@nestjs/config';
 import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { strict as assert } from 'assert';
-import { MethodLogger } from '@shared/winston-logger';
-import {
-  ERROR_CODE,
-  ERROR_SOURCE,
-  IUnitedHttpException,
-  UniteHttpException,
-} from '@shared/exceptions';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { AuthUtilService } from '@gdk-iam/auth-util/auth-util.service';
 import { AuthJwtService } from '@gdk-iam/auth-jwt/auth-jwt.service';
@@ -59,9 +52,20 @@ import identityAccessManagementConfig from '@gdk-iam/identity-access-management.
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
-import { ExtractPropertiesFromObj, JsonStringify } from '@shared/helper';
+import {
+  ExtractPropertiesFromObj,
+  GetResponseWrap,
+  JsonStringify,
+} from '@shared/helper';
 
-import GetResponseWrap from '@shared/helper/get-response-wrapper';
+import { MethodLogger } from '@shared/winston-logger';
+import {
+  ERROR_CODE,
+  ERROR_SOURCE,
+  IUnitedHttpException,
+  UniteHttpException,
+} from '@shared/exceptions';
+// import GetResponseWrap from '@shared/helper/get-response-wrapper';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import {
@@ -70,10 +74,10 @@ import {
   MongoDBErrorHandler,
 } from '@shared/mongodb';
 
-import { Auth, AuthDocument } from './auth.schema';
 import { IAuthTokenItem } from '@gdk-iam/auth-issued-token/types';
 import { AuthIssuedTokenService } from '@gdk-iam/auth-issued-token/auth-issued-token.service';
 
+import { Auth, AuthDocument } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);
@@ -695,14 +699,28 @@ export class AuthMongooseService implements AuthService {
           JsonStringify(userPayload),
           'exchangeAccessToken.userPayload',
         );
-        const aToken = await this.authJwt.sign(
+        const signed = await this.authJwt.sign(
           validResult.decodedToken.sub,
           validResult.decodedToken.userId,
           userPayload,
           AUTH_TOKEN_TYPE.ACCESS,
         );
+        const aToken = this.authJwt.decode<IAuthDecodedToken>(signed.token);
+        const accessItem: IAuthTokenItem = {
+          type: AUTH_TOKEN_TYPE.ACCESS,
+          provider: AUTH_PROVIDER.MONGOOSE,
+          tokenId: signed.tokenId,
+          tokenContent: signed.token,
+          issuer: aToken.iss,
+          expiredAt: aToken.exp * 1000,
+          createdAt: Date.now(),
+        };
+        await this.authIssuedToken.pushTokenItemByAuthId(
+          validResult.decodedToken.sub,
+          [accessItem],
+        );
         return {
-          accessToken: aToken.token,
+          accessToken: signed.token,
         };
       }
       this.throwHttpError(
@@ -878,7 +896,7 @@ export class AuthMongooseService implements AuthService {
         session ? true : false,
         'pushFailedRecordItemById(session)',
       );
-      const SLICE_COUNT = 20; // TODO Move to .ENV
+      const SLICE_COUNT = this.iamConfig.TRACK_FAILED_SIGN_IN_COUNT || 20;
       const updated = await this.AuthModel.findByIdAndUpdate(
         authId,
         {

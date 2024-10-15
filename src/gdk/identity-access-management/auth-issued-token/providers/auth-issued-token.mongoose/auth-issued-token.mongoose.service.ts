@@ -216,8 +216,9 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
     this.Logger.verbose(authId, 'deleteByAuthId(authId)');
     // * This should be use when delete Auth.
     try {
+      const authObjectId = StringToObjectId(authId);
       const deleted = await this.AuthIssuedTokenModel.findOneAndDelete({
-        authId: authId,
+        authId: authObjectId,
       });
       return deleted;
     } catch (error) {

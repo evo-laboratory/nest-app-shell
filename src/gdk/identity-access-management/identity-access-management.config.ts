@@ -20,6 +20,7 @@ export default registerAs(IAM_CONFIG_KEY, () => ({
   TRACK_ISSUED_REFRESH_TOKEN_COUNT: parseInt(
     process.env.TRACK_ISSUED_REFRESH_TOKEN_COUNT,
   ),
+  TRACK_FAILED_SIGN_IN_COUNT: parseInt(process.env.TRACK_FAILED_SIGN_IN_COUNT),
   JWT_ISSUER: process.env.JWT_ISSUER,
   JWT_AUDIENCE: process.env.JWT_AUDIENCE,
   JWT_SECRET: process.env.JWT_SECRET,
