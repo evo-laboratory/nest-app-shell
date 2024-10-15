@@ -90,8 +90,6 @@ import identityAccessManagementConfig from './identity-access-management.config'
     JwtService,
     ConfigService,
     OauthClientService,
-    AuthIssuedTokenMongooseService,
-    AuthIssuedTokenRedisService,
   ],
   controllers: [UserController, AuthController],
 })
