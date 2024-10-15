@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+// import { AuthIssuedTokenModel } from "./../../../../../../..//src/gdk/identity-access-management/auth-issued-token/providers/auth-issued-token.mongoose/auth-issued-token.schema";
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
@@ -30,17 +31,22 @@ import { ClientGuard } from './auth/guards/client/client.guard';
 import { OauthClientService } from './oauth-client/oauth-client.service';
 import { AuthIssuedTokenService } from './auth-issued-token/auth-issued-token.service';
 import { AuthIssuedTokenMongooseService } from './auth-issued-token/providers/auth-issued-token.mongoose/auth-issued-token.mongoose.service';
-import { AuthIssuedTokenRedisService } from './auth-issued-token/providers/auth-issued-token.redis/auth-issued-token.redis.service';
 
 import appConfig from 'src/app.config';
 import identityAccessManagementConfig from './identity-access-management.config';
+import { AuthIssuedTokenModel } from './auth-issued-token/providers/auth-issued-token.mongoose/auth-issued-token.schema';
 @Module({
   imports: [
     ConfigModule.forFeature(identityAccessManagementConfig),
     ConfigModule.forFeature(appConfig),
     MailModule,
     SystemModule,
-    MongooseModule.forFeature([UserModel, AuthModel, AuthRevokedTokenModel]),
+    MongooseModule.forFeature([
+      UserModel,
+      AuthModel,
+      AuthRevokedTokenModel,
+      AuthIssuedTokenModel,
+    ]),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],

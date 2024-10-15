@@ -54,20 +54,10 @@ export class Auth implements IAuth {
   code: string;
   @Prop({ type: Number, default: 0 })
   codeExpiredAt: number;
-  // @Prop({
-  //   type: [AuthTokenItemSchema],
-  //   default: [],
-  // })
-  // activeRefreshTokenList: IAuthTokenItem[];
-  // @Prop({
-  //   type: [AuthTokenItemSchema],
-  //   default: [],
-  // })
-  // accessTokenHistoryList: IAuthTokenItem[];
-  // @Prop({
-  //   type: [AuthSignInFailRecordItemSchema],
-  //   default: [],
-  // })
+  @Prop({
+    type: [AuthSignInFailRecordItemSchema],
+    default: [],
+  })
   signInFailRecordList: IAuthSignInFailedRecordItem[];
   @Prop({ type: Boolean, default: true })
   isActive: boolean;
