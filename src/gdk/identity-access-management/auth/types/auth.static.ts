@@ -6,7 +6,7 @@ export const AUTH_MODEL_NAME = 'Auth';
 export const AUTH_TOKEN_ITEM_MODEL_NAME = 'AuthTokenItem';
 export const AUTH_SIGN_IN_FAIL_RECORD_ITEM_MODEL_NAME =
   'AuthSignInFailRecordItem';
-
+export const AUTH_ISSUED_TOKEN_MODEL_NAME = 'AuthIssuedToken';
 export const EMAIL_SIGN_UP_PATH = 'email-sign-up';
 export const VERIFIED_EMAIL_SIGN_UP_PATH = 'verified-email-sign-up';
 export const SOCIAL_SIGN_IN_UP_PATH = 'social-sign-in-up';
