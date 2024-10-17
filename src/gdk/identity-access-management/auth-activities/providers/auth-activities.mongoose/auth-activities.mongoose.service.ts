@@ -3,13 +3,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 
-import { AuthIssuedTokenService } from '@gdk-iam/auth-issued-token/auth-issued-token.service';
 import {
-  IAuthTokenItem,
-  IAuthIssuedToken,
-} from '@gdk-iam/auth-issued-token/types';
-import {
-  AUTH_ISSUED_TOKEN_MODEL_NAME,
+  AUTH_ACTIVITIES_MODEL_NAME,
   AUTH_TOKEN_TYPE,
 } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
@@ -23,18 +18,23 @@ import {
 import { MongoDBErrorHandler, StringToObjectId } from '@shared/mongodb';
 import { JsonStringify } from '@shared/helper';
 
-import { AuthIssuedToken } from './auth-issued-token.schema';
+import { AuthActivities } from './auth-activities.schema';
+import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
+import {
+  IAuthActivities,
+  IAuthTokenItem,
+} from '@gdk-iam/auth-activities/types';
 
 @Injectable()
-export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
-  private readonly Logger = new Logger(AuthIssuedTokenMongooseService.name);
+export class AuthActivitiesMongooseService implements AuthActivitiesService {
+  private readonly Logger = new Logger(AuthActivitiesMongooseService.name);
   constructor(
     @Inject(identityAccessManagementConfig.KEY)
     private readonly iamConfig: ConfigType<
       typeof identityAccessManagementConfig
     >,
-    @InjectModel(AUTH_ISSUED_TOKEN_MODEL_NAME)
-    private readonly AuthIssuedTokenModel: Model<AuthIssuedToken>,
+    @InjectModel(AUTH_ACTIVITIES_MODEL_NAME)
+    private readonly AuthActivitiesModel: Model<AuthActivities>,
   ) {}
 
   @MethodLogger()
@@ -42,7 +42,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
     authId: string,
     items: IAuthTokenItem[],
     session?: ClientSession,
-  ): Promise<IAuthIssuedToken> {
+  ): Promise<IAuthActivities> {
     const accessItems = items.filter(
       (it) => it.type === AUTH_TOKEN_TYPE.ACCESS,
     );
@@ -69,12 +69,12 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
     try {
       const authObjectId = StringToObjectId(authId);
       // * STEP 1. Check if created before
-      const check = await this.AuthIssuedTokenModel.findOne({
+      const check = await this.AuthActivitiesModel.findOne({
         authId: authObjectId,
       });
       if (check === null) {
         // * STEP 2A. Create new one
-        const newData = await new this.AuthIssuedTokenModel({
+        const newData = await new this.AuthActivitiesModel({
           authId: authObjectId,
           accessTokenHistoryList: accessItems,
           activeRefreshTokenList: refreshItems,
@@ -118,7 +118,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
           'pushTokenItemByAuthId.flexUpdateQuery',
         );
         // * Update
-        const updatedData = await this.AuthIssuedTokenModel.findOneAndUpdate(
+        const updatedData = await this.AuthActivitiesModel.findOneAndUpdate(
           {
             authId: authObjectId,
           },
@@ -133,11 +133,11 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
   }
 
   @MethodLogger()
-  public async getByAuthId(authId: string): Promise<IAuthIssuedToken> {
+  public async getByAuthId(authId: string): Promise<IAuthActivities> {
     this.Logger.verbose(authId, 'getByAuthId(authId)');
     try {
       const authObjectId = StringToObjectId(authId);
-      const data = await this.AuthIssuedTokenModel.findOne({
+      const data = await this.AuthActivitiesModel.findOne({
         authId: authObjectId,
       }).lean();
       return data;
@@ -147,9 +147,9 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
   }
 
   @MethodLogger()
-  public async listAll(): Promise<IAuthIssuedToken[]> {
+  public async listAll(): Promise<IAuthActivities[]> {
     try {
-      const data = await this.AuthIssuedTokenModel.find().lean();
+      const data = await this.AuthActivitiesModel.find().lean();
       return data;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
@@ -162,7 +162,7 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
     all: boolean,
     tokenType?: AUTH_TOKEN_TYPE,
     session?: ClientSession,
-  ): Promise<IAuthIssuedToken> {
+  ): Promise<IAuthActivities> {
     try {
       const authObjectId = StringToObjectId(authId);
       const updateQuery = {};
@@ -193,11 +193,11 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
         this.Logger.warn(
           `all is false, but didn't pass in tokenType, ignore update.`,
         );
-        return await this.AuthIssuedTokenModel.findOne({
+        return await this.AuthActivitiesModel.findOne({
           authId: authObjectId,
         }).lean();
       }
-      const newData = await this.AuthIssuedTokenModel.findOneAndUpdate(
+      const newData = await this.AuthActivitiesModel.findOneAndUpdate(
         {
           authId: authObjectId,
         },
@@ -214,12 +214,12 @@ export class AuthIssuedTokenMongooseService implements AuthIssuedTokenService {
   public async deleteByAuthId(
     authId: string,
     session?: ClientSession,
-  ): Promise<IAuthIssuedToken> {
+  ): Promise<IAuthActivities> {
     this.Logger.verbose(authId, 'deleteByAuthId(authId)');
     // * This should be use when delete Auth.
     try {
       const authObjectId = StringToObjectId(authId);
-      const deleted = await this.AuthIssuedTokenModel.findOneAndDelete({
+      const deleted = await this.AuthActivitiesModel.findOneAndDelete({
         authId: authObjectId,
       });
       return deleted;

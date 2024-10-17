@@ -1,19 +1,19 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import {
-  IAuthIssuedToken,
-  IAuthTokenItem,
-} from '@gdk-iam/auth-issued-token/types';
-import {
-  AUTH_ISSUED_TOKEN_MODEL_NAME,
+  AUTH_ACTIVITIES_MODEL_NAME,
   AUTH_MODEL_NAME,
 } from '@gdk-iam/auth/types';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import {
+  IAuthActivities,
+  IAuthTokenItem,
+} from '@gdk-iam/auth-activities/types';
 import { MongoModelBuilder } from '@shared/mongodb';
-import { HydratedDocument, Types } from 'mongoose';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
 
-export type AuthIssuedTokenDocument = HydratedDocument<AuthIssuedToken>;
+export type AuthActivitiesDocument = HydratedDocument<AuthActivities>;
 @Schema()
-export class AuthIssuedToken implements IAuthIssuedToken {
+export class AuthActivities implements IAuthActivities {
   @Prop({ type: Types.ObjectId, ref: AUTH_MODEL_NAME, required: true })
   authId: Types.ObjectId;
   @Prop({
@@ -32,10 +32,10 @@ export class AuthIssuedToken implements IAuthIssuedToken {
   lastIssueRefreshTokenAt: number;
 }
 
-export const AuthIssuedTokenSchema =
-  SchemaFactory.createForClass(AuthIssuedToken);
-AuthIssuedTokenSchema.index({ authId: 1 }, { unique: true });
-export const AuthIssuedTokenModel = MongoModelBuilder(
-  AUTH_ISSUED_TOKEN_MODEL_NAME,
-  AuthIssuedTokenSchema,
+export const AuthActivitiesSchema =
+  SchemaFactory.createForClass(AuthActivities);
+AuthActivitiesSchema.index({ authId: 1 }, { unique: true });
+export const AuthActivitiesModel = MongoModelBuilder(
+  AUTH_ACTIVITIES_MODEL_NAME,
+  AuthActivitiesSchema,
 );

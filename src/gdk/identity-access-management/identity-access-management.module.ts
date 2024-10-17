@@ -28,12 +28,12 @@ import { AuthRevokedTokenMongooseService } from './auth-revoked-token/providers/
 import { AuthorizationGuard } from './auth/guards/authorization/authorization.guard';
 import { ClientGuard } from './auth/guards/client/client.guard';
 import { OauthClientService } from './oauth-client/oauth-client.service';
-import { AuthIssuedTokenService } from './auth-issued-token/auth-issued-token.service';
-import { AuthIssuedTokenMongooseService } from './auth-issued-token/providers/auth-issued-token.mongoose/auth-issued-token.mongoose.service';
 
 import appConfig from 'src/app.config';
 import identityAccessManagementConfig from './identity-access-management.config';
-import { AuthIssuedTokenModel } from './auth-issued-token/providers/auth-issued-token.mongoose/auth-issued-token.schema';
+import { AuthActivitiesModel } from './auth-activities/providers/auth-activities.mongoose/auth-activities.schema';
+import { AuthActivitiesService } from './auth-activities/auth-activities.service';
+import { AuthActivitiesMongooseService } from './auth-activities/providers/auth-activities.mongoose/auth-activities.mongoose.service';
 @Module({
   imports: [
     ConfigModule.forFeature(identityAccessManagementConfig),
@@ -44,7 +44,7 @@ import { AuthIssuedTokenModel } from './auth-issued-token/providers/auth-issued-
       UserModel,
       AuthModel,
       AuthRevokedTokenModel,
-      AuthIssuedTokenModel,
+      AuthActivitiesModel,
     ]),
     JwtModule.registerAsync({
       global: true,
@@ -73,8 +73,8 @@ import { AuthIssuedTokenModel } from './auth-issued-token/providers/auth-issued-
       useClass: AuthRevokedTokenMongooseService,
     },
     {
-      provide: AuthIssuedTokenService,
-      useClass: AuthIssuedTokenMongooseService,
+      provide: AuthActivitiesService,
+      useClass: AuthActivitiesMongooseService,
     },
     {
       provide: APP_GUARD,

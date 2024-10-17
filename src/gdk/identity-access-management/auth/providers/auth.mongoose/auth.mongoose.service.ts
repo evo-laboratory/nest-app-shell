@@ -65,7 +65,6 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
-// import GetResponseWrap from '@shared/helper/get-response-wrapper';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import {
@@ -74,10 +73,10 @@ import {
   MongoDBErrorHandler,
 } from '@shared/mongodb';
 
-import { IAuthTokenItem } from '@gdk-iam/auth-issued-token/types';
-import { AuthIssuedTokenService } from '@gdk-iam/auth-issued-token/auth-issued-token.service';
+import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
 
 import { Auth, AuthDocument } from './auth.schema';
+import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);
@@ -92,7 +91,7 @@ export class AuthMongooseService implements AuthService {
     private readonly AuthModel: Model<Auth>,
     private readonly authUtil: AuthUtilService,
     private readonly authJwt: AuthJwtService,
-    private readonly authIssuedToken: AuthIssuedTokenService,
+    private readonly authActivities: AuthActivitiesService,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly encryptService: EncryptService,
@@ -716,7 +715,7 @@ export class AuthMongooseService implements AuthService {
           expiredAt: aToken.exp * 1000,
           createdAt: Date.now(),
         };
-        await this.authIssuedToken.pushTokenItemByAuthId(
+        await this.authActivities.pushTokenItemByAuthId(
           validResult.decodedToken.sub,
           [accessItem],
         );
@@ -1010,7 +1009,7 @@ export class AuthMongooseService implements AuthService {
         expiredAt: aToken.exp * 1000,
         createdAt: Date.now(),
       };
-      const pushedBothItems = await this.authIssuedToken.pushTokenItemByAuthId(
+      const pushedBothItems = await this.authActivities.pushTokenItemByAuthId(
         `${auth._id}`,
         [accessItem, refreshItem],
         session,
