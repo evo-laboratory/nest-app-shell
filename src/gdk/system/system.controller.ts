@@ -24,11 +24,6 @@ export class SystemController {
     return this.systemUtil.getPublicEnv();
   }
 
-  @Get(`${V1}/${ENV_PATH}/demo`)
-  async getEnvV1Test() {
-    return this.systemUtil.getPublicEnv();
-  }
-
   @Put(`${V1}/${SYNC_HTTP_ENDPOINTS_PATH}`)
   async syncHttpEndpointsV1() {
     return await this.systemService.syncHttpEndpointFromSwagger();
