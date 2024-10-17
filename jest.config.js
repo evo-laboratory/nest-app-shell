@@ -14,4 +14,14 @@ module.exports = {
   testRegex: '.*\\.e2e.spec\\.ts$',
   transform: { '^.+\\.(t|j)s$': 'ts-jest' },
   collectCoverageFrom: ['**/*.(t|j)s'],
+  reporters: [
+    'default',
+    [
+      './node_modules/jest-html-reporter',
+      {
+        pageTitle: 'App Shell E2E Test Report',
+        outputPath: './test/reports/report.html',
+      },
+    ],
+  ],
 };
