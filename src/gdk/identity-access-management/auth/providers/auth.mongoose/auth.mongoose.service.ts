@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ConfigType } from '@nestjs/config';
-import { ClientSession, Connection, Model, Types } from 'mongoose';
+import { ClientSession, Connection, Model } from 'mongoose';
 import { strict as assert } from 'assert';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { AuthUtilService } from '@gdk-iam/auth-util/auth-util.service';
@@ -72,7 +72,7 @@ import {
   MongoDBErrorHandler,
 } from '@shared/mongodb';
 
-import { Auth, AuthDocument } from './auth.schema';
+import { Auth } from './auth.schema';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
 @Injectable()

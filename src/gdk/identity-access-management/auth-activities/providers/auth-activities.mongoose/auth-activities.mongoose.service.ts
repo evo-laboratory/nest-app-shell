@@ -1,13 +1,19 @@
 import { ConfigType } from '@nestjs/config';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model, Types } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 
 import {
   AUTH_ACTIVITIES_MODEL_NAME,
   AUTH_TOKEN_TYPE,
 } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
+import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
+import {
+  IAuthActivities,
+  IAuthSignInFailedRecordItem,
+  IAuthTokenItem,
+} from '@gdk-iam/auth-activities/types';
 import { MethodLogger } from '@shared/winston-logger';
 import {
   ERROR_CODE,
@@ -19,12 +25,6 @@ import { MongoDBErrorHandler, StringToObjectId } from '@shared/mongodb';
 import { JsonStringify } from '@shared/helper';
 
 import { AuthActivities } from './auth-activities.schema';
-import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
-import {
-  IAuthActivities,
-  IAuthSignInFailedRecordItem,
-  IAuthTokenItem,
-} from '@gdk-iam/auth-activities/types';
 
 @Injectable()
 export class AuthActivitiesMongooseService implements AuthActivitiesService {
@@ -75,6 +75,10 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
       });
       if (check === null) {
         // * STEP 2A. Create new one
+        this.Logger.verbose(
+          'execute STEP 2A. - create new AuthActivities',
+          'pushTokenItemByAuthId.check === null',
+        );
         const newData = await new this.AuthActivitiesModel({
           authId: authObjectId,
           accessTokenList: accessItems,
@@ -139,34 +143,53 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
     item: IAuthSignInFailedRecordItem,
     session?: ClientSession,
   ): Promise<IAuthActivities> {
+    this.Logger.verbose(
+      `${authId}(${typeof authId})`,
+      'pushFailedRecordItemById(id)',
+    );
+    this.Logger.verbose(JsonStringify(item), 'pushFailedRecordItemById(item)');
+    this.Logger.verbose(
+      session ? true : false,
+      'pushFailedRecordItemById(session)',
+    );
     try {
-      this.Logger.verbose(
-        `${authId}(${typeof authId})`,
-        'pushFailedRecordItemById(id)',
-      );
-      this.Logger.verbose(
-        JsonStringify(item),
-        'pushFailedRecordItemById(item)',
-      );
-      this.Logger.verbose(
-        session ? true : false,
-        'pushFailedRecordItemById(session)',
-      );
-      const SLICE_COUNT = this.iamConfig.TRACK_FAILED_SIGN_IN_COUNT || 20;
-      const updated = await this.AuthActivitiesModel.findByIdAndUpdate(
-        authId,
-        {
-          $push: {
-            signInFailRecordList: {
-              $each: [item],
-              $slice: -SLICE_COUNT,
-              $position: 0,
+      const authObjectId = StringToObjectId(authId);
+      // * STEP 1. Check if created before
+      const check = await this.AuthActivitiesModel.findOne({
+        authId: authObjectId,
+      });
+      if (check === null) {
+        // * STEP 2A. Create new one
+        this.Logger.verbose(
+          'execute STEP 2A. - create new AuthActivities',
+          'pushFailedRecordItemByAuthId.check === null',
+        );
+        const newData = await new this.AuthActivitiesModel({
+          authId: authObjectId,
+          accessTokenList: [],
+          refreshTokenList: [],
+          signInFailRecordList: [item],
+        }).save({ session });
+        return newData;
+      } else {
+        const SLICE_COUNT = this.iamConfig.TRACK_FAILED_SIGN_IN_COUNT || 20;
+        const updatedData = await this.AuthActivitiesModel.findOneAndUpdate(
+          {
+            authId: authObjectId,
+          },
+          {
+            $push: {
+              signInFailRecordList: {
+                $each: [item],
+                $slice: -SLICE_COUNT,
+                $position: 0,
+              },
             },
           },
-        },
-        { session: session },
-      );
-      return updated;
+          { session: session },
+        );
+        return updatedData;
+      }
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
