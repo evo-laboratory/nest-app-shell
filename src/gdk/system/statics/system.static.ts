@@ -10,3 +10,4 @@ export const SYS_CLIENT_KEY = 'system-client';
 
 export const SYNC_HTTP_ENDPOINTS_PATH = 'sync-http-endpoints';
 export const ROLE_PATH = 'role';
+export const ENV_PATH = 'env';

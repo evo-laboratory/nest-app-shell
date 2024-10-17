@@ -4,7 +4,6 @@ import * as request from 'supertest';
 import { Connection } from 'mongoose';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { TestModuleBuilderFixture } from 'test/fixtures';
-import { ENV_PATH } from '@shared/statics';
 
 describe('GDK/AppController', () => {
   let app: INestApplication;
@@ -24,9 +23,6 @@ describe('GDK/AppController', () => {
   });
   it('GET / - Expect protected', () => {
     return request(app.getHttpServer()).get('/').expect(403);
-  });
-  it(`GET /${ENV_PATH} - Expect protected`, () => {
-    return request(app.getHttpServer()).get(`/${ENV_PATH}`).expect(403);
   });
   afterAll(() => {
     setTimeout(async () => {

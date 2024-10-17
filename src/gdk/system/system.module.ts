@@ -8,6 +8,7 @@ import { SystemService } from './system.service';
 import { SystemMongooseService } from './providers/system.mongoose/system.mongoose.service';
 import { SystemModel } from './providers/system.mongoose/system.schema';
 import { ConfigModule } from '@nestjs/config';
+import { SystemUtilService } from './system-util/system-util.service';
 import appConfig from 'src/app.config';
 
 @Module({
@@ -21,6 +22,7 @@ import appConfig from 'src/app.config';
       provide: SystemService,
       useClass: SystemMongooseService,
     },
+    SystemUtilService,
   ],
   controllers: [SystemController],
   exports: [SystemService],
