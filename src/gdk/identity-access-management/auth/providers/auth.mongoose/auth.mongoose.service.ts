@@ -207,7 +207,14 @@ export class AuthMongooseService implements AuthService {
       const authJson = auth === null ? null : auth;
       if (auth !== null) {
         // * STEP 3A. Already have auth, check allow Sign In
-        this.authUtil.checkAuthAllowSignIn(oauthUser.email, authJson);
+        const authActivities = await this.authActivities.getByAuthId(
+          `${auth._id}`,
+        );
+        this.authUtil.checkAuthAllowSignIn(
+          oauthUser.email,
+          authJson,
+          authActivities,
+        );
         // * STEP 3B. Check User
         user = await this.userService.findByEmail(oauthUser.email);
         if (user === null) {
@@ -566,8 +573,11 @@ export class AuthMongooseService implements AuthService {
       // * STEP 1. Check Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
       const authJson = auth === null ? null : auth.toJSON();
+      const authActivities = await this.authActivities.getByAuthId(
+        `${auth._id}`,
+      );
       // * Always return true, throw error inside
-      this.authUtil.checkAuthAllowSignIn(dto.email, authJson);
+      this.authUtil.checkAuthAllowSignIn(dto.email, authJson, authActivities);
       // * STEP 2. Check User
       const user = await this.userService.findByEmail(dto.email);
       if (user === null) {
@@ -641,7 +651,7 @@ export class AuthMongooseService implements AuthService {
         AUTH_TOKEN_TYPE.REFRESH,
       );
       const auth = await this.AuthModel.findById(token.sub);
-      this.authUtil.checkAuthAllowSignIn(token.email, auth, true);
+      this.authUtil.checkAuthAllowSignIn(token.email, auth, null, true);
       if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
         result.isValid = true;
         result.message = 'ok';

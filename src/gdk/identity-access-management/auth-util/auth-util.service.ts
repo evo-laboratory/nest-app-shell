@@ -1,3 +1,7 @@
+import {
+  IAuthActivities,
+  IAuthSignInFailedRecordItem,
+} from '@gdk-iam/auth-activities/types';
 import { IAuth, IAuthGeneratedCode } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { Inject, Injectable, Logger } from '@nestjs/common';
@@ -36,6 +40,7 @@ export class AuthUtilService {
   public checkAuthAllowSignIn(
     identifier: string,
     auth: IAuth,
+    authActivities: IAuthActivities,
     skipCheckExceedLimit = false,
   ): true {
     this.Logger.verbose(identifier, 'checkAuthAllowSignIn(identifier)');
@@ -75,8 +80,8 @@ export class AuthUtilService {
     }
     this.Logger.verbose('STEP 1C. Pass', 'checkAuthAllowSignIn');
     // * STEP 1D. Check Auth sign in failed attempts
-    if (!skipCheckExceedLimit) {
-      const isLocked = this.isExceedAttemptLimit(auth);
+    if (!skipCheckExceedLimit || authActivities === null) {
+      const isLocked = this.isExceedAttemptLimit(auth, authActivities);
       if (isLocked) {
         this.throwHttpError(
           ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
@@ -91,7 +96,10 @@ export class AuthUtilService {
   }
 
   @MethodLogger()
-  public isExceedAttemptLimit(auth: IAuth): boolean {
+  public isExceedAttemptLimit(
+    auth: IAuth,
+    authActivities: IAuthActivities,
+  ): boolean {
     // * If Failed more than SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT times within 1hour, stop it.
     const ATTEMPT_LIMIT =
       this.iamConfig.SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT || 5;
@@ -102,26 +110,27 @@ export class AuthUtilService {
       ? currentTimeStamp
       : auth.lastChangedPasswordAt;
     const hourAgo = startingTimeStamp + 3600000;
-    // const recentFailAttempts = auth.signInFailRecordList.filter(
-    //   (record: IAuthSignInFailedRecordItem) => {
-    //     if (LOCK_ATTEMPT_EXCEED) {
-    //       return record.createdAt > hourAgo;
-    //     }
-    //     if (auth.lastChangedPasswordAt > record.createdAt) {
-    //       // * Ignore failed record before lastChangedPasswordAt
-    //       return false;
-    //     } else {
-    //       return record.createdAt > hourAgo;
-    //     }
-    //   },
-    // );
-    // this.Logger.verbose(
-    //   recentFailAttempts.length,
-    //   'isExceedAttemptLimit.recentFailAttempts',
-    // );
-    // if (recentFailAttempts.length > ATTEMPT_LIMIT) {
-    //   return true;
-    // }
+    const recentFailAttempts = authActivities.signInFailRecordList.filter(
+      (record: IAuthSignInFailedRecordItem) => {
+        if (LOCK_ATTEMPT_EXCEED) {
+          return record.createdAt > hourAgo;
+        }
+        if (auth.lastChangedPasswordAt > record.createdAt) {
+          // * Ignore failed record before lastChangedPasswordAt
+          return false;
+        } else {
+          return record.createdAt > hourAgo;
+        }
+      },
+    );
+    this.Logger.verbose(
+      recentFailAttempts.length,
+      'isExceedAttemptLimit.recentFailAttempts',
+    );
+    if (recentFailAttempts.length >= ATTEMPT_LIMIT) {
+      this.Logger.verbose(ATTEMPT_LIMIT, 'isExceedAttemptLimit.ATTEMPT_LIMIT');
+      return true;
+    }
     return false;
   }
 
