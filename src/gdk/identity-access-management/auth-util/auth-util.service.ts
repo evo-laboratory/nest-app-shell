@@ -80,7 +80,7 @@ export class AuthUtilService {
     }
     this.Logger.verbose('STEP 1C. Pass', 'checkAuthAllowSignIn');
     // * STEP 1D. Check Auth sign in failed attempts
-    if (!skipCheckExceedLimit || authActivities === null) {
+    if (!skipCheckExceedLimit && authActivities !== null) {
       const isLocked = this.isExceedAttemptLimit(auth, authActivities);
       if (isLocked) {
         this.throwHttpError(
@@ -100,11 +100,18 @@ export class AuthUtilService {
     auth: IAuth,
     authActivities: IAuthActivities,
   ): boolean {
+    const LOCK_ATTEMPT_EXCEED =
+      this.iamConfig.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED;
+    this.Logger.verbose(
+      LOCK_ATTEMPT_EXCEED,
+      'isExceedAttemptLimit.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED',
+    );
+    if (!LOCK_ATTEMPT_EXCEED) {
+      return false;
+    }
     // * If Failed more than SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT times within 1hour, stop it.
     const ATTEMPT_LIMIT =
       this.iamConfig.SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT || 5;
-    const LOCK_ATTEMPT_EXCEED =
-      this.iamConfig.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED;
     const currentTimeStamp = Date.now();
     const startingTimeStamp = LOCK_ATTEMPT_EXCEED
       ? currentTimeStamp
@@ -112,14 +119,12 @@ export class AuthUtilService {
     const hourAgo = startingTimeStamp + 3600000;
     const recentFailAttempts = authActivities.signInFailRecordList.filter(
       (record: IAuthSignInFailedRecordItem) => {
-        if (LOCK_ATTEMPT_EXCEED) {
-          return record.createdAt > hourAgo;
-        }
         if (auth.lastChangedPasswordAt > record.createdAt) {
           // * Ignore failed record before lastChangedPasswordAt
           return false;
         } else {
-          return record.createdAt > hourAgo;
+          console.log(`${record.createdAt > hourAgo}`);
+          return record.createdAt < hourAgo;
         }
       },
     );
