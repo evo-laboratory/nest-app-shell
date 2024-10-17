@@ -244,7 +244,7 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
       errorCode: code || ERROR_CODE.UNKNOWN,
       message: msg,
       statusCode: statusCode || 500,
-      contextName: 'AuthIssuedTokenMongooseService',
+      contextName: 'AuthActivitiesMongooseService',
       methodName: `${methodName}`,
     };
     throw new UniteHttpException(errorObj);
