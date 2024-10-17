@@ -42,7 +42,7 @@ describe('GDK/SystemController', () => {
   describe(`[PUT] ${SYE_RESOURCE_V1_PATH}/1234`, () => {
     it('Guarded by default, should return 403', () => {
       return request(app.getHttpServer())
-        .put(`${SYE_RESOURCE_V1_PATH}/12345`)
+        .put(`${SYE_RESOURCE_V1_PATH}/1234`)
         .expect(403);
     });
   });
