@@ -1,13 +1,18 @@
 import { Body, Controller, Get, Param, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { GPI, V1 } from '@shared/statics';
+import { V1 } from '@shared/statics';
 
-import { ENV_PATH, SYNC_HTTP_ENDPOINTS_PATH, SYSTEM_API } from './statics';
+import {
+  ENV_PATH,
+  SYNC_HTTP_ENDPOINTS_PATH,
+  SYSTEM_API,
+  SYSTEM_CONTROLLER_PATH,
+} from './statics';
 import { SystemService } from './system.service';
 import { FlexUpdateSystemDto } from './dto';
 import { SystemUtilService } from './system-util/system-util.service';
 @ApiTags(SYSTEM_API)
-@Controller(`${GPI}/${SYSTEM_API}`)
+@Controller(`${SYSTEM_CONTROLLER_PATH}`)
 export class SystemController {
   constructor(
     private readonly systemService: SystemService,
@@ -16,6 +21,11 @@ export class SystemController {
 
   @Get(`${V1}/${ENV_PATH}`)
   async getEnvV1() {
+    return this.systemUtil.getPublicEnv();
+  }
+
+  @Get(`${V1}/${ENV_PATH}/demo`)
+  async getEnvV1Test() {
     return this.systemUtil.getPublicEnv();
   }
 
