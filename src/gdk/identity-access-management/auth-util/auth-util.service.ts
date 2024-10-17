@@ -1,8 +1,4 @@
-import {
-  IAuth,
-  IAuthGeneratedCode,
-  IAuthSignInFailedRecordItem,
-} from '@gdk-iam/auth/types';
+import { IAuth, IAuthGeneratedCode } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
@@ -106,26 +102,26 @@ export class AuthUtilService {
       ? currentTimeStamp
       : auth.lastChangedPasswordAt;
     const hourAgo = startingTimeStamp + 3600000;
-    const recentFailAttempts = auth.signInFailRecordList.filter(
-      (record: IAuthSignInFailedRecordItem) => {
-        if (LOCK_ATTEMPT_EXCEED) {
-          return record.createdAt > hourAgo;
-        }
-        if (auth.lastChangedPasswordAt > record.createdAt) {
-          // * Ignore failed record before lastChangedPasswordAt
-          return false;
-        } else {
-          return record.createdAt > hourAgo;
-        }
-      },
-    );
-    this.Logger.verbose(
-      recentFailAttempts.length,
-      'isExceedAttemptLimit.recentFailAttempts',
-    );
-    if (recentFailAttempts.length > ATTEMPT_LIMIT) {
-      return true;
-    }
+    // const recentFailAttempts = auth.signInFailRecordList.filter(
+    //   (record: IAuthSignInFailedRecordItem) => {
+    //     if (LOCK_ATTEMPT_EXCEED) {
+    //       return record.createdAt > hourAgo;
+    //     }
+    //     if (auth.lastChangedPasswordAt > record.createdAt) {
+    //       // * Ignore failed record before lastChangedPasswordAt
+    //       return false;
+    //     } else {
+    //       return record.createdAt > hourAgo;
+    //     }
+    //   },
+    // );
+    // this.Logger.verbose(
+    //   recentFailAttempts.length,
+    //   'isExceedAttemptLimit.recentFailAttempts',
+    // );
+    // if (recentFailAttempts.length > ATTEMPT_LIMIT) {
+    //   return true;
+    // }
     return false;
   }
 

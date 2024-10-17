@@ -22,7 +22,6 @@ import {
   IAuthVerifyRes,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
-  IAuthSignInFailedRecordItem,
   AUTH_TOKEN_TYPE,
   IAuthSignInRes,
   IAuthDecodedToken,
@@ -73,10 +72,9 @@ import {
   MongoDBErrorHandler,
 } from '@shared/mongodb';
 
-import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
-
 import { Auth, AuthDocument } from './auth.schema';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
+import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);
@@ -587,7 +585,7 @@ export class AuthMongooseService implements AuthService {
       );
       if (!validPassword) {
         // * STEP 3-1. Add FailRecord
-        await this.pushFailedRecordItemById(auth._id, {
+        await this.authActivities.pushFailedRecordItemByAuthId(`${auth._id}`, {
           signInMethod: AUTH_METHOD.EMAIL_PASSWORD,
           errorCode: ERROR_CODE.AUTH_PASSWORD_INVALID,
           ipAddress: '',
@@ -872,45 +870,6 @@ export class AuthMongooseService implements AuthService {
         resultMessage: 'OK',
         isRevokedToken: true,
       };
-    } catch (error) {
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
-
-  @MethodLogger()
-  private async pushFailedRecordItemById(
-    authId: Types.ObjectId,
-    item: IAuthSignInFailedRecordItem,
-    session?: ClientSession,
-  ): Promise<AuthDocument> {
-    try {
-      this.Logger.verbose(
-        `${authId}(${typeof authId})`,
-        'pushFailedRecordItemById(id)',
-      );
-      this.Logger.verbose(
-        JsonStringify(item),
-        'pushFailedRecordItemById(item)',
-      );
-      this.Logger.verbose(
-        session ? true : false,
-        'pushFailedRecordItemById(session)',
-      );
-      const SLICE_COUNT = this.iamConfig.TRACK_FAILED_SIGN_IN_COUNT || 20;
-      const updated = await this.AuthModel.findByIdAndUpdate(
-        authId,
-        {
-          $push: {
-            signInFailRecordList: {
-              $each: [item],
-              $slice: -SLICE_COUNT,
-              $position: 0,
-            },
-          },
-        },
-        { session: session },
-      );
-      return updated;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

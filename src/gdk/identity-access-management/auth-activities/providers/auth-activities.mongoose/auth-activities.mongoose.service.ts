@@ -1,7 +1,7 @@
 import { ConfigType } from '@nestjs/config';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 
 import {
   AUTH_ACTIVITIES_MODEL_NAME,
@@ -22,6 +22,7 @@ import { AuthActivities } from './auth-activities.schema';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import {
   IAuthActivities,
+  IAuthSignInFailedRecordItem,
   IAuthTokenItem,
 } from '@gdk-iam/auth-activities/types';
 
@@ -76,8 +77,8 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
         // * STEP 2A. Create new one
         const newData = await new this.AuthActivitiesModel({
           authId: authObjectId,
-          accessTokenHistoryList: accessItems,
-          activeRefreshTokenList: refreshItems,
+          accessTokenList: accessItems,
+          refreshTokenList: refreshItems,
           lastIssueAccessTokenAt: Date.now(),
           lastIssueRefreshTokenAt: Date.now(),
         }).save({ session });
@@ -90,12 +91,12 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
           this.iamConfig.TRACK_ISSUED_REFRESH_TOKEN_COUNT || 100;
         const flexUpdateQuery = {
           $push: {
-            accessTokenHistoryList: {
+            accessTokenList: {
               $each: accessItems,
               $slice: -ACCESS_SLICE_COUNT,
               $position: 0,
             },
-            activeRefreshTokenList: {
+            refreshTokenList: {
               $each: refreshItems,
               $slice: -REFRESH_SLICE_COUNT,
               $position: 0,
@@ -127,6 +128,45 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
         );
         return updatedData;
       }
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async pushFailedRecordItemByAuthId(
+    authId: string,
+    item: IAuthSignInFailedRecordItem,
+    session?: ClientSession,
+  ): Promise<IAuthActivities> {
+    try {
+      this.Logger.verbose(
+        `${authId}(${typeof authId})`,
+        'pushFailedRecordItemById(id)',
+      );
+      this.Logger.verbose(
+        JsonStringify(item),
+        'pushFailedRecordItemById(item)',
+      );
+      this.Logger.verbose(
+        session ? true : false,
+        'pushFailedRecordItemById(session)',
+      );
+      const SLICE_COUNT = this.iamConfig.TRACK_FAILED_SIGN_IN_COUNT || 20;
+      const updated = await this.AuthActivitiesModel.findByIdAndUpdate(
+        authId,
+        {
+          $push: {
+            signInFailRecordList: {
+              $each: [item],
+              $slice: -SLICE_COUNT,
+              $position: 0,
+            },
+          },
+        },
+        { session: session },
+      );
+      return updated;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -168,16 +208,16 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
       const updateQuery = {};
       if (all) {
         updateQuery['$set'] = {
-          accessTokenHistoryList: [],
-          activeRefreshTokenList: [],
+          accessTokenList: [],
+          refreshTokenList: [],
         };
       } else if (tokenType === AUTH_TOKEN_TYPE.ACCESS) {
         updateQuery['$set'] = {
-          accessTokenHistoryList: [],
+          accessTokenList: [],
         };
       } else if (tokenType === AUTH_TOKEN_TYPE.REFRESH) {
         updateQuery['$set'] = {
-          activeRefreshTokenList: [],
+          refreshTokenList: [],
         };
       }
       this.Logger.verbose(

@@ -5,10 +5,8 @@ import {
   AUTH_METHOD,
   AUTH_PROVIDER,
   IAuth,
-  IAuthSignInFailedRecordItem,
 } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
-import { AuthSignInFailedRecordItemDto } from './auth-sign-in-failed-record-item.dto';
 import { UserIdRefDto } from '@gdk-iam/user/dto';
 import { MongoObjectIdDtoRef } from '@shared/swagger';
 
@@ -33,8 +31,8 @@ export class AuthDto implements IAuth {
   code: string;
   codeUsage: AUTH_CODE_USAGE;
   codeExpiredAt: number;
-  @ApiProperty({ type: [AuthSignInFailedRecordItemDto] })
-  signInFailRecordList: IAuthSignInFailedRecordItem[];
+  // @ApiProperty({ type: [AuthSignInFailedRecordItemDto] })
+  // signInFailRecordList: IAuthSignInFailedRecordItem[];
   isIdentifierVerified: boolean;
   isActive: boolean;
   inactiveAt: number;

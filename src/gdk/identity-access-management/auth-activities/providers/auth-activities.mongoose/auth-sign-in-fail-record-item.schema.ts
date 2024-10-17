@@ -4,8 +4,8 @@ import { EnumToArray } from '@shared/helper';
 import {
   AUTH_METHOD,
   AUTH_SIGN_IN_FAIL_RECORD_ITEM_MODEL_NAME,
-  IAuthSignInFailedRecordItem,
 } from '@gdk-iam/auth/types';
+import { IAuthSignInFailedRecordItem } from '@gdk-iam/auth-activities/types';
 
 @Schema()
 export class AuthSignInFailRecordItem implements IAuthSignInFailedRecordItem {

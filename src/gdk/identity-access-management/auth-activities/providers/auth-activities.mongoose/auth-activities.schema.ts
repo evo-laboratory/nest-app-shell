@@ -6,10 +6,12 @@ import {
 } from '@gdk-iam/auth/types';
 import {
   IAuthActivities,
+  IAuthSignInFailedRecordItem,
   IAuthTokenItem,
 } from '@gdk-iam/auth-activities/types';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { AuthTokenItemSchema } from './auth-token-item.schema';
+import { AuthSignInFailRecordItemSchema } from './auth-sign-in-fail-record-item.schema';
 
 export type AuthActivitiesDocument = HydratedDocument<AuthActivities>;
 @Schema()
@@ -20,12 +22,17 @@ export class AuthActivities implements IAuthActivities {
     type: [AuthTokenItemSchema],
     default: [],
   })
-  activeRefreshTokenList: IAuthTokenItem[];
+  refreshTokenList: IAuthTokenItem[];
   @Prop({
     type: [AuthTokenItemSchema],
     default: [],
   })
-  accessTokenHistoryList: IAuthTokenItem[];
+  accessTokenList: IAuthTokenItem[];
+  @Prop({
+    type: [AuthSignInFailRecordItemSchema],
+    default: [],
+  })
+  signInFailRecordList: IAuthSignInFailedRecordItem[];
   @Prop({ type: Number, default: 0 })
   lastIssueAccessTokenAt: number;
   @Prop({ type: Number, default: 0 })

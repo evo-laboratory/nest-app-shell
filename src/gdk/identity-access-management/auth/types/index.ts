@@ -20,7 +20,6 @@ export * from './auth-register-token.interface';
 export * from './auth-revoke-token.interface';
 export * from './auth-revoked-refresh-token-response.interface';
 export * from './auth-check-refresh-token.interface';
-export * from './auth-sign-in-failed-record-item.interface';
 export * from './auth-sign-out-response.interface';
 export * from './auth-sign-out.interface';
 export * from './auth-signed-result.interface';
