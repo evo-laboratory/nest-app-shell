@@ -1,15 +1,15 @@
 import { TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { Connection } from 'mongoose';
-import { getConnectionToken } from '@nestjs/mongoose';
 import { TestModuleBuilderFixture } from 'test/fixtures';
+import { GPI, V1 } from '@shared/statics';
+import { ENV_PATH, SYSTEM_API } from '@gdk-system/statics';
 
-describe('GDK/AppController', () => {
+describe('GDK/SystemController', () => {
+  const SYS_API = `/${GPI}/${SYSTEM_API}`;
   let app: INestApplication;
-  let connection: Connection;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
@@ -18,15 +18,15 @@ describe('GDK/AppController', () => {
         whitelist: true,
       }),
     );
-    connection = await moduleFixture.get(getConnectionToken());
     await app.init();
   });
-  it('GET / - Expect protected', () => {
-    return request(app.getHttpServer()).get('/').expect(403);
+  const PUBLIC_ENV_API = `${SYS_API}/${V1}/${ENV_PATH}`;
+  describe(`[GET] ${PUBLIC_ENV_API}`, () => {
+    it('Should be protected, return 403', () => {
+      return request(app.getHttpServer()).get(`${PUBLIC_ENV_API}`).expect(403);
+    });
   });
-  afterAll(() => {
-    setTimeout(async () => {
-      await connection.close(true);
-    }, 500);
+  afterAll(async () => {
+    await app.close();
   });
 });
