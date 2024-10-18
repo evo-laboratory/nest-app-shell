@@ -116,7 +116,7 @@ export class AuthUtilService {
     const startingTimeStamp = LOCK_ATTEMPT_EXCEED
       ? currentTimeStamp
       : auth.lastChangedPasswordAt;
-    const hourAgo = startingTimeStamp + 3600000;
+    const hourAgo = startingTimeStamp - 3600000;
     const recentFailAttempts = authActivities.signInFailRecordList.filter(
       (record: IAuthSignInFailedRecordItem) => {
         if (auth.lastChangedPasswordAt > record.createdAt) {
