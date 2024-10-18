@@ -123,8 +123,7 @@ export class AuthUtilService {
           // * Ignore failed record before lastChangedPasswordAt
           return false;
         } else {
-          console.log(`${record.createdAt > hourAgo}`);
-          return record.createdAt < hourAgo;
+          return record.createdAt > hourAgo;
         }
       },
     );
@@ -136,6 +135,8 @@ export class AuthUtilService {
       this.Logger.verbose(ATTEMPT_LIMIT, 'isExceedAttemptLimit.ATTEMPT_LIMIT');
       return true;
     }
+    console.log(recentFailAttempts.length);
+    console.log(ATTEMPT_LIMIT);
     return false;
   }
 

@@ -106,11 +106,13 @@ describe('AuthUtilService', () => {
   });
 
   describe('isExceedAttemptLimit', () => {
-    it('should return false if LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED is false', () => {
+    it('should return false if LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED is false, even more than SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT', () => {
       config.LOCK_SIGN_IN_FAILED_ATTEMPT_EXCEED = false;
       const auth: IAuth = { lastChangedPasswordAt: Date.now() } as IAuth;
       const authActivities: IAuthActivities = {
-        signInFailRecordList: [],
+        signInFailRecordList: Array(6).fill({
+          createdAt: Date.now(),
+        }) as IAuthSignInFailedRecordItem[],
       } as IAuthActivities;
       expect(service.isExceedAttemptLimit(auth, authActivities)).toBe(false);
     });
