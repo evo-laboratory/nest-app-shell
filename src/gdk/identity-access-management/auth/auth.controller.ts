@@ -12,6 +12,7 @@ import {
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
@@ -52,7 +53,6 @@ import {
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
-import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -108,7 +108,6 @@ export class AuthController {
   }
 
   @AuthType(AUTH_TYPE.PUBLIC)
-  @AuthZType(AUTHZ_TYPE.USER)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
   @ApiResponse({ type: AuthExchangeNewAccessTokenRes })
   async exchangeNewAccessTokenV1(@Body() dto: AuthExchangeNewAccessTokenDto) {
