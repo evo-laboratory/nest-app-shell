@@ -25,7 +25,8 @@ describe('GDK/SystemController', () => {
         whitelist: true,
       }),
     );
-    DBTestHelper = await DatabaseTestHelper.initMongoDB(
+    DBTestHelper = await DatabaseTestHelper.init(
+      process.env.DATABASE_PROVIDER as 'MONGODB',
       process.env.MONGO_URI,
       'e2e-testing',
     );

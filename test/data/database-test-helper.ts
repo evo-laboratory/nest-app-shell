@@ -1,9 +1,8 @@
 import { SYSTEM_MODEL_NAME } from '@gdk-system/statics';
-import mongoose, { Connection } from 'mongoose';
+import mongoose from 'mongoose';
 import { DefaultSystemData } from './test-data-json';
 
 class DatabaseTestHelper {
-  private connection: Connection;
   private flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
   private SystemMongoDBModel = mongoose.model(
     `${SYSTEM_MODEL_NAME}`,
@@ -11,18 +10,26 @@ class DatabaseTestHelper {
   );
 
   constructor(
-    private provider: 'mongodb' | 'mysql',
-    private mongodbUri: string,
-    private mongodbName: string,
+    private provider: 'MONGODB' | 'MY_SQL',
+    private mongodbUri?: string,
+    private mongodbName?: string,
   ) {}
 
-  public static async initMongoDB(uri: string, dbName: string) {
-    await mongoose.connect(uri, { dbName });
-    return new DatabaseTestHelper('mongodb', uri, dbName);
+  public static async init(
+    provider: 'MONGODB' | 'MY_SQL',
+    mongodbUri: string,
+    mongodbName: string,
+  ) {
+    if (provider === 'MONGODB') {
+      await mongoose.connect(mongodbUri, { dbName: mongodbName });
+      return new DatabaseTestHelper(provider, mongodbUri, mongodbName);
+    } else {
+      throw new Error('Not implemented');
+    }
   }
 
   public async setupSystem() {
-    if (this.provider === 'mongodb') {
+    if (this.provider === 'MONGODB') {
       await this.SystemMongoDBModel.create(DefaultSystemData());
     } else {
       throw new Error('Not implemented');
@@ -34,7 +41,7 @@ class DatabaseTestHelper {
   }
 
   async clearDatabase() {
-    if (this.provider === 'mongodb') {
+    if (this.provider === 'MONGODB') {
       await this.SystemMongoDBModel.deleteMany({});
     } else {
       throw new Error('Not implemented');
