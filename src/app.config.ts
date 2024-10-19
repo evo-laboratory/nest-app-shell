@@ -11,6 +11,7 @@ export default registerAs(APP_CONFIG_KEY, () => ({
   SYS_OWNER_EMAIL: process.env.SYS_OWNER_EMAIL,
   LOG_LEVEL: process.env.LOG_LEVEL,
   CLIENT_KEY_NAME: process.env.CLIENT_KEY_NAME,
+  DATABASE_PROVIDER: process.env.DATABASE_PROVIDER,
   MONGO_URI: process.env.MONGO_URI,
   MONGO_DB_NAME: process.env.MONGO_DB_NAME,
 }));

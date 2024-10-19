@@ -13,6 +13,7 @@ export const EnvironmentConfigSchema = Joi.object({
     .valid('verbose', 'debug', 'info', 'http', 'warn', 'error')
     .default('verbose'),
   CLIENT_KEY_NAME: Joi.string().default('shell-client-id'),
+  DATABASE_PROVIDER: Joi.string().valid('MONGODB').default('MONGODB'),
   MONGO_URI: Joi.string(),
   MONGO_DB_NAME: Joi.string(),
   CODE_EXPIRE_MIN: Joi.number().default(5),
