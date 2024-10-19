@@ -27,6 +27,9 @@ describe('GDK/SystemController', () => {
   });
   const PUBLIC_ENV_API = `${SYS_API}/${V1}/${ENV_PATH}`;
   describe(`[GET] ${PUBLIC_ENV_API}`, () => {
+    beforeAll(() => {
+      console.log('SETUP SUPER ADMIN ROLE');
+    });
     it('Guarded by default, should return 403', () => {
       return request(app.getHttpServer()).get(`${PUBLIC_ENV_API}`).expect(403);
     });

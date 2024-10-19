@@ -193,7 +193,7 @@ export class SystemMongooseService implements SystemService {
   }
 
   @MethodLogger()
-  private async setCache(sys: ISystem): Promise<any> {
+  public async setCache(sys: ISystem): Promise<any> {
     try {
       await this.cacheManager.set(
         SYS_CACHE_KEY,

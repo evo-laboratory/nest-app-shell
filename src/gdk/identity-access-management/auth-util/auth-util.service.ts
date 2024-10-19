@@ -116,15 +116,14 @@ export class AuthUtilService {
     const startingTimeStamp = LOCK_ATTEMPT_EXCEED
       ? currentTimeStamp
       : auth.lastChangedPasswordAt;
-    const hourAgo = startingTimeStamp + 3600000;
+    const hourAgo = startingTimeStamp - 3600000;
     const recentFailAttempts = authActivities.signInFailRecordList.filter(
       (record: IAuthSignInFailedRecordItem) => {
         if (auth.lastChangedPasswordAt > record.createdAt) {
           // * Ignore failed record before lastChangedPasswordAt
           return false;
         } else {
-          console.log(`${record.createdAt > hourAgo}`);
-          return record.createdAt < hourAgo;
+          return record.createdAt > hourAgo;
         }
       },
     );
@@ -136,6 +135,8 @@ export class AuthUtilService {
       this.Logger.verbose(ATTEMPT_LIMIT, 'isExceedAttemptLimit.ATTEMPT_LIMIT');
       return true;
     }
+    console.log(recentFailAttempts.length);
+    console.log(ATTEMPT_LIMIT);
     return false;
   }
 
