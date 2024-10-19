@@ -9,7 +9,8 @@ import {
   SYSTEM_API,
 } from '@gdk-system/statics';
 import { DatabaseTestHelper } from 'test/helpers';
-import { ClientKeyHeaderConfig, TEST_CLIENT_ID } from 'test/data';
+import { ClientKeyHeader, EmptyBearHeader, MONGO_E2E_TEST_DB } from 'test/data';
+import { WinstonService } from '@shared/winston-logger';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
@@ -19,7 +20,9 @@ describe('GDK/SystemController', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication({
+      logger: new WinstonService(),
+    });
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
@@ -29,7 +32,7 @@ describe('GDK/SystemController', () => {
     DBTestHelper = await DatabaseTestHelper.init(
       process.env.DATABASE_PROVIDER as 'MONGODB',
       process.env.MONGO_URI,
-      'e2e-testing',
+      MONGO_E2E_TEST_DB,
     );
     await DBTestHelper.setupSystem();
     await app.init();
@@ -45,8 +48,15 @@ describe('GDK/SystemController', () => {
     it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
       return request(app.getHttpServer())
         .get(`${PUBLIC_ENV_API}`)
-        .set(ClientKeyHeaderConfig())
+        .set(ClientKeyHeader())
         .expect(403);
+    });
+    it(`Pass in empty bear header, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${PUBLIC_ENV_API}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearHeader())
+        .expect(401);
     });
   });
   const SYNC_HTTP_ENDPOINTS_API = `${SYS_API}/${V1}/${SYNC_HTTP_ENDPOINTS_PATH}`;
@@ -59,25 +69,42 @@ describe('GDK/SystemController', () => {
     it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
       return request(app.getHttpServer())
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
-        .set(ClientKeyHeaderConfig())
+        .set(ClientKeyHeader())
         .expect(403);
+    });
+    it(`Pass in empty bear header, should return 401`, () => {
+      return request(app.getHttpServer())
+        .put(`${SYNC_HTTP_ENDPOINTS_API}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearHeader())
+        .expect(401);
     });
   });
   describe(`[PUT] ${SYE_RESOURCE_V1_PATH}/1234`, () => {
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/1234`)
+        .send({})
         .expect(403);
     });
     it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/1234`)
-        .set(ClientKeyHeaderConfig())
+        .set(ClientKeyHeader())
+        .send({})
         .expect(403);
+    });
+    it(`Pass in empty bear header, should return 401`, () => {
+      return request(app.getHttpServer())
+        .put(`${SYE_RESOURCE_V1_PATH}/1234`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearHeader())
+        .send({})
+        .expect(401);
     });
   });
   afterAll(async () => {
-    await DBTestHelper.clearDatabase();
+    // await DBTestHelper.clearDatabase();
     await DBTestHelper.disconnect();
     await app.close();
   });
