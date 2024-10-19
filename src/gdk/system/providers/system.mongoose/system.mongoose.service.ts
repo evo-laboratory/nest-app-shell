@@ -191,7 +191,7 @@ export class SystemMongooseService implements SystemService {
         updateObj.newSignUpDefaultUserRole = dto.newSignUpDefaultUserRole;
       }
       if (Object.keys(updateObj).length === 0) {
-        this.Logger.verbose('No updated required', 'updateById');
+        this.Logger.verbose('No update required', 'updateById');
         const sys = await this.SystemModel.findById(id);
         await this.setCache(sys);
         return sys;
@@ -207,10 +207,5 @@ export class SystemMongooseService implements SystemService {
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
-  }
-
-  @MethodLogger()
-  deleteById(id: string): Promise<any> {
-    throw new Error('Method not implemented.');
   }
 }

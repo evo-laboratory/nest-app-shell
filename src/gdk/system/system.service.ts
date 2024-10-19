@@ -11,5 +11,4 @@ export abstract class SystemService {
   abstract getClientMapFromCache(): Promise<IClientMap>;
   abstract syncHttpEndpointFromSwagger(): Promise<ISystem>;
   abstract updateById(id: string, dto: FlexUpdateSystemDto): Promise<ISystem>;
-  abstract deleteById(id: string): Promise<any>;
 }
