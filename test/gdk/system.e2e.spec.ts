@@ -9,6 +9,7 @@ import {
   SYSTEM_API,
 } from '@gdk-system/statics';
 import { DatabaseTestHelper } from 'test/helpers';
+import { ClientKeyHeaderConfig, TEST_CLIENT_ID } from 'test/data';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
@@ -38,22 +39,40 @@ describe('GDK/SystemController', () => {
     beforeAll(() => {
       console.log('SETUP SUPER ADMIN ROLE');
     });
-    it('Guarded by default, should return 403', () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer()).get(`${PUBLIC_ENV_API}`).expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .get(`${PUBLIC_ENV_API}`)
+        .set(ClientKeyHeaderConfig())
+        .expect(403);
     });
   });
   const SYNC_HTTP_ENDPOINTS_API = `${SYS_API}/${V1}/${SYNC_HTTP_ENDPOINTS_PATH}`;
   describe(`[PUT] ${SYNC_HTTP_ENDPOINTS_API}`, () => {
-    it('Guarded by default, should return 403', () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer())
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .expect(403);
     });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .put(`${SYNC_HTTP_ENDPOINTS_API}`)
+        .set(ClientKeyHeaderConfig())
+        .expect(403);
+    });
   });
   describe(`[PUT] ${SYE_RESOURCE_V1_PATH}/1234`, () => {
-    it('Guarded by default, should return 403', () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/1234`)
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .put(`${SYE_RESOURCE_V1_PATH}/1234`)
+        .set(ClientKeyHeaderConfig())
         .expect(403);
     });
   });
