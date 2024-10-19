@@ -60,5 +60,23 @@ async function Bootstrap() {
     contextName: 'Main',
     methodName: 'MONGO_DB_NAME',
   });
+  const NODE_ENV = process.env.NODE_ENV
+    ? `${process.env.NODE_ENV}`.toLowerCase()
+    : 'dev';
+  WinstonLogger.verbose(
+    `${
+      process.env.NODE_ENV
+        ? `${process.env.NODE_ENV}`.toLowerCase()
+        : 'Not specific, using .env.dev'
+    }`,
+    {
+      contextName: 'Main',
+      methodName: 'envFilePath',
+    },
+  );
+  WinstonLogger.verbose(`${NODE_ENV}`, {
+    contextName: 'Main',
+    methodName: 'NODE_ENV',
+  });
 }
 Bootstrap();

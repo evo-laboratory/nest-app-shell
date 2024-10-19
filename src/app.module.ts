@@ -16,9 +16,13 @@ import appConfig from './app.config';
 import { EnvironmentConfigSchema } from './environment-config.schema';
 import { SystemModule } from './gdk/system/system.module';
 
+const NODE_ENV = process.env.NODE_ENV
+  ? `${process.env.NODE_ENV}`.toLowerCase()
+  : 'dev';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: `.env.${NODE_ENV}`,
       validationSchema: EnvironmentConfigSchema,
       load: [appConfig],
     }),

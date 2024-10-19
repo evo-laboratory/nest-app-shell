@@ -45,11 +45,11 @@ describe('GDK/SystemController', () => {
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer()).get(`${PUBLIC_ENV_API}`).expect(403);
     });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
         .get(`${PUBLIC_ENV_API}`)
         .set(ClientKeyHeader())
-        .expect(403);
+        .expect(401);
     });
     it(`Pass in empty bear header, should return 401`, () => {
       return request(app.getHttpServer())
@@ -66,11 +66,11 @@ describe('GDK/SystemController', () => {
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .expect(403);
     });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .set(ClientKeyHeader())
-        .expect(403);
+        .expect(401);
     });
     it(`Pass in empty bear header, should return 401`, () => {
       return request(app.getHttpServer())
@@ -87,12 +87,12 @@ describe('GDK/SystemController', () => {
         .send({})
         .expect(403);
     });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/1234`)
         .set(ClientKeyHeader())
         .send({})
-        .expect(403);
+        .expect(401);
     });
     it(`Pass in empty bear header, should return 401`, () => {
       return request(app.getHttpServer())
@@ -104,7 +104,7 @@ describe('GDK/SystemController', () => {
     });
   });
   afterAll(async () => {
-    // await DBTestHelper.clearDatabase();
+    await DBTestHelper.clearDatabase();
     await DBTestHelper.disconnect();
     await app.close();
   });
