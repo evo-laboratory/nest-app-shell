@@ -52,11 +52,15 @@ import {
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly authRevokedTokenService: AuthRevokedTokenService,
+  ) {}
 
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)
@@ -127,7 +131,7 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,
   ) {
-    return await this.authService.signOut(token, dto);
+    return await this.authRevokedTokenService.signOut(token, dto);
   }
 
   @AuthZType(AUTHZ_TYPE.USER)

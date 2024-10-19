@@ -25,7 +25,6 @@ import {
   AUTH_TOKEN_TYPE,
   IAuthSignInRes,
   IAuthDecodedToken,
-  IAuthSignOutRes,
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuthCreateAuthWithUser,
@@ -41,7 +40,6 @@ import {
   AuthEmailVerificationDto,
   AuthExchangeNewAccessTokenDto,
   AuthRevokeRefreshTokenDto,
-  AuthSignOutDto,
   AuthSocialSignInUpDto,
   AuthVerifyDto,
   EmailSignUpDto,
@@ -742,46 +740,6 @@ export class AuthMongooseService implements AuthService {
     }
   }
 
-  @MethodLogger()
-  public async signOut(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthSignOutDto,
-  ): Promise<IAuthSignOutRes> {
-    this.Logger.verbose(
-      JsonStringify(verifiedToken),
-      'verifiedToken(verifiedToken)',
-    );
-    this.Logger.verbose(JsonStringify(dto), 'signOut(dto)');
-    this.Logger.verbose(
-      this.iamConfig.CHECK_REVOKED_TOKEN,
-      'signOut.CHECK_REVOKED_TOKEN',
-    );
-    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: false,
-      };
-    }
-    try {
-      // * Validate refresh token
-      const token = await this.authJwt.verify<IAuthDecodedToken>(
-        dto.token,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      await this.revokeService.insert(
-        verifiedToken.sub,
-        token.tokenId,
-        AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: true,
-      };
-    } catch (error) {
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
   getAuthById(): void {
     throw new Error('Method not implemented.');
   }

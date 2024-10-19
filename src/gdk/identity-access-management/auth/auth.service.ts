@@ -6,7 +6,6 @@ import {
   AuthEmailSignInDto,
   AuthCheckRefreshTokenDto,
   AuthExchangeNewAccessTokenDto,
-  AuthSignOutDto,
   AuthSocialSignInUpDto,
   AuthRevokeRefreshTokenDto,
 } from './dto';
@@ -15,7 +14,6 @@ import {
   IAuthVerifyRes,
   IAuthEmailVerificationRes,
   IAuthSignInRes,
-  IAuthSignOutRes,
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuth,
@@ -46,10 +44,6 @@ export abstract class AuthService {
   abstract exchangeAccessToken(
     dto: AuthExchangeNewAccessTokenDto,
   ): Promise<IAuthExchangeNewAccessTokenRes>;
-  abstract signOut(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthSignOutDto,
-  ): Promise<IAuthSignOutRes>;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;
   abstract listAll(
