@@ -5,6 +5,10 @@ import { DefaultSystemData } from './test-data-json';
 class DatabaseTestHelper {
   private connection: Connection;
   private flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
+  private SystemMongoDBModel = mongoose.model(
+    `${SYSTEM_MODEL_NAME}`,
+    this.flexMongoDBSchema,
+  );
 
   constructor(
     private provider: 'mongodb' | 'mysql',
@@ -19,9 +23,7 @@ class DatabaseTestHelper {
 
   public async setupSystem() {
     if (this.provider === 'mongodb') {
-      await mongoose
-        .model(`${SYSTEM_MODEL_NAME}`, this.flexMongoDBSchema)
-        .create(DefaultSystemData());
+      await this.SystemMongoDBModel.create(DefaultSystemData());
     } else {
       throw new Error('Not implemented');
     }
@@ -32,7 +34,11 @@ class DatabaseTestHelper {
   }
 
   async clearDatabase() {
-    await mongoose.model(`${SYSTEM_MODEL_NAME}`).deleteMany({});
+    if (this.provider === 'mongodb') {
+      await this.SystemMongoDBModel.deleteMany({});
+    } else {
+      throw new Error('Not implemented');
+    }
   }
 }
 
