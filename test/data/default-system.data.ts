@@ -1,8 +1,9 @@
 import { ROLE_SET_METHOD } from '@gdk-system/enums';
-
-export const TEST_SUPER_ROLE = 'SUPER_ADMIN';
-export const TEST_GENERAL_ROLE = 'GENERAL_USER';
-export const TEST_CLIENT_ID = 'tester';
+import {
+  TEST_CLIENT_ID,
+  TEST_GENERAL_ROLE,
+  TEST_SUPER_ROLE,
+} from './data.static';
 
 export function DefaultSystemData() {
   return {

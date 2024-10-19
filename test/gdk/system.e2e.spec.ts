@@ -8,7 +8,7 @@ import {
   SYNC_HTTP_ENDPOINTS_PATH,
   SYSTEM_API,
 } from '@gdk-system/statics';
-import { DatabaseTestHelper } from 'test/data/database-test-helper';
+import { DatabaseTestHelper } from 'test/helpers';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;

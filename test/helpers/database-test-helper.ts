@@ -1,6 +1,6 @@
 import { SYSTEM_MODEL_NAME } from '@gdk-system/statics';
 import mongoose from 'mongoose';
-import { DefaultSystemData } from './test-data-json';
+import { DefaultSystemData } from 'test/data';
 
 class DatabaseTestHelper {
   private flexMongoDBSchema = new mongoose.Schema({}, { strict: false });

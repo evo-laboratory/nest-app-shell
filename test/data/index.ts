@@ -1,2 +1,2 @@
-export * from './database-test-helper';
-export * from './test-data-json';
+export * from './data.static';
+export * from './default-system.data';
