@@ -8,11 +8,13 @@ import {
   SYNC_HTTP_ENDPOINTS_PATH,
   SYSTEM_API,
 } from '@gdk-system/statics';
+import { DatabaseTestHelper } from 'test/data/database-test-helper';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
   const SYE_RESOURCE_V1_PATH = `${SYS_API}/${V1}`;
   let app: INestApplication;
+  let DBTestHelper: DatabaseTestHelper;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
@@ -23,6 +25,11 @@ describe('GDK/SystemController', () => {
         whitelist: true,
       }),
     );
+    DBTestHelper = await DatabaseTestHelper.initMongoDB(
+      process.env.MONGO_URI,
+      'e2e-testing',
+    );
+    await DBTestHelper.setupSystem();
     await app.init();
   });
   const PUBLIC_ENV_API = `${SYS_API}/${V1}/${ENV_PATH}`;
@@ -50,6 +57,8 @@ describe('GDK/SystemController', () => {
     });
   });
   afterAll(async () => {
+    await DBTestHelper.clearDatabase();
+    await DBTestHelper.disconnect();
     await app.close();
   });
 });
