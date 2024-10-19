@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Put } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { V1 } from '@shared/statics';
 
 import {
@@ -9,7 +9,7 @@ import {
   SYSTEM_CONTROLLER_PATH,
 } from './statics';
 import { SystemService } from './system.service';
-import { FlexUpdateSystemDto } from './dto';
+import { FlexUpdateSystemDto, SystemGetOneResDto } from './dto';
 import { SystemUtilService } from './system-util/system-util.service';
 @ApiTags(SYSTEM_API)
 @Controller(`${SYSTEM_CONTROLLER_PATH}`)
@@ -22,6 +22,12 @@ export class SystemController {
   @Get(`${V1}/${ENV_PATH}`)
   async getEnvV1() {
     return this.systemUtil.getPublicEnv();
+  }
+
+  @Get(`${V1}`)
+  @ApiResponse({ status: 200, type: SystemGetOneResDto })
+  async getSystemV1() {
+    return await this.systemService.findOne();
   }
 
   @Put(`${V1}/${SYNC_HTTP_ENDPOINTS_PATH}`)
