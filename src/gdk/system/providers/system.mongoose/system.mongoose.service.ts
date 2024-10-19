@@ -45,11 +45,6 @@ export class SystemMongooseService implements SystemService {
   ) {}
 
   @MethodLogger()
-  create(dto: any): Promise<any> {
-    throw new Error('Method not implemented.');
-  }
-
-  @MethodLogger()
   public async findOne(): Promise<ISystem> {
     try {
       const sys = await this.SystemModel.findOne({});
@@ -72,6 +67,33 @@ export class SystemMongooseService implements SystemService {
       return sys;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async setCache(sys: ISystem): Promise<any> {
+    try {
+      await this.cacheManager.set(
+        SYS_CACHE_KEY,
+        sys,
+        this.appEnvConfig.SYS_CACHE_TTL * 1000,
+      );
+      const roleMap = new Map();
+      const clientMap = new Map();
+      sys.roles.forEach((role) => roleMap.set(role.name, role));
+      sys.clients.forEach((client) => clientMap.set(client.id, client));
+      await this.cacheManager.set(
+        SYS_ROLE_MAP_KEY,
+        roleMap,
+        this.appEnvConfig.SYS_CACHE_TTL * 1000,
+      );
+      await this.cacheManager.set(
+        SYS_CLIENT_KEY,
+        clientMap,
+        this.appEnvConfig.SYS_CACHE_TTL * 1000,
+      );
+    } catch (error) {
+      return Promise.reject(error);
     }
   }
 
@@ -190,32 +212,5 @@ export class SystemMongooseService implements SystemService {
   @MethodLogger()
   deleteById(id: string): Promise<any> {
     throw new Error('Method not implemented.');
-  }
-
-  @MethodLogger()
-  public async setCache(sys: ISystem): Promise<any> {
-    try {
-      await this.cacheManager.set(
-        SYS_CACHE_KEY,
-        sys,
-        this.appEnvConfig.SYS_CACHE_TTL * 1000,
-      );
-      const roleMap = new Map();
-      const clientMap = new Map();
-      sys.roles.forEach((role) => roleMap.set(role.name, role));
-      sys.clients.forEach((client) => clientMap.set(client.id, client));
-      await this.cacheManager.set(
-        SYS_ROLE_MAP_KEY,
-        roleMap,
-        this.appEnvConfig.SYS_CACHE_TTL * 1000,
-      );
-      await this.cacheManager.set(
-        SYS_CLIENT_KEY,
-        clientMap,
-        this.appEnvConfig.SYS_CACHE_TTL * 1000,
-      );
-    } catch (error) {
-      return Promise.reject(error);
-    }
   }
 }

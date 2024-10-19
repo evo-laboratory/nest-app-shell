@@ -4,9 +4,8 @@ import { IClientMap, IRole, ISystem } from './types';
 
 @Injectable()
 export abstract class SystemService {
-  abstract create(dto: any): Promise<any>;
-  abstract findOne(): Promise<any>;
-  abstract getCached(): Promise<ISystem>;
+  abstract findOne(): Promise<ISystem>;
+  abstract getCached(forceFromDB: boolean): Promise<ISystem>;
   abstract setCache(dto: ISystem): Promise<ISystem>;
   abstract listRoleByNamesFromCache(names: string[]): Promise<IRole[]>;
   abstract getClientMapFromCache(): Promise<IClientMap>;
