@@ -20,7 +20,7 @@ module.exports = {
       './node_modules/jest-html-reporter',
       {
         pageTitle: 'App Shell E2E Test Report',
-        outputPath: './test/reports/report.html',
+        outputPath: `./test/reports/e2e/${process.env.NODE_ENV}/report.html`,
       },
     ],
   ],
