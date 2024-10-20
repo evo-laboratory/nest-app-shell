@@ -18,6 +18,7 @@ import {
 } from 'test/data';
 import { WinstonService } from '@shared/winston-logger';
 import { AuthService } from '@gdk-iam/auth/auth.service';
+import { SystemService } from '@gdk-system/system.service';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
@@ -25,6 +26,7 @@ describe('GDK/SystemController', () => {
   let app: INestApplication;
   let DBTestHelper: DatabaseTestHelper;
   let authService: AuthService;
+  let systemService: SystemService;
   let sysOwnerAccessToken: string;
 
   beforeAll(async () => {
@@ -46,6 +48,7 @@ describe('GDK/SystemController', () => {
     await DBTestHelper.setupSystem();
     await app.init();
     authService = moduleFixture.get<AuthService>(AuthService);
+    systemService = moduleFixture.get<SystemService>(SystemService);
   });
   const PUBLIC_ENV_API = `${SYS_API}/${V1}/${ENV_PATH}`;
   describe(`[GET] ${PUBLIC_ENV_API}`, () => {
@@ -103,16 +106,28 @@ describe('GDK/SystemController', () => {
         .set(EmptyBearHeader())
         .expect(401);
     });
-    it('Pass in valid bearer header (system-owner), should return 200', () => {
-      return request(app.getHttpServer())
+    it('Pass in valid bearer header (system-owner), should return 200', async () => {
+      const res = await request(app.getHttpServer())
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .set(ClientKeyHeader())
         .set(BearHeader(sysOwnerAccessToken))
-        .send({})
-        .expect(200);
+        .send({});
+      expect(res.status).toBe(200);
+      expect(res.body.roles).toBeDefined();
+      expect(res.body.roles.length).toBeGreaterThan(0);
+      expect(res.body.rolesUpdatedAt).toBeDefined();
+      expect(res.body.endpoints).toBeDefined();
+      expect(res.body.endpoints.length).toBeGreaterThan(0);
+      expect(res.body.endpointUpdatedAt).toBeDefined();
+      expect(res.body.clients).toBeDefined();
+      expect(res.body.clients.length).toBeGreaterThan(0);
+      expect(res.body.newSignUpDefaultUserRole).toBeDefined();
+      expect(res.body.clientUpdatedAt).toBeDefined();
+      expect(res.body.createdAt).toBeDefined();
+      expect(res.body.updatedAt).toBeDefined();
     });
   });
-  describe(`[PUT] ${SYE_RESOURCE_V1_PATH}/1234`, () => {
+  describe(`[PUT] ${SYE_RESOURCE_V1_PATH}/{ID}`, () => {
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/1234`)
@@ -133,6 +148,44 @@ describe('GDK/SystemController', () => {
         .set(EmptyBearHeader())
         .send({})
         .expect(401);
+    });
+    if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+      it('Pass in valid bearer header (system-owner), but id(1234) not a valid ObjectId  should return 500', () => {
+        return request(app.getHttpServer())
+          .put(`${SYE_RESOURCE_V1_PATH}/1234`)
+          .set(ClientKeyHeader())
+          .set(BearHeader(sysOwnerAccessToken))
+          .send({})
+          .expect(500);
+      });
+    }
+    it('Pass in valid bearer header (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {
+      return request(app.getHttpServer())
+        .put(`${SYE_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
+        .set(ClientKeyHeader())
+        .set(BearHeader(sysOwnerAccessToken))
+        .send({})
+        .expect(404);
+    });
+    it('Pass in valid bearer header (system-owner), with exist id should return 200', async () => {
+      const existId = await systemService.findOne();
+      const res = await request(app.getHttpServer())
+        .put(`${SYE_RESOURCE_V1_PATH}/${existId._id}`)
+        .set(ClientKeyHeader())
+        .set(BearHeader(sysOwnerAccessToken))
+        .send({});
+      expect(res.status).toBe(200);
+    });
+    it('Pass in valid bearer header (system-owner), with exist id but not valid dto prop, should return 200', async () => {
+      const existId = await systemService.findOne();
+      const res = await request(app.getHttpServer())
+        .put(`${SYE_RESOURCE_V1_PATH}/${existId._id}`)
+        .set(ClientKeyHeader())
+        .set(BearHeader(sysOwnerAccessToken))
+        .send({
+          notValidProp: 'notValidProp',
+        });
+      expect(res.status).toBe(200);
     });
   });
   afterAll(async () => {

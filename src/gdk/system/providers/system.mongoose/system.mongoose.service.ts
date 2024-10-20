@@ -31,6 +31,12 @@ import { JsonStringify } from '@shared/helper';
 import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
 import appConfig from 'src/app.config';
+import {
+  ERROR_CODE,
+  ERROR_SOURCE,
+  IUnitedHttpException,
+  UniteHttpException,
+} from '@shared/exceptions';
 
 @Injectable()
 export class SystemMongooseService implements SystemService {
@@ -178,6 +184,11 @@ export class SystemMongooseService implements SystemService {
     dto: FlexUpdateSystemDto,
   ): Promise<ISystem> {
     try {
+      const check = await this.SystemModel.findById(id);
+      if (check === null) {
+        this.throwHttpError(ERROR_CODE.AUTH_NOT_FOUND, 'System not found', 404);
+        return;
+      }
       const updateObj: IUpdateSystem = {};
       if (dto.roles && dto.roles.length > 0) {
         updateObj.roles = dto.roles;
@@ -207,5 +218,23 @@ export class SystemMongooseService implements SystemService {
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
+  }
+
+  @MethodLogger()
+  private throwHttpError(
+    code: ERROR_CODE,
+    msg: string,
+    statusCode?: number,
+    methodName?: string,
+  ): IUnitedHttpException {
+    const errorObj: IUnitedHttpException = {
+      source: ERROR_SOURCE.NESTJS,
+      errorCode: code || ERROR_CODE.UNKNOWN,
+      message: msg,
+      statusCode: statusCode || 500,
+      contextName: 'SystemMongooseService',
+      methodName: `${methodName}`,
+    };
+    throw new UniteHttpException(errorObj);
   }
 }
