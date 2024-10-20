@@ -3,7 +3,7 @@ import {
   TEST_CLIENT_ID,
   TEST_GENERAL_ROLE,
   TEST_SUPER_ROLE,
-} from './data.static';
+} from './test-data.static';
 
 export function DefaultSystemData() {
   return {
