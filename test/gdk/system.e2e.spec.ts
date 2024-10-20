@@ -14,11 +14,15 @@ import {
   ClientKeyHeader,
   EmptyBearHeader,
   MONGO_E2E_TEST_DB,
+  TEST_CLIENT_ID,
+  TEST_GENERAL_ROLE,
+  TEST_SUPER_ROLE,
   TestSysOwnerData,
 } from 'test/data';
 import { WinstonService } from '@shared/winston-logger';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { SystemService } from '@gdk-system/system.service';
+import { ROLE_SET_METHOD } from '@gdk-system/enums';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
@@ -177,15 +181,70 @@ describe('GDK/SystemController', () => {
       expect(res.status).toBe(200);
     });
     it('Pass in valid bearer header (system-owner), with exist id but not valid dto prop, should return 200', async () => {
-      const existId = await systemService.findOne();
+      const existSys = await systemService.findOne();
       const res = await request(app.getHttpServer())
-        .put(`${SYE_RESOURCE_V1_PATH}/${existId._id}`)
+        .put(`${SYE_RESOURCE_V1_PATH}/${existSys._id}`)
         .set(ClientKeyHeader())
         .set(BearHeader(sysOwnerAccessToken))
         .send({
           notValidProp: 'notValidProp',
         });
       expect(res.status).toBe(200);
+    });
+    it('Pass in valid bearer header (system-owner), should update and return 200', async () => {
+      const existSys = await systemService.findOne();
+      const rolesUpdate = [
+        {
+          name: TEST_SUPER_ROLE,
+          setMethod: ROLE_SET_METHOD.BLACK_LIST,
+          endpointPermissions: [],
+          description: 'Super Admin Role',
+        },
+        {
+          name: TEST_GENERAL_ROLE,
+          setMethod: ROLE_SET_METHOD.WHITE_LIST,
+          endpointPermissions: [],
+          description: 'Super Admin Role',
+        },
+        {
+          name: 'NEW_ROLE',
+          setMethod: ROLE_SET_METHOD.WHITE_LIST,
+          endpointPermissions: [],
+          description: 'New Role',
+        },
+      ];
+      const clientsUpdate = [
+        {
+          id: TEST_CLIENT_ID,
+          name: 'test-runner',
+          willExpire: false,
+          expiredAt: 0,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        {
+          id: 'new-client-id',
+          name: 'test-case-runner',
+          willExpire: true,
+          expiredAt: 0,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+      const res = await request(app.getHttpServer())
+        .put(`${SYE_RESOURCE_V1_PATH}/${existSys._id}`)
+        .set(ClientKeyHeader())
+        .set(BearHeader(sysOwnerAccessToken))
+        .send({
+          roles: rolesUpdate,
+          clients: clientsUpdate,
+          newSignUpDefaultUserRole: 'NEW_ROLE',
+        });
+      const updated = await systemService.findOne();
+      expect(res.status).toBe(200);
+      expect(updated.roles.length).toBe(3);
+      expect(updated.clients.length).toBe(2);
+      expect(updated.newSignUpDefaultUserRole).toBe('NEW_ROLE');
     });
   });
   afterAll(async () => {
