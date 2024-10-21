@@ -10,9 +10,9 @@ import {
 } from '@gdk-system/statics';
 import { DatabaseTestHelper } from 'test/helpers';
 import {
-  BearHeader,
+  BearerHeader,
   ClientKeyHeader,
-  EmptyBearHeader,
+  EmptyBearerHeader,
   MONGO_E2E_TEST_DB,
   TEST_CLIENT_ID,
   TEST_GENERAL_ROLE,
@@ -74,18 +74,18 @@ describe('GDK/SystemController', () => {
         .set(ClientKeyHeader())
         .expect(401);
     });
-    it(`Pass in empty bear header, should return 401`, () => {
+    it(`EmptyBearerHeader, should return 401`, () => {
       return request(app.getHttpServer())
         .get(`${PUBLIC_ENV_API}`)
         .set(ClientKeyHeader())
-        .set(EmptyBearHeader())
+        .set(EmptyBearerHeader())
         .expect(401);
     });
-    it('Pass in valid bearer header (system-owner), should return 200', () => {
+    it('BearerHeader (system-owner), should return 200', () => {
       return request(app.getHttpServer())
         .get(`${PUBLIC_ENV_API}`)
         .set(ClientKeyHeader())
-        .set(BearHeader(sysOwnerAccessToken))
+        .set(BearerHeader(sysOwnerAccessToken))
         .send({})
         .expect(200);
     });
@@ -97,24 +97,24 @@ describe('GDK/SystemController', () => {
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .expect(403);
     });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+    it(`Included ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .set(ClientKeyHeader())
         .expect(401);
     });
-    it(`Pass in empty bearer header, should return 401`, () => {
+    it(`EmptyBearerHeader, should return 401`, () => {
       return request(app.getHttpServer())
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .set(ClientKeyHeader())
-        .set(EmptyBearHeader())
+        .set(EmptyBearerHeader())
         .expect(401);
     });
-    it('Pass in valid bearer header (system-owner), should return 200', async () => {
+    it('BearerHeader (system-owner), should return 200', async () => {
       const res = await request(app.getHttpServer())
         .put(`${SYNC_HTTP_ENDPOINTS_API}`)
         .set(ClientKeyHeader())
-        .set(BearHeader(sysOwnerAccessToken))
+        .set(BearerHeader(sysOwnerAccessToken))
         .send({});
       expect(res.status).toBe(200);
       expect(res.body.roles).toBeDefined();
@@ -138,60 +138,60 @@ describe('GDK/SystemController', () => {
         .send({})
         .expect(403);
     });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+    it(`Included ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/1234`)
         .set(ClientKeyHeader())
         .send({})
         .expect(401);
     });
-    it(`Pass in empty bear header, should return 401`, () => {
+    it(`EmptyBearHeader, should return 401`, () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/1234`)
         .set(ClientKeyHeader())
-        .set(EmptyBearHeader())
+        .set(EmptyBearerHeader())
         .send({})
         .expect(401);
     });
     if (process.env.DATABASE_PROVIDER === 'MONGODB') {
-      it('Pass in valid bearer header (system-owner), but id(1234) not a valid ObjectId  should return 500', () => {
+      it('BearerHeader (system-owner), but id(1234) not a valid ObjectId  should return 500', () => {
         return request(app.getHttpServer())
           .put(`${SYE_RESOURCE_V1_PATH}/1234`)
           .set(ClientKeyHeader())
-          .set(BearHeader(sysOwnerAccessToken))
+          .set(BearerHeader(sysOwnerAccessToken))
           .send({})
           .expect(500);
       });
     }
-    it('Pass in valid bearer header (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {
+    it('BearerHeader (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {
       return request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
         .set(ClientKeyHeader())
-        .set(BearHeader(sysOwnerAccessToken))
+        .set(BearerHeader(sysOwnerAccessToken))
         .send({})
         .expect(404);
     });
-    it('Pass in valid bearer header (system-owner), with exist id should return 200', async () => {
+    it('BearerHeader (system-owner), with exist id should return 200', async () => {
       const existId = await systemService.findOne();
       const res = await request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/${existId._id}`)
         .set(ClientKeyHeader())
-        .set(BearHeader(sysOwnerAccessToken))
+        .set(BearerHeader(sysOwnerAccessToken))
         .send({});
       expect(res.status).toBe(200);
     });
-    it('Pass in valid bearer header (system-owner), with exist id but not valid dto prop, should return 200', async () => {
+    it('BearerHeader (system-owner), with exist id but not valid dto prop, should return 200', async () => {
       const existSys = await systemService.findOne();
       const res = await request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/${existSys._id}`)
         .set(ClientKeyHeader())
-        .set(BearHeader(sysOwnerAccessToken))
+        .set(BearerHeader(sysOwnerAccessToken))
         .send({
           notValidProp: 'notValidProp',
         });
       expect(res.status).toBe(200);
     });
-    it('Pass in valid bearer header (system-owner), should update and return 200', async () => {
+    it('BearerHeader (system-owner), should update and return 200', async () => {
       const existSys = await systemService.findOne();
       const rolesUpdate = [
         {
@@ -234,7 +234,7 @@ describe('GDK/SystemController', () => {
       const res = await request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/${existSys._id}`)
         .set(ClientKeyHeader())
-        .set(BearHeader(sysOwnerAccessToken))
+        .set(BearerHeader(sysOwnerAccessToken))
         .send({
           roles: rolesUpdate,
           clients: clientsUpdate,
