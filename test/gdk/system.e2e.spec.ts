@@ -90,6 +90,46 @@ describe('GDK/SystemController', () => {
         .expect(200);
     });
   });
+  describe(`[GET] ${SYE_RESOURCE_V1_PATH}`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
+      return request(app.getHttpServer())
+        .get(`${SYE_RESOURCE_V1_PATH}`)
+        .expect(403);
+    });
+    it(`Included: ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${SYE_RESOURCE_V1_PATH}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${SYE_RESOURCE_V1_PATH}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it('BearerHeader (system-owner), should return 200', () => {
+      return request(app.getHttpServer())
+        .get(`${SYE_RESOURCE_V1_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({})
+        .expect(200)
+        .expect((res) => {
+          expect(res.body._id).toBeDefined();
+          expect(res.body.roles).toBeDefined();
+          expect(res.body.rolesUpdatedAt).toBeDefined();
+          expect(res.body.endpoints).toBeDefined();
+          expect(res.body.endpointUpdatedAt).toBeDefined();
+          expect(res.body.clients).toBeDefined();
+          expect(res.body.newSignUpDefaultUserRole).toBeDefined();
+          expect(res.body.clientUpdatedAt).toBeDefined();
+          expect(res.body.createdAt).toBeDefined();
+          expect(res.body.updatedAt).toBeDefined();
+        });
+    });
+  });
   const SYNC_HTTP_ENDPOINTS_API = `${SYS_API}/${V1}/${SYNC_HTTP_ENDPOINTS_PATH}`;
   describe(`[PUT] ${SYNC_HTTP_ENDPOINTS_API}`, () => {
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
