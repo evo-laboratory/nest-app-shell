@@ -1,8 +1,8 @@
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { IAuthRevokedToken } from '@gdk-iam/auth-revoked-token/types';
 import { AUTH_REVOKED_TOKEN_MODEL_NAME } from '@gdk-iam/auth-revoked-token/statics';
-import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
-import { Injectable, Logger } from '@nestjs/common';
+import { AUTH_TOKEN_TYPE, IAuthDecodedToken, IAuthRevokedRefreshTokenRes } from '@gdk-iam/auth/types';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 import { MongoDBErrorHandler } from '@shared/mongodb';
@@ -19,6 +19,11 @@ import {
   AuthRevokedTokenDocument,
 } from './auth-revoked-token.schema';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
+import { AuthRevokeRefreshTokenDto } from '@gdk-iam/auth/dto';
+import { JsonStringify } from '@shared/helper';
+import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
+import { ConfigType } from '@nestjs/config';
+import { AuthJwtService } from '@gdk-iam/auth-jwt/auth-jwt.service';
 
 @Injectable()
 export class AuthRevokedTokenMongooseService
@@ -26,8 +31,13 @@ export class AuthRevokedTokenMongooseService
 {
   private readonly Logger = new Logger(AuthRevokedTokenMongooseService.name);
   constructor(
+    @Inject(identityAccessManagementConfig.KEY)
+    private readonly iamConfig: ConfigType<
+      typeof identityAccessManagementConfig
+    >,
     @InjectModel(AUTH_REVOKED_TOKEN_MODEL_NAME)
     private readonly AuthRevokedTokenModel: Model<AuthRevokedToken>,
+    private readonly authJwt: AuthJwtService,
   ) {}
 
   @MethodLogger()
@@ -111,6 +121,47 @@ export class AuthRevokedTokenMongooseService
         authId: authId,
       }).lean();
       return list;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async revokeRefreshToken(
+    verifiedToken: IAuthDecodedToken,
+    dto: AuthRevokeRefreshTokenDto,
+  ): Promise<IAuthRevokedRefreshTokenRes> {
+    this.Logger.verbose(
+      JsonStringify(verifiedToken),
+      'revokeRefreshToken(verifiedToken)',
+    );
+    this.Logger.verbose(JsonStringify(dto), 'revokeRefreshToken(dto)');
+    this.Logger.verbose(
+      this.iamConfig.CHECK_REVOKED_TOKEN,
+      'revokeRefreshToken.CHECK_REVOKED_TOKEN',
+    );
+    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: false,
+      };
+    }
+    try {
+      // * Validate refresh token
+      const token = await this.authJwt.verify<IAuthDecodedToken>(
+        dto.token,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      await this.insert(
+        verifiedToken.sub,
+        token.tokenId,
+        AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
+        AUTH_TOKEN_TYPE.REFRESH,
+      );
+      return {
+        resultMessage: 'OK',
+        isRevokedToken: true,
+      };
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

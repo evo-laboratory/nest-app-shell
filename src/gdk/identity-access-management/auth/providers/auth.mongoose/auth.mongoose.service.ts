@@ -845,47 +845,6 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
-  public async revokeRefreshToken(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthRevokeRefreshTokenDto,
-  ): Promise<IAuthRevokedRefreshTokenRes> {
-    this.Logger.verbose(
-      JsonStringify(verifiedToken),
-      'revokeRefreshToken(verifiedToken)',
-    );
-    this.Logger.verbose(JsonStringify(dto), 'revokeRefreshToken(dto)');
-    this.Logger.verbose(
-      this.iamConfig.CHECK_REVOKED_TOKEN,
-      'revokeRefreshToken.CHECK_REVOKED_TOKEN',
-    );
-    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: false,
-      };
-    }
-    try {
-      // * Validate refresh token
-      const token = await this.authJwt.verify<IAuthDecodedToken>(
-        dto.token,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      await this.revokeService.insert(
-        verifiedToken.sub,
-        token.tokenId,
-        AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: true,
-      };
-    } catch (error) {
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
-
-  @MethodLogger()
   private async createWithUser(
     dto: IAuthCreateAuthWithUser,
     hashPassword = true,

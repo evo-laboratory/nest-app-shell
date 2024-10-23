@@ -60,10 +60,6 @@ export abstract class AuthService {
     dto: GetOptionsDto,
     canBeNull: boolean,
   ): Promise<IGetResponseWrapper<IAuth>>;
-  abstract revokeRefreshToken(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthRevokeRefreshTokenDto,
-  ): Promise<IAuthRevokedRefreshTokenRes>;
   abstract enable(): void;
   abstract disable(): void;
 }
