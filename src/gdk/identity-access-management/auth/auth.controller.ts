@@ -60,7 +60,7 @@ import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly authRevokedTokenService: AuthRevokedTokenService
+    private readonly authRevokedTokenService: AuthRevokedTokenService,
   ) {}
 
   @AuthType(AUTH_TYPE.PUBLIC)
@@ -132,7 +132,11 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,
   ) {
-    return await this.authRevokedTokenService.revokeRefreshToken(token, dto, AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT);
+    return await this.authRevokedTokenService.revokeRefreshToken(
+      token,
+      dto,
+      AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
+    );
   }
 
   @AuthZType(AUTHZ_TYPE.USER)
@@ -143,7 +147,11 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthRevokeRefreshTokenDto,
   ) {
-    return await this.authRevokedTokenService.revokeRefreshToken(token, dto, AUTH_REVOKED_TOKEN_SOURCE.ADMIN);
+    return await this.authRevokedTokenService.revokeRefreshToken(
+      token,
+      dto,
+      AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
+    );
   }
 
   @Get(`${V1}/${LIST_PATH}`)
