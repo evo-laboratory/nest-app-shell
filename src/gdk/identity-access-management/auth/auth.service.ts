@@ -21,7 +21,6 @@ import {
 } from './types';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
-import { IAuthRevokedRefreshTokenRes } from './types/auth-revoked-refresh-token-response.interface';
 
 @Injectable()
 export abstract class AuthService {
@@ -54,10 +53,6 @@ export abstract class AuthService {
     dto: GetOptionsDto,
     canBeNull: boolean,
   ): Promise<IGetResponseWrapper<IAuth>>;
-  abstract revokeRefreshToken(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthRevokeRefreshTokenDto,
-  ): Promise<IAuthRevokedRefreshTokenRes>;
   abstract enable(): void;
   abstract disable(): void;
 }

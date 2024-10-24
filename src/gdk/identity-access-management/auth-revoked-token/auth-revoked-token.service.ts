@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AUTH_TOKEN_TYPE,
-  IAuthDecodedToken,
-  IAuthSignOutRes,
-} from '@gdk-iam/auth/types';
+import { AUTH_TOKEN_TYPE, IAuthDecodedToken, IAuthRevokedRefreshTokenRes } from '@gdk-iam/auth/types';
 import { AUTH_REVOKED_TOKEN_SOURCE } from './enums';
-import { AuthSignOutDto } from '@gdk-iam/auth/dto';
+import { AuthRevokeRefreshTokenDto } from '@gdk-iam/auth/dto';
 
 @Injectable()
 export abstract class AuthRevokedTokenService {
@@ -18,8 +14,9 @@ export abstract class AuthRevokedTokenService {
   abstract check(authId: string, tokenId: string): Promise<boolean>;
   abstract get(authId: string, tokenId: string): Promise<any>;
   abstract listByAuthId(authId: string): Promise<any>;
-  abstract signOut(
+  abstract revokeRefreshToken(
     verifiedToken: IAuthDecodedToken,
-    dto: AuthSignOutDto,
-  ): Promise<IAuthSignOutRes>;
+    dto: AuthRevokeRefreshTokenDto,
+    source: AUTH_REVOKED_TOKEN_SOURCE,
+  ): Promise<IAuthRevokedRefreshTokenRes>;
 }
