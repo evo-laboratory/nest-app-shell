@@ -23,7 +23,6 @@ import {
 } from './types';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
-import { IAuthRevokedRefreshTokenRes } from './types/auth-revoked-refresh-token-response.interface';
 
 @Injectable()
 export abstract class AuthService {

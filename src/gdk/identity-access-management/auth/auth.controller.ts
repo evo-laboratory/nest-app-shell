@@ -53,6 +53,7 @@ import {
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
@@ -131,7 +132,7 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,
   ) {
-    return await this.authService.signOut(token, dto);
+    return await this.authRevokedTokenService.revokeRefreshToken(token, dto, AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT);
   }
 
   @AuthZType(AUTHZ_TYPE.USER)
@@ -142,7 +143,7 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthRevokeRefreshTokenDto,
   ) {
-    return await this.authRevokedTokenService.revokeRefreshToken(token, dto);
+    return await this.authRevokedTokenService.revokeRefreshToken(token, dto, AUTH_REVOKED_TOKEN_SOURCE.ADMIN);
   }
 
   @Get(`${V1}/${LIST_PATH}`)

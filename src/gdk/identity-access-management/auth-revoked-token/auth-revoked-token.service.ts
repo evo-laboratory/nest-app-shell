@@ -17,5 +17,6 @@ export abstract class AuthRevokedTokenService {
   abstract revokeRefreshToken(
     verifiedToken: IAuthDecodedToken,
     dto: AuthRevokeRefreshTokenDto,
+    source: AUTH_REVOKED_TOKEN_SOURCE,
   ): Promise<IAuthRevokedRefreshTokenRes>;
 }

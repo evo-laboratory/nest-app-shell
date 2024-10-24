@@ -130,6 +130,7 @@ export class AuthRevokedTokenMongooseService
   public async revokeRefreshToken(
     verifiedToken: IAuthDecodedToken,
     dto: AuthRevokeRefreshTokenDto,
+    source: AUTH_REVOKED_TOKEN_SOURCE,
   ): Promise<IAuthRevokedRefreshTokenRes> {
     this.Logger.verbose(
       JsonStringify(verifiedToken),
@@ -155,7 +156,7 @@ export class AuthRevokedTokenMongooseService
       await this.insert(
         verifiedToken.sub,
         token.tokenId,
-        AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
+        source,
         AUTH_TOKEN_TYPE.REFRESH,
       );
       return {
