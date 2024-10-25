@@ -799,8 +799,38 @@ export class AuthMongooseService implements AuthService {
     throw new Error('Method not implemented.');
   }
   @MethodLogger()
-  public async disable() {
-    throw new Error('Method not implemented.');
+  public async disableById(authId: string) {
+    try {
+      // * STEP 1. Check if already disabled
+      const check = await this.AuthModel.findById(authId);
+      if (check === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${authId} not found`,
+          404,
+          'disableById',
+        );
+      }
+      if (!check.isActive) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_ALREADY_DISABLED,
+          `Auth: ${authId} already disabled`,
+          400,
+          'disableById',
+        );
+      }
+      const disabled = await this.AuthModel.findByIdAndUpdate(authId, {
+        $set: {
+          isActive: true,
+          inactiveAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      });
+      // TODO Revoke All Refresh Tokens from this Auth
+      return disabled;
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
   @MethodLogger()

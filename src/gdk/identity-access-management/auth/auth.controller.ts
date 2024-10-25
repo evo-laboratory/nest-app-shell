@@ -177,8 +177,8 @@ export class AuthController {
   // TODO Implement Event(Auth) webhooks / triggers
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    // return this.authService.update(+id, updateAuthDto);
+  async disableById(@Param('id') id: string) {
+    return await this.authService.disableById(id);
   }
 
   @Delete(':id')

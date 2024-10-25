@@ -52,5 +52,5 @@ export abstract class AuthService {
     canBeNull: boolean,
   ): Promise<IGetResponseWrapper<IAuth>>;
   abstract enable(): void;
-  abstract disable(): void;
+  abstract disableById(id: string): Promise<IAuth>;
 }
