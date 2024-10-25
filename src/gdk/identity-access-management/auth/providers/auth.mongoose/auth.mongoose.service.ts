@@ -32,14 +32,12 @@ import {
   IAuth,
   IAuthGenerateCustomTokenResult,
   IAuthFlexUpdate,
-  IAuthRevokedRefreshTokenRes,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthExchangeNewAccessTokenDto,
-  AuthRevokeRefreshTokenDto,
   AuthSocialSignInUpDto,
   AuthVerifyDto,
   EmailSignUpDto,
@@ -48,7 +46,6 @@ import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
-import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 import {
   ExtractPropertiesFromObj,
   GetResponseWrap,

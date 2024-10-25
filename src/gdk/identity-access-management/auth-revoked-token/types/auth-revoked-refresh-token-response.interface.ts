@@ -1,3 +1,3 @@
-import { IAuthSignOutRes } from './auth-sign-out-response.interface';
+import { IAuthSignOutRes } from '@gdk-iam/auth/types';
 
 export type IAuthRevokedRefreshTokenRes = IAuthSignOutRes;

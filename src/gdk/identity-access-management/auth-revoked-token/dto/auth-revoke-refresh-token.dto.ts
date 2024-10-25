@@ -1,5 +1,6 @@
 import { IsEnum, IsString } from 'class-validator';
-import { AUTH_TOKEN_TYPE, IAuthRevokeToken } from '../types';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
+import { IAuthRevokeToken } from '../types';
 
 export class AuthRevokeRefreshTokenDto implements IAuthRevokeToken {
   @IsString()
