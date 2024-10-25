@@ -17,8 +17,6 @@ export * from './auth-method.enum';
 export * from './auth-provider.enum';
 export * from './auth-token.interface';
 export * from './auth-register-token.interface';
-export * from './auth-revoke-token.interface';
-export * from './auth-revoked-refresh-token-response.interface';
 export * from './auth-check-refresh-token.interface';
 export * from './auth-sign-out-response.interface';
 export * from './auth-sign-out.interface';

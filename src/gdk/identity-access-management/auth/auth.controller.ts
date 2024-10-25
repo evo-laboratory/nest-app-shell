@@ -13,6 +13,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
@@ -24,8 +25,6 @@ import {
   AuthExchangeNewAccessTokenRes,
   AuthGetByIdResDto,
   AuthListResDto,
-  AuthRevokeRefreshTokenDto,
-  AuthRevokeRefreshTokenRes,
   AuthSignInRes,
   AuthSignOutDto,
   AuthSignOutRes,
@@ -53,8 +52,10 @@ import {
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTHZ_TYPE } from './enums';
-import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
-import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
+import {
+  AuthRevokeRefreshTokenDto,
+  AuthRevokeRefreshTokenRes,
+} from '@gdk-iam/auth-revoked-token/dto';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)

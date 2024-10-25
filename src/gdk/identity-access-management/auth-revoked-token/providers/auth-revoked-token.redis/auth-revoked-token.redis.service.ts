@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { AUTH_TOKEN_TYPE, IAuthDecodedToken, IAuthSignOutRes } from '@gdk-iam/auth/types';
+import {
+  AUTH_TOKEN_TYPE,
+  IAuthDecodedToken,
+  IAuthSignOutRes,
+} from '@gdk-iam/auth/types';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
-import { AuthRevokeRefreshTokenDto } from '@gdk-iam/auth/dto';
+import { AuthRevokeRefreshTokenDto } from '@gdk-iam/auth-revoked-token/dto';
 
 @Injectable()
 export class AuthRevokedTokenRedisService implements AuthRevokedTokenService {
-  revokeRefreshToken(verifiedToken: IAuthDecodedToken, dto: AuthRevokeRefreshTokenDto): Promise<IAuthSignOutRes> {
+  revokeRefreshToken(
+    verifiedToken: IAuthDecodedToken,
+    dto: AuthRevokeRefreshTokenDto,
+  ): Promise<IAuthSignOutRes> {
     throw new Error('Method not implemented.');
   }
   public async insert(

@@ -7,7 +7,6 @@ import {
   AuthCheckRefreshTokenDto,
   AuthExchangeNewAccessTokenDto,
   AuthSocialSignInUpDto,
-  AuthRevokeRefreshTokenDto,
 } from './dto';
 import {
   IEmailSignUpRes,
@@ -17,7 +16,6 @@ import {
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuth,
-  IAuthDecodedToken,
 } from './types';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
