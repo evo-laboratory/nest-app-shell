@@ -1,4 +1,4 @@
-import { AUTH_CODE_USAGE } from './auth-code-usage.enum';
+import { AUTH_CODE_USAGE } from '../enums';
 
 export interface IAuthVerify {
   identifier: string;

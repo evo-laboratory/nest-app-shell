@@ -8,9 +8,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AccessTokenGuard } from '@gdk-iam/auth-jwt/guards/access-token/access-token.guard';
 import { AUTH_TYPE_KEY } from '@gdk-iam/auth/decorators/auth-type.decorator';
-import { AUTH_TYPE } from '@gdk-iam/auth/types';
+import { AUTH_TYPE } from '@gdk-iam/auth/enums';
 import { WINSTON_LOG_VARIANT_LEVEL } from '@shared/winston-logger';
-
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
   private readonly Logger = new Logger(AuthenticationGuard.name);

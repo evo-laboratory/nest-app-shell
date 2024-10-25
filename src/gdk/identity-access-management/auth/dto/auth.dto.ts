@@ -1,14 +1,9 @@
 import { Types } from 'mongoose';
-import {
-  AUTH_CODE_USAGE,
-  AUTH_IDENTIFIER_TYPE,
-  AUTH_METHOD,
-  AUTH_PROVIDER,
-  IAuth,
-} from '../types';
+import { AUTH_IDENTIFIER_TYPE, IAuth } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserIdRefDto } from '@gdk-iam/user/dto';
 import { MongoObjectIdDtoRef } from '@shared/swagger';
+import { AUTH_CODE_USAGE, AUTH_METHOD, AUTH_PROVIDER } from '../enums';
 
 export class AuthDto implements IAuth {
   @ApiProperty({ type: String })

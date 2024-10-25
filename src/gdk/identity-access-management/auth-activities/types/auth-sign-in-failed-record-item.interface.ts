@@ -1,5 +1,4 @@
-import { AUTH_METHOD } from '@gdk-iam/auth/types';
-
+import { AUTH_METHOD } from '@gdk-iam/auth/enums';
 export interface IAuthSignInFailedRecordItem {
   signInMethod: AUTH_METHOD;
   errorCode: string;

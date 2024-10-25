@@ -7,9 +7,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { AUTH_TOKEN_TYPE, IAuthDecodedToken } from '@gdk-iam/auth/types';
+import { IAuthDecodedToken } from '@gdk-iam/auth/types';
 import { AuthJwtService } from '@gdk-iam/auth-jwt/auth-jwt.service';
 import { WINSTON_LOG_VARIANT_LEVEL } from '@shared/winston-logger';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {

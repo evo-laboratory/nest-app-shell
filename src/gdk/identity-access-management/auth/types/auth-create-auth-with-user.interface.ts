@@ -1,6 +1,5 @@
-import { AUTH_CODE_USAGE } from './auth-code-usage.enum';
+import { AUTH_CODE_USAGE, AUTH_METHOD } from '../enums';
 import { AUTH_IDENTIFIER_TYPE } from './auth-identifier-type';
-import { AUTH_METHOD } from './auth-method.enum';
 
 export interface IAuthCreateAuthWithUser {
   identifierType: AUTH_IDENTIFIER_TYPE;

@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
-import { AUTH_METHOD, IAuthSocialSignInUp } from '@gdk-iam/auth/types';
+import { IAuthSocialSignInUp } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import {
   ERROR_CODE,
@@ -15,6 +15,7 @@ import {
   WINSTON_LOG_VARIANT_LEVEL,
 } from '@shared/winston-logger';
 import { JsonStringify } from '@shared/helper';
+import { AUTH_METHOD } from '@gdk-iam/auth/enums';
 
 import { IUnifiedOAuthUser } from './types';
 

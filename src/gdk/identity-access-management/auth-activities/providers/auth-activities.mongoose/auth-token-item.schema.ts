@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { AUTH_TOKEN_ITEM_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
+import { AUTH_PROVIDER, AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
+
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
-import { AUTH_TOKEN_TYPE, AUTH_PROVIDER } from '@gdk-iam/auth/types';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
-
 @Schema()
 export class AuthTokenItem implements IAuthTokenItem {
   @Prop({

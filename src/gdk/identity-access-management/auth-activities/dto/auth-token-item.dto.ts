@@ -1,4 +1,4 @@
-import { AUTH_PROVIDER, AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
+import { AUTH_PROVIDER, AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 import { IAuthTokenItem } from '../types';
 
 export class AuthTokenItemDto implements IAuthTokenItem {

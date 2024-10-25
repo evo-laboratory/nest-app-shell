@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { AUTH_TOKEN_TYPE, IAuthDecodedToken } from '@gdk-iam/auth/types';
+import { IAuthDecodedToken } from '@gdk-iam/auth/types';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 import { AUTH_REVOKED_TOKEN_SOURCE } from './enums';
 import { IAuthRevokedRefreshTokenRes } from './types';
 import { AuthRevokeRefreshTokenDto } from './dto';
-
 @Injectable()
 export abstract class AuthRevokedTokenService {
   abstract insert(

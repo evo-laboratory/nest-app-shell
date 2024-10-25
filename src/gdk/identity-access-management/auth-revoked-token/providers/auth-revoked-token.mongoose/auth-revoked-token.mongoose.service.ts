@@ -4,11 +4,7 @@ import {
   IAuthRevokedToken,
 } from '@gdk-iam/auth-revoked-token/types';
 import { AUTH_REVOKED_TOKEN_MODEL_NAME } from '@gdk-iam/auth-revoked-token/statics';
-import {
-  AUTH_TOKEN_TYPE,
-  IAuthDecodedToken,
-  IAuthSignOutRes,
-} from '@gdk-iam/auth/types';
+import { IAuthDecodedToken, IAuthSignOutRes } from '@gdk-iam/auth/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
@@ -32,6 +28,7 @@ import identityAccessManagementConfig from '@gdk-iam/identity-access-management.
 import { ConfigType } from '@nestjs/config';
 import { AuthJwtService } from '@gdk-iam/auth-jwt/auth-jwt.service';
 import { AuthRevokeRefreshTokenDto } from '@gdk-iam/auth-revoked-token/dto';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 
 @Injectable()
 export class AuthRevokedTokenMongooseService

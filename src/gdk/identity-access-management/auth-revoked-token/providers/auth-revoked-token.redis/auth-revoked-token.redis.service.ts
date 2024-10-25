@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AUTH_TOKEN_TYPE,
-  IAuthDecodedToken,
-  IAuthSignOutRes,
-} from '@gdk-iam/auth/types';
+import { IAuthDecodedToken, IAuthSignOutRes } from '@gdk-iam/auth/types';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 import { AuthRevokeRefreshTokenDto } from '@gdk-iam/auth-revoked-token/dto';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 
 @Injectable()
 export class AuthRevokedTokenRedisService implements AuthRevokedTokenService {

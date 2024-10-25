@@ -16,13 +16,9 @@ import {
   AUTH_MODEL_NAME,
   IEmailSignUpRes,
   AUTH_IDENTIFIER_TYPE,
-  AUTH_METHOD,
-  AUTH_PROVIDER,
-  AUTH_CODE_USAGE,
   IAuthVerifyRes,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
-  AUTH_TOKEN_TYPE,
   IAuthSignInRes,
   IAuthDecodedToken,
   IAuthCheckResult,
@@ -70,6 +66,12 @@ import {
 import { Auth } from './auth.schema';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
+import {
+  AUTH_CODE_USAGE,
+  AUTH_METHOD,
+  AUTH_PROVIDER,
+  AUTH_TOKEN_TYPE,
+} from '@gdk-iam/auth/enums';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);

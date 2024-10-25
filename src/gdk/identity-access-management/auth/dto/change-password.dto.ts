@@ -1,6 +1,6 @@
 import { IsEnum, IsString, Length, MinLength } from 'class-validator';
-import { AUTH_CODE_USAGE } from '../types';
 import { IAuthVerify } from '../types/auth-verify.interface';
+import { AUTH_CODE_USAGE } from '../enums';
 
 export class ChangePasswordDto implements IAuthVerify {
   @IsString()

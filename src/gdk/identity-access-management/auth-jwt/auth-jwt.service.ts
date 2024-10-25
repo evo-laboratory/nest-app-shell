@@ -1,17 +1,17 @@
-import { AUTH_TOKEN_TYPE, IAuthSignedResult } from '@gdk-iam/auth/types';
-import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
-import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
-import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
+import { IAuthSignedResult } from '@gdk-iam/auth/types';
+import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
+import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
+import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 import {
   ExtractPropertiesFromObj,
   GenerateUUID,
   JsonStringify,
 } from '@shared/helper';
 import { MethodLogger } from '@shared/winston-logger';
-
 @Injectable()
 export class AuthJwtService {
   private readonly Logger = new Logger(AuthJwtService.name);

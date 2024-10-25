@@ -1,11 +1,7 @@
 import { Types } from 'mongoose';
-import {
-  AUTH_CODE_USAGE,
-  AUTH_IDENTIFIER_TYPE,
-  AUTH_PROVIDER,
-  AUTH_METHOD,
-} from '.';
+import { AUTH_IDENTIFIER_TYPE } from '.';
 import { IUser } from '@gdk-iam/user/types';
+import { AUTH_CODE_USAGE, AUTH_METHOD, AUTH_PROVIDER } from '../enums';
 
 export interface IAuth<
   UserIdT extends IUser | Types.ObjectId = Types.ObjectId,

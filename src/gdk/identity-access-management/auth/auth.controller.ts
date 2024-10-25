@@ -38,7 +38,6 @@ import {
 import {
   ACCESS_TOKEN_PATH,
   AUTH_API,
-  AUTH_TYPE,
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
@@ -51,7 +50,7 @@ import {
   VERIFIED_EMAIL_SIGN_UP_PATH,
 } from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
-import { AUTHZ_TYPE } from './enums';
+import { AUTH_TYPE, AUTHZ_TYPE } from './enums';
 import {
   AuthRevokeRefreshTokenDto,
   AuthRevokeRefreshTokenRes,

@@ -1,7 +1,7 @@
 import { VERIFIED_JWT_KEY } from '@gdk-iam/auth-jwt/auth-jwt.static';
 import { AUTH_TYPE_KEY, AUTHZ_TYPE_KEY } from '@gdk-iam/auth/decorators';
-import { AUTHZ_TYPE } from '@gdk-iam/auth/enums';
-import { AUTH_TYPE, IAuthDecodedToken } from '@gdk-iam/auth/types';
+import { AUTH_TYPE, AUTHZ_TYPE } from '@gdk-iam/auth/enums';
+import { IAuthDecodedToken } from '@gdk-iam/auth/types';
 import RolePermissionResolver from '@gdk-iam/user/helpers/role-permission-resolver';
 import { SystemService } from '@gdk-system/system.service';
 import {
