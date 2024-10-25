@@ -13,11 +13,9 @@ import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoke
 import { OauthClientService } from '@gdk-iam/oauth-client/oauth-client.service';
 
 import {
-  AUTH_MODEL_NAME,
   IEmailSignUpRes,
   AUTH_IDENTIFIER_TYPE,
   IAuthVerifyRes,
-  EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
   IAuthSignInRes,
   IAuthDecodedToken,
@@ -72,6 +70,10 @@ import {
   AUTH_PROVIDER,
   AUTH_TOKEN_TYPE,
 } from '@gdk-iam/auth/enums';
+import {
+  AUTH_MODEL_NAME,
+  EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
+} from '@gdk-iam/auth/statics';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);

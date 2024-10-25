@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { AUTH_TOKEN_ITEM_MODEL_NAME } from '@gdk-iam/auth/types/auth.static';
+import { AUTH_TOKEN_ITEM_MODEL_NAME } from '@gdk-iam/auth/statics';
 import { AUTH_PROVIDER, AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';

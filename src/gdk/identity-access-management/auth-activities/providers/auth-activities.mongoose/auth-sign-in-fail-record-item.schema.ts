@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
-import { AUTH_SIGN_IN_FAIL_RECORD_ITEM_MODEL_NAME } from '@gdk-iam/auth/types';
 import { IAuthSignInFailedRecordItem } from '@gdk-iam/auth-activities/types';
 import { AUTH_METHOD } from '@gdk-iam/auth/enums';
+import { AUTH_SIGN_IN_FAIL_RECORD_ITEM_MODEL_NAME } from '@gdk-iam/auth/statics';
 
 @Schema()
 export class AuthSignInFailRecordItem implements IAuthSignInFailedRecordItem {

@@ -35,26 +35,26 @@ import {
   EmailSignUpRes,
   UpdateAuthDto,
 } from './dto';
-import {
-  ACCESS_TOKEN_PATH,
-  AUTH_API,
-  EMAIL_SIGN_IN_PATH,
-  EMAIL_SIGN_UP_PATH,
-  EMAIL_VERIFICATION_PATH,
-  IAuthDecodedToken,
-  REFRESH_TOKEN_PATH,
-  REVOKE_REFRESH_TOKEN_PATH,
-  SIGN_OUT_PATH,
-  SOCIAL_SIGN_IN_UP_PATH,
-  VERIFICATION_PATH,
-  VERIFIED_EMAIL_SIGN_UP_PATH,
-} from './types';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTH_TYPE, AUTHZ_TYPE } from './enums';
 import {
   AuthRevokeRefreshTokenDto,
   AuthRevokeRefreshTokenRes,
 } from '@gdk-iam/auth-revoked-token/dto';
+import {
+  ACCESS_TOKEN_PATH,
+  AUTH_API,
+  EMAIL_SIGN_IN_PATH,
+  EMAIL_SIGN_UP_PATH,
+  EMAIL_VERIFICATION_PATH,
+  REFRESH_TOKEN_PATH,
+  REVOKE_REFRESH_TOKEN_PATH,
+  SIGN_OUT_PATH,
+  SOCIAL_SIGN_IN_UP_PATH,
+  VERIFICATION_PATH,
+  VERIFIED_EMAIL_SIGN_UP_PATH,
+} from './statics';
+import { IAuthDecodedToken } from './types';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)

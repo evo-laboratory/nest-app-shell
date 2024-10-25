@@ -23,6 +23,5 @@ export * from './auth-verify.interface';
 export * from './auth-email-verification.interface';
 export * from './auth.interface';
 export * from './auth.sign-in-response.interface';
-export * from './auth.static';
 export * from './create-auth.interface';
 export * from './email-signup.interface';

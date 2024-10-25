@@ -3,7 +3,6 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 
-import { AUTH_ACTIVITIES_MODEL_NAME } from '@gdk-iam/auth/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import {
@@ -11,6 +10,8 @@ import {
   IAuthSignInFailedRecordItem,
   IAuthTokenItem,
 } from '@gdk-iam/auth-activities/types';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
+import { AUTH_ACTIVITIES_MODEL_NAME } from '@gdk-iam/auth/statics';
 import { MethodLogger } from '@shared/winston-logger';
 import {
   ERROR_CODE,
@@ -22,8 +23,6 @@ import { MongoDBErrorHandler, StringToObjectId } from '@shared/mongodb';
 import { JsonStringify } from '@shared/helper';
 
 import { AuthActivities } from './auth-activities.schema';
-import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
-
 @Injectable()
 export class AuthActivitiesMongooseService implements AuthActivitiesService {
   private readonly Logger = new Logger(AuthActivitiesMongooseService.name);
