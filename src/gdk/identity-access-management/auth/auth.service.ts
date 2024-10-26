@@ -6,24 +6,19 @@ import {
   AuthEmailSignInDto,
   AuthCheckRefreshTokenDto,
   AuthExchangeNewAccessTokenDto,
-  AuthSignOutDto,
   AuthSocialSignInUpDto,
-  AuthRevokeRefreshTokenDto,
 } from './dto';
 import {
   IEmailSignUpRes,
   IAuthVerifyRes,
   IAuthEmailVerificationRes,
   IAuthSignInRes,
-  IAuthSignOutRes,
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuth,
-  IAuthDecodedToken,
 } from './types';
 import { IGetResponseWrapper } from '@shared/types';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
-import { IAuthRevokedRefreshTokenRes } from './types/auth-revoked-refresh-token-response.interface';
 
 @Injectable()
 export abstract class AuthService {
@@ -46,10 +41,6 @@ export abstract class AuthService {
   abstract exchangeAccessToken(
     dto: AuthExchangeNewAccessTokenDto,
   ): Promise<IAuthExchangeNewAccessTokenRes>;
-  abstract signOut(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthSignOutDto,
-  ): Promise<IAuthSignOutRes>;
   abstract getAuthById(): void;
   abstract getAuthByEmail(): void;
   abstract listAll(
@@ -60,10 +51,6 @@ export abstract class AuthService {
     dto: GetOptionsDto,
     canBeNull: boolean,
   ): Promise<IGetResponseWrapper<IAuth>>;
-  abstract revokeRefreshToken(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthRevokeRefreshTokenDto,
-  ): Promise<IAuthRevokedRefreshTokenRes>;
   abstract enable(): void;
-  abstract disable(): void;
+  abstract disableById(id: string): Promise<IAuth>;
 }

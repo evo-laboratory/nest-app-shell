@@ -1,5 +1,6 @@
 import { IsEnum, IsString } from 'class-validator';
-import { AUTH_TOKEN_TYPE, IAuthSignOut } from '../types';
+import { IAuthSignOut } from '../types';
+import { AUTH_TOKEN_TYPE } from '../enums';
 
 export class AuthSignOutDto implements IAuthSignOut {
   @IsString()

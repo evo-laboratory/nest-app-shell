@@ -1,5 +1,6 @@
 import { IsString, IsEnum } from 'class-validator';
-import { AUTH_METHOD, IAuthSocialSignInUp } from '../types';
+import { IAuthSocialSignInUp } from '../types';
+import { AUTH_METHOD } from '../enums';
 
 export class AuthSocialSignInUpDto implements IAuthSocialSignInUp {
   @IsString()

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/types';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 import {
   IAuthActivities,
   IAuthSignInFailedRecordItem,

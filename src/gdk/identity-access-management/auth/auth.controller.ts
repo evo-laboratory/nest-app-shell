@@ -12,6 +12,8 @@ import {
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
@@ -23,8 +25,6 @@ import {
   AuthExchangeNewAccessTokenRes,
   AuthGetByIdResDto,
   AuthListResDto,
-  AuthRevokeRefreshTokenDto,
-  AuthRevokeRefreshTokenRes,
   AuthSignInRes,
   AuthSignOutDto,
   AuthSignOutRes,
@@ -35,28 +35,34 @@ import {
   EmailSignUpRes,
   UpdateAuthDto,
 } from './dto';
+import { AuthType, AuthZType, VerifiedToken } from './decorators';
+import { AUTH_TYPE, AUTHZ_TYPE } from './enums';
+import {
+  AuthRevokeRefreshTokenDto,
+  AuthRevokeRefreshTokenRes,
+} from '@gdk-iam/auth-revoked-token/dto';
 import {
   ACCESS_TOKEN_PATH,
   AUTH_API,
-  AUTH_TYPE,
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
-  IAuthDecodedToken,
   REFRESH_TOKEN_PATH,
   REVOKE_REFRESH_TOKEN_PATH,
   SIGN_OUT_PATH,
   SOCIAL_SIGN_IN_UP_PATH,
   VERIFICATION_PATH,
   VERIFIED_EMAIL_SIGN_UP_PATH,
-} from './types';
-import { AuthType, AuthZType, VerifiedToken } from './decorators';
-import { AUTHZ_TYPE } from './enums';
+} from './statics';
+import { IAuthDecodedToken } from './types';
 
 @ApiTags(AUTH_API)
 @Controller(`${GPI}/${AUTH_API}`)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly authRevokedTokenService: AuthRevokedTokenService,
+  ) {}
 
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)
@@ -104,7 +110,6 @@ export class AuthController {
   }
 
   @AuthType(AUTH_TYPE.PUBLIC)
-  @AuthZType(AUTHZ_TYPE.USER)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
   @ApiResponse({ type: AuthExchangeNewAccessTokenRes })
   async exchangeNewAccessTokenV1(@Body() dto: AuthExchangeNewAccessTokenDto) {
@@ -127,7 +132,11 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,
   ) {
-    return await this.authService.signOut(token, dto);
+    return await this.authRevokedTokenService.revokeRefreshToken(
+      token,
+      dto,
+      AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
+    );
   }
 
   @AuthZType(AUTHZ_TYPE.USER)
@@ -138,7 +147,11 @@ export class AuthController {
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthRevokeRefreshTokenDto,
   ) {
-    return await this.authService.revokeRefreshToken(token, dto);
+    return await this.authRevokedTokenService.revokeRefreshToken(
+      token,
+      dto,
+      AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
+    );
   }
 
   @Get(`${V1}/${LIST_PATH}`)
@@ -156,7 +169,6 @@ export class AuthController {
     return await this.authService.getById(id, options, false);
   }
 
-  // TODO Separate Token List (Refresh and Access) for prepare different provider(Firebase, Cognito)
   // TODO Disable Auth
   // TODO Delete Auth and User
   // TODO User APIs
@@ -165,8 +177,8 @@ export class AuthController {
   // TODO Implement Event(Auth) webhooks / triggers
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    // return this.authService.update(+id, updateAuthDto);
+  async disableById(@Param('id') id: string) {
+    return await this.authService.disableById(id);
   }
 
   @Delete(':id')

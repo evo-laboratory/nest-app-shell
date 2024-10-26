@@ -1,5 +1,4 @@
-import { AUTH_METHOD } from './auth-method.enum';
-
+import { AUTH_METHOD } from '../enums';
 export interface IAuthSocialSignInUp {
   method: AUTH_METHOD;
   token: string;

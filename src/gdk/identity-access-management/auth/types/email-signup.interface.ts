@@ -1,5 +1,4 @@
-import { AUTH_PROVIDER } from './auth-provider.enum';
-
+import { AUTH_PROVIDER } from '../enums';
 export interface IEmailSignUp {
   email: string;
   password: string;

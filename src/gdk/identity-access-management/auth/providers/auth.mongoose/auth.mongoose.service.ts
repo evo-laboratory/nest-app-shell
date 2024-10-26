@@ -13,19 +13,12 @@ import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoke
 import { OauthClientService } from '@gdk-iam/oauth-client/oauth-client.service';
 
 import {
-  AUTH_MODEL_NAME,
   IEmailSignUpRes,
   AUTH_IDENTIFIER_TYPE,
-  AUTH_METHOD,
-  AUTH_PROVIDER,
-  AUTH_CODE_USAGE,
   IAuthVerifyRes,
-  EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
   IAuthGeneratedCode,
-  AUTH_TOKEN_TYPE,
   IAuthSignInRes,
   IAuthDecodedToken,
-  IAuthSignOutRes,
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuthCreateAuthWithUser,
@@ -33,15 +26,12 @@ import {
   IAuth,
   IAuthGenerateCustomTokenResult,
   IAuthFlexUpdate,
-  IAuthRevokedRefreshTokenRes,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthExchangeNewAccessTokenDto,
-  AuthRevokeRefreshTokenDto,
-  AuthSignOutDto,
   AuthSocialSignInUpDto,
   AuthVerifyDto,
   EmailSignUpDto,
@@ -50,7 +40,6 @@ import { ISendMail } from '@gdk-mail/types';
 import identityAccessManagementConfig from '@gdk-iam/identity-access-management.config';
 import { IUser, IUserTokenPayload } from '@gdk-iam/user/types';
 
-import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 import {
   ExtractPropertiesFromObj,
   GetResponseWrap,
@@ -75,6 +64,16 @@ import {
 import { Auth } from './auth.schema';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
+import {
+  AUTH_CODE_USAGE,
+  AUTH_METHOD,
+  AUTH_PROVIDER,
+  AUTH_TOKEN_TYPE,
+} from '@gdk-iam/auth/enums';
+import {
+  AUTH_MODEL_NAME,
+  EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
+} from '@gdk-iam/auth/statics';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);
@@ -742,46 +741,6 @@ export class AuthMongooseService implements AuthService {
     }
   }
 
-  @MethodLogger()
-  public async signOut(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthSignOutDto,
-  ): Promise<IAuthSignOutRes> {
-    this.Logger.verbose(
-      JsonStringify(verifiedToken),
-      'verifiedToken(verifiedToken)',
-    );
-    this.Logger.verbose(JsonStringify(dto), 'signOut(dto)');
-    this.Logger.verbose(
-      this.iamConfig.CHECK_REVOKED_TOKEN,
-      'signOut.CHECK_REVOKED_TOKEN',
-    );
-    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: false,
-      };
-    }
-    try {
-      // * Validate refresh token
-      const token = await this.authJwt.verify<IAuthDecodedToken>(
-        dto.token,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      await this.revokeService.insert(
-        verifiedToken.sub,
-        token.tokenId,
-        AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: true,
-      };
-    } catch (error) {
-      return Promise.reject(MongoDBErrorHandler(error));
-    }
-  }
   getAuthById(): void {
     throw new Error('Method not implemented.');
   }
@@ -840,46 +799,35 @@ export class AuthMongooseService implements AuthService {
     throw new Error('Method not implemented.');
   }
   @MethodLogger()
-  public async disable() {
-    throw new Error('Method not implemented.');
-  }
-
-  @MethodLogger()
-  public async revokeRefreshToken(
-    verifiedToken: IAuthDecodedToken,
-    dto: AuthRevokeRefreshTokenDto,
-  ): Promise<IAuthRevokedRefreshTokenRes> {
-    this.Logger.verbose(
-      JsonStringify(verifiedToken),
-      'revokeRefreshToken(verifiedToken)',
-    );
-    this.Logger.verbose(JsonStringify(dto), 'revokeRefreshToken(dto)');
-    this.Logger.verbose(
-      this.iamConfig.CHECK_REVOKED_TOKEN,
-      'revokeRefreshToken.CHECK_REVOKED_TOKEN',
-    );
-    if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: false,
-      };
-    }
+  public async disableById(authId: string) {
     try {
-      // * Validate refresh token
-      const token = await this.authJwt.verify<IAuthDecodedToken>(
-        dto.token,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      await this.revokeService.insert(
-        verifiedToken.sub,
-        token.tokenId,
-        AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
-        AUTH_TOKEN_TYPE.REFRESH,
-      );
-      return {
-        resultMessage: 'OK',
-        isRevokedToken: true,
-      };
+      // * STEP 1. Check if already disabled
+      const check = await this.AuthModel.findById(authId);
+      if (check === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${authId} not found`,
+          404,
+          'disableById',
+        );
+      }
+      if (!check.isActive) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_ALREADY_DISABLED,
+          `Auth: ${authId} already disabled`,
+          400,
+          'disableById',
+        );
+      }
+      const disabled = await this.AuthModel.findByIdAndUpdate(authId, {
+        $set: {
+          isActive: true,
+          inactiveAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      });
+      // TODO Revoke All Refresh Tokens from this Auth
+      return disabled;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

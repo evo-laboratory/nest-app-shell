@@ -21,5 +21,13 @@ export function MongoDBErrorHandler(error: any): IUnitedHttpException {
   if (error._message && error._message.includes('validation failed')) {
     errorObj.errorCode = ERROR_CODE.SCHEMA_VALIDATE_FAILED;
   }
+  if (error.message && error.message.includes('validation failed')) {
+    errorObj.errorCode = ERROR_CODE.SCHEMA_VALIDATE_FAILED;
+  }
+  if (error.message && error.message.includes('Cast to ObjectId failed')) {
+    errorObj.errorCode = ERROR_CODE.CAST_TO_OBJECT_FAILED;
+  }
+  console.log(error.message);
+  console.log('--------------');
   return errorObj;
 }

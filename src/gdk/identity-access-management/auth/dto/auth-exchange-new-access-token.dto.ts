@@ -1,5 +1,6 @@
 import { IsEnum, IsString } from 'class-validator';
-import { AUTH_TOKEN_TYPE, IAuthExchangeNewAccessToken } from '../types';
+import { IAuthExchangeNewAccessToken } from '../types';
+import { AUTH_TOKEN_TYPE } from '../enums';
 
 export class AuthExchangeNewAccessTokenDto
   implements IAuthExchangeNewAccessToken

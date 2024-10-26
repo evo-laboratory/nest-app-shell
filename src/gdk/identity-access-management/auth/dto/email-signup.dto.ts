@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 import { IEmailSignUp, IEmailSignUpRes } from '../types/email-signup.interface';
-import { AUTH_PROVIDER } from '../types';
+import { AUTH_PROVIDER } from '../enums';
 
 export class EmailSignUpDto implements IEmailSignUp {
   @IsEmail()

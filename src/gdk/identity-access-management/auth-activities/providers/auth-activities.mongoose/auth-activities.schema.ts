@@ -3,7 +3,7 @@ import { HydratedDocument, Types } from 'mongoose';
 import {
   AUTH_ACTIVITIES_MODEL_NAME,
   AUTH_MODEL_NAME,
-} from '@gdk-iam/auth/types';
+} from '@gdk-iam/auth/statics';
 import {
   IAuthActivities,
   IAuthSignInFailedRecordItem,

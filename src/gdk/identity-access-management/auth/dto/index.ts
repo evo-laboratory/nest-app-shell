@@ -6,8 +6,6 @@ export * from './auth-exchange-new-access-token-res.dto';
 export * from './auth-exchange-new-access-token.dto';
 export * from './auth-get-by-id-res.dto';
 export * from './auth-list-res.dto';
-export * from './auth-revoke-refresh-token-response.dto';
-export * from './auth-revoke-refresh-token.dto';
 export * from './auth-sign-in-res.dto';
 export * from './auth-sign-out-res.dto';
 export * from './auth-sign-out.dto';

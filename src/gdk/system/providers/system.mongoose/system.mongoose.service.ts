@@ -31,6 +31,12 @@ import { JsonStringify } from '@shared/helper';
 import { AppModule } from 'src/app.module';
 import { System } from './system.schema';
 import appConfig from 'src/app.config';
+import {
+  ERROR_CODE,
+  ERROR_SOURCE,
+  IUnitedHttpException,
+  UniteHttpException,
+} from '@shared/exceptions';
 
 @Injectable()
 export class SystemMongooseService implements SystemService {
@@ -43,11 +49,6 @@ export class SystemMongooseService implements SystemService {
     @Inject(appConfig.KEY)
     private readonly appEnvConfig: ConfigType<typeof appConfig>,
   ) {}
-
-  @MethodLogger()
-  create(dto: any): Promise<any> {
-    throw new Error('Method not implemented.');
-  }
 
   @MethodLogger()
   public async findOne(): Promise<ISystem> {
@@ -72,6 +73,33 @@ export class SystemMongooseService implements SystemService {
       return sys;
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async setCache(sys: ISystem): Promise<any> {
+    try {
+      await this.cacheManager.set(
+        SYS_CACHE_KEY,
+        sys,
+        this.appEnvConfig.SYS_CACHE_TTL * 1000,
+      );
+      const roleMap = new Map();
+      const clientMap = new Map();
+      sys.roles.forEach((role) => roleMap.set(role.name, role));
+      sys.clients.forEach((client) => clientMap.set(client.id, client));
+      await this.cacheManager.set(
+        SYS_ROLE_MAP_KEY,
+        roleMap,
+        this.appEnvConfig.SYS_CACHE_TTL * 1000,
+      );
+      await this.cacheManager.set(
+        SYS_CLIENT_KEY,
+        clientMap,
+        this.appEnvConfig.SYS_CACHE_TTL * 1000,
+      );
+    } catch (error) {
+      return Promise.reject(error);
     }
   }
 
@@ -156,6 +184,11 @@ export class SystemMongooseService implements SystemService {
     dto: FlexUpdateSystemDto,
   ): Promise<ISystem> {
     try {
+      const check = await this.SystemModel.findById(id);
+      if (check === null) {
+        this.throwHttpError(ERROR_CODE.AUTH_NOT_FOUND, 'System not found', 404);
+        return;
+      }
       const updateObj: IUpdateSystem = {};
       if (dto.roles && dto.roles.length > 0) {
         updateObj.roles = dto.roles;
@@ -169,7 +202,7 @@ export class SystemMongooseService implements SystemService {
         updateObj.newSignUpDefaultUserRole = dto.newSignUpDefaultUserRole;
       }
       if (Object.keys(updateObj).length === 0) {
-        this.Logger.verbose('No updated required', 'updateById');
+        this.Logger.verbose('No update required', 'updateById');
         const sys = await this.SystemModel.findById(id);
         await this.setCache(sys);
         return sys;
@@ -188,34 +221,20 @@ export class SystemMongooseService implements SystemService {
   }
 
   @MethodLogger()
-  deleteById(id: string): Promise<any> {
-    throw new Error('Method not implemented.');
-  }
-
-  @MethodLogger()
-  public async setCache(sys: ISystem): Promise<any> {
-    try {
-      await this.cacheManager.set(
-        SYS_CACHE_KEY,
-        sys,
-        this.appEnvConfig.SYS_CACHE_TTL * 1000,
-      );
-      const roleMap = new Map();
-      const clientMap = new Map();
-      sys.roles.forEach((role) => roleMap.set(role.name, role));
-      sys.clients.forEach((client) => clientMap.set(client.id, client));
-      await this.cacheManager.set(
-        SYS_ROLE_MAP_KEY,
-        roleMap,
-        this.appEnvConfig.SYS_CACHE_TTL * 1000,
-      );
-      await this.cacheManager.set(
-        SYS_CLIENT_KEY,
-        clientMap,
-        this.appEnvConfig.SYS_CACHE_TTL * 1000,
-      );
-    } catch (error) {
-      return Promise.reject(error);
-    }
+  private throwHttpError(
+    code: ERROR_CODE,
+    msg: string,
+    statusCode?: number,
+    methodName?: string,
+  ): IUnitedHttpException {
+    const errorObj: IUnitedHttpException = {
+      source: ERROR_SOURCE.NESTJS,
+      errorCode: code || ERROR_CODE.UNKNOWN,
+      message: msg,
+      statusCode: statusCode || 500,
+      contextName: 'SystemMongooseService',
+      methodName: `${methodName}`,
+    };
+    throw new UniteHttpException(errorObj);
   }
 }
