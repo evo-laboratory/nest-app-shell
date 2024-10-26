@@ -166,7 +166,7 @@ export class AuthMongooseService implements AuthService {
       const res: IEmailSignUpRes = {
         email: dto.email,
         isEmailSent: isAlreadyVerified ? false : true,
-        canResendAt: isAlreadyVerified ? 0 : setup.newAuth.codeExpiredAt,
+        canResendAt: isAlreadyVerified ? null : setup.newAuth.codeExpiredAt,
         provider: AUTH_PROVIDER.MONGOOSE,
       };
       return res;
@@ -228,7 +228,7 @@ export class AuthMongooseService implements AuthService {
         const updateAuth: IAuthFlexUpdate = {};
         if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
           updateAuth.googleSignInId = oauthUser.sub;
-          updateAuth.updatedAt = Date.now();
+          updateAuth.updatedAt = new Date();
         }
         if (Object.keys(updateAuth).length > 0) {
           const newMethod = [];
@@ -355,7 +355,7 @@ export class AuthMongooseService implements AuthService {
           isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.FORGOT_PASSWORD;
         }
         const isCodeMatched = auth.code === dto.code;
-        const isNotExpired = auth.codeExpiredAt > currentTimeStamp;
+        const isNotExpired = auth.codeExpiredAt.getTime() > currentTimeStamp;
         const isValid = isMatchUsage && isCodeMatched && isNotExpired;
         if (!isValid) {
           this.throwHttpError(
@@ -394,10 +394,10 @@ export class AuthMongooseService implements AuthService {
       session.startTransaction();
       // * STEP B. Reset Auth State
       const updateQuery: IAuthFlexUpdate = {
-        codeExpiredAt: 0,
+        codeExpiredAt: null,
         code: '',
         codeUsage: AUTH_CODE_USAGE.NOT_SET,
-        updatedAt: Date.now(),
+        updatedAt: new Date(),
       };
       if (auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
         updateQuery.isIdentifierVerified = true;
@@ -409,7 +409,7 @@ export class AuthMongooseService implements AuthService {
         updateQuery.password = await this.encryptService.hashPassword(
           dto.newPassword,
         );
-        updateQuery.lastChangedPasswordAt = currentTimeStamp;
+        updateQuery.lastChangedPasswordAt = new Date();
       }
       this.Logger.verbose(JsonStringify(updateQuery), 'verifyAuth.updateQuery');
       const resetAuthState = await this.AuthModel.findByIdAndUpdate(
@@ -486,7 +486,7 @@ export class AuthMongooseService implements AuthService {
           'emailVerification',
         );
       }
-      if (auth.codeExpiredAt > currentTimeStamp) {
+      if (auth.codeExpiredAt.getTime() > currentTimeStamp) {
         const EXPIRE_MIN = this.iamConfig.CODE_EXPIRE_MIN || 3;
         this.throwHttpError(
           ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT,
@@ -537,7 +537,7 @@ export class AuthMongooseService implements AuthService {
             code: generated.code,
             codeExpiredAt: generated.codeExpiredAt,
             codeUsage: dto.usage,
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { session: session },
@@ -599,7 +599,7 @@ export class AuthMongooseService implements AuthService {
           errorCode: ERROR_CODE.AUTH_PASSWORD_INVALID,
           ipAddress: '',
           failedPassword: dto.password,
-          createdAt: Date.now(),
+          createdAt: new Date(),
         });
         this.throwHttpError(
           ERROR_CODE.AUTH_PASSWORD_INVALID,
@@ -719,8 +719,8 @@ export class AuthMongooseService implements AuthService {
           tokenId: signed.tokenId,
           tokenContent: signed.token,
           issuer: aToken.iss,
-          expiredAt: aToken.exp * 1000,
-          createdAt: Date.now(),
+          expiredAt: new Date(aToken.exp * 1000),
+          createdAt: new Date(),
         };
         await this.authActivities.pushTokenItemByAuthId(
           validResult.decodedToken.sub,
@@ -822,8 +822,8 @@ export class AuthMongooseService implements AuthService {
       const disabled = await this.AuthModel.findByIdAndUpdate(authId, {
         $set: {
           isActive: true,
-          inactiveAt: Date.now(),
-          updatedAt: Date.now(),
+          inactiveAt: new Date(),
+          updatedAt: new Date(),
         },
       });
       // TODO Revoke All Refresh Tokens from this Auth
@@ -914,8 +914,8 @@ export class AuthMongooseService implements AuthService {
         tokenId: tokenResults.refreshTokenId,
         tokenContent: tokenResults.refreshToken,
         issuer: rToken.iss,
-        expiredAt: rToken.exp * 1000,
-        createdAt: Date.now(),
+        expiredAt: new Date(rToken.exp * 1000),
+        createdAt: new Date(),
       };
       const accessItem: IAuthTokenItem = {
         type: AUTH_TOKEN_TYPE.ACCESS,
@@ -923,8 +923,8 @@ export class AuthMongooseService implements AuthService {
         tokenId: tokenResults.accessTokenId,
         tokenContent: tokenResults.accessToken,
         issuer: aToken.iss,
-        expiredAt: aToken.exp * 1000,
-        createdAt: Date.now(),
+        expiredAt: new Date(aToken.exp * 1000),
+        createdAt: new Date(),
       };
       const pushedBothItems = await this.authActivities.pushTokenItemByAuthId(
         `${auth._id}`,

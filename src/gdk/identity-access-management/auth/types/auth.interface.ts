@@ -21,11 +21,11 @@ export interface IAuth<
   password: string;
   code: string;
   codeUsage: AUTH_CODE_USAGE;
-  codeExpiredAt: number;
+  codeExpiredAt: Date;
   isIdentifierVerified: boolean;
   isActive: boolean;
   inactiveAt: number;
-  createdAt: number;
-  updatedAt: number;
-  lastChangedPasswordAt: number;
+  createdAt: Date;
+  updatedAt: Date;
+  lastChangedPasswordAt: Date;
 }

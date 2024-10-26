@@ -259,16 +259,16 @@ describe('GDK/SystemController', () => {
           name: 'test-runner',
           willExpire: false,
           expiredAt: 0,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
         {
           id: 'new-client-id',
           name: 'test-case-runner',
           willExpire: true,
           expiredAt: 0,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       ];
       const res = await request(app.getHttpServer())

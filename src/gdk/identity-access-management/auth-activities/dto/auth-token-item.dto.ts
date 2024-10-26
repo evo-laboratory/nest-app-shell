@@ -7,6 +7,6 @@ export class AuthTokenItemDto implements IAuthTokenItem {
   tokenId: string;
   tokenContent: string;
   issuer: string;
-  expiredAt: number;
-  createdAt: number;
+  expiredAt: Date;
+  createdAt: Date;
 }

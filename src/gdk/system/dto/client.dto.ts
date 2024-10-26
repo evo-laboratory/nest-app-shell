@@ -9,9 +9,9 @@ export class ClientDto implements IClient {
   @IsBoolean()
   willExpire: boolean;
   @IsInt()
-  expiredAt: number;
+  expiredAt: Date;
   @IsNumber()
-  createdAt: number;
+  createdAt: Date;
   @IsNumber()
-  updatedAt: number;
+  updatedAt: Date;
 }

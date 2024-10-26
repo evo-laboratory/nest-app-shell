@@ -7,14 +7,14 @@ import { HttpEndpointDto } from './http-endpoint.dto';
 export class SystemDto implements ISystem {
   @ApiProperty({ type: [RoleDto] })
   roles: IRole[];
-  rolesUpdatedAt: number;
+  rolesUpdatedAt: Date;
   @ApiProperty({ type: [HttpEndpointDto] })
   endpoints: IHttpEndpoint[];
-  endpointUpdatedAt: number;
+  endpointUpdatedAt: Date;
   @ApiProperty({ type: [ClientDto] })
   clients: IClient[];
   newSignUpDefaultUserRole: string;
-  clientUpdatedAt: number;
-  createdAt: number;
-  updatedAt: number;
+  clientUpdatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

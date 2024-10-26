@@ -19,8 +19,8 @@ export class AuthSignInFailRecordItem implements IAuthSignInFailedRecordItem {
   ipAddress: string;
   @Prop({ type: String, default: '' })
   failedPassword: string;
-  @Prop({ type: Number, default: Date.now() })
-  createdAt: number;
+  @Prop({ type: Date, default: new Date() })
+  createdAt: Date;
 }
 
 export const AuthSignInFailRecordItemSchema = SchemaFactory.createForClass(

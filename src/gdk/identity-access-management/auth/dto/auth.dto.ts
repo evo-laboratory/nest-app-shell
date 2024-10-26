@@ -25,15 +25,15 @@ export class AuthDto implements IAuth {
   password: string;
   code: string;
   codeUsage: AUTH_CODE_USAGE;
-  codeExpiredAt: number;
+  codeExpiredAt: Date;
   // @ApiProperty({ type: [AuthSignInFailedRecordItemDto] })
   // signInFailRecordList: IAuthSignInFailedRecordItem[];
   isIdentifierVerified: boolean;
   isActive: boolean;
   inactiveAt: number;
-  createdAt: number;
-  updatedAt: number;
-  lastChangedPasswordAt: number;
+  createdAt: Date;
+  updatedAt: Date;
+  lastChangedPasswordAt: Date;
 }
 
 export const AuthIdRefDto = MongoObjectIdDtoRef(AuthDto);

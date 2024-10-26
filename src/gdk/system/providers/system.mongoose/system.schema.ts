@@ -13,15 +13,15 @@ export class System implements ISystem {
     default: [],
   })
   roles: IRole[];
-  @Prop({ type: Number, default: Date.now() })
-  rolesUpdatedAt: number;
+  @Prop({ type: Date, default: new Date() })
+  rolesUpdatedAt: Date;
   @Prop({
     type: [HttpEndpointSchema],
     default: [],
   })
   endpoints: IHttpEndpoint[];
-  @Prop({ type: Number, default: Date.now() })
-  endpointUpdatedAt: number;
+  @Prop({ type: Date, default: new Date() })
+  endpointUpdatedAt: Date;
   @Prop({
     type: [ClientSchema],
     default: [],
@@ -29,12 +29,12 @@ export class System implements ISystem {
   clients: IClient[];
   @Prop({ type: String, default: '' })
   newSignUpDefaultUserRole: string;
-  @Prop({ type: Number, default: Date.now() })
-  clientUpdatedAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  createdAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  updatedAt: number;
+  @Prop({ type: Date, default: new Date() })
+  clientUpdatedAt: Date;
+  @Prop({ type: Date, default: new Date() })
+  createdAt: Date;
+  @Prop({ type: Date, default: new Date() })
+  updatedAt: Date;
 }
 
 export const SystemSchema = SchemaFactory.createForClass(System);

@@ -95,7 +95,7 @@ export class UserMongooseService implements UserService {
         {
           $set: {
             isEmailVerified: true,
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { session: session },
@@ -126,7 +126,7 @@ export class UserMongooseService implements UserService {
         {
           $addToSet: { roleList: dto.roleName },
           $set: {
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { new: true },
@@ -159,7 +159,7 @@ export class UserMongooseService implements UserService {
         {
           $pull: { roleList: dto.roleName },
           $set: {
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { new: true },

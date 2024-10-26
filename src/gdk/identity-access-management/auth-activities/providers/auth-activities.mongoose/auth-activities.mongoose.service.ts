@@ -80,8 +80,8 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
           authId: authObjectId,
           accessTokenList: accessItems,
           refreshTokenList: refreshItems,
-          lastIssueAccessTokenAt: Date.now(),
-          lastIssueRefreshTokenAt: Date.now(),
+          lastIssueAccessTokenAt: new Date(),
+          lastIssueRefreshTokenAt: new Date(),
         }).save({ session });
         return newData;
       } else {

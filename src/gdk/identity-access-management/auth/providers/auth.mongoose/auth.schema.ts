@@ -58,20 +58,20 @@ export class Auth implements IAuth {
   codeUsage: AUTH_CODE_USAGE;
   @Prop({ type: String, default: '' })
   code: string;
-  @Prop({ type: Number, default: 0 })
-  codeExpiredAt: number;
+  @Prop({ type: Date, default: null })
+  codeExpiredAt: Date;
   @Prop({ type: Boolean, default: true })
   isActive: boolean;
-  @Prop({ type: Number, default: 0 })
+  @Prop({ type: Date, default: null })
   inactiveAt: number;
   @Prop({ type: Boolean, default: false })
   isIdentifierVerified: boolean;
-  @Prop({ type: Number, default: Date.now() })
-  createdAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  updatedAt: number;
-  @Prop({ type: Number, default: 0 })
-  lastChangedPasswordAt: number;
+  @Prop({ type: Date, default: new Date() })
+  createdAt: Date;
+  @Prop({ type: Date, default: new Date() })
+  updatedAt: Date;
+  @Prop({ type: Date, default: null })
+  lastChangedPasswordAt: Date;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);

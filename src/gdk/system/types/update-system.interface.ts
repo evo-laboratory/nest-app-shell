@@ -3,8 +3,8 @@ import { IRole } from './role.interface';
 
 export interface IUpdateSystem {
   roles?: IRole[];
-  rolesUpdatedAt?: number;
+  rolesUpdatedAt?: Date;
   clients?: IClient[];
-  clientsUpdatedAt?: number;
+  clientsUpdatedAt?: Date;
   newSignUpDefaultUserRole?: string;
 }

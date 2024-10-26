@@ -7,6 +7,12 @@ import { HydratedDocument, Types } from 'mongoose';
 import { EnumToArray } from '@shared/helper';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
+import WinstonLogger from '@shared/winston-logger/winston.logger';
+
+const REFRESH_TOKEN_TTL = parseInt(process.env.REFRESH_TOKEN_TTL) || 86400; // 30 days
+WinstonLogger.info(
+  `REFRESH_TOKEN_TTL: ${REFRESH_TOKEN_TTL}(${typeof REFRESH_TOKEN_TTL})`,
+);
 
 export type AuthRevokedTokenDocument = HydratedDocument<AuthRevokedToken>;
 
@@ -28,14 +34,18 @@ export class AuthRevokedToken implements IAuthRevokedToken {
   authId: IAuth | Types.ObjectId;
   @Prop({ type: String, default: '', required: true })
   tokenId: string;
-  @Prop({ type: Number, default: Date.now() })
-  revokedAt: number;
+  @Prop({ type: Date, default: new Date() })
+  revokedAt: Date;
 }
 
 export const AuthRevokedTokenSchema =
   SchemaFactory.createForClass(AuthRevokedToken);
 AuthRevokedTokenSchema.index({ tokenId: 1, authId: 1 });
 AuthRevokedTokenSchema.index({ authId: 1 }, { unique: true });
+AuthRevokedTokenSchema.index(
+  { revokedAt: 1 },
+  { expireAfterSeconds: REFRESH_TOKEN_TTL },
+);
 export const AuthRevokedTokenModel = MongoModelBuilder(
   AUTH_REVOKED_TOKEN_MODEL_NAME,
   AuthRevokedTokenSchema,

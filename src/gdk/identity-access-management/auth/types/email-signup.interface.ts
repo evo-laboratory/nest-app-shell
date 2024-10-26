@@ -10,6 +10,6 @@ export interface IEmailSignUp {
 export interface IEmailSignUpRes {
   email: string;
   isEmailSent: boolean;
-  canResendAt: number;
+  canResendAt: Date;
   provider: AUTH_PROVIDER;
 }

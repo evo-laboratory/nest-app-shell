@@ -23,9 +23,9 @@ export class User implements IUser {
     default: [],
   })
   roleList: string[];
-  @Prop({ type: Number, default: Date.now() })
+  @Prop({ type: Date, default: new Date() })
   createdAt: number;
-  @Prop({ type: Number, default: Date.now() })
+  @Prop({ type: Date, default: new Date() })
   updatedAt: number;
 }
 
