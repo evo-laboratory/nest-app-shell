@@ -23,6 +23,7 @@ import { WinstonService } from '@shared/winston-logger';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { SystemService } from '@gdk-system/system.service';
 import { ROLE_SET_METHOD } from '@gdk-system/enums';
+import { JsonStringify } from '@shared/helper';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
@@ -271,6 +272,13 @@ describe('GDK/SystemController', () => {
           updatedAt: new Date(),
         },
       ];
+      console.log(
+        JsonStringify({
+          roles: rolesUpdate,
+          clients: clientsUpdate,
+          newSignUpDefaultUserRole: 'NEW_ROLE',
+        }),
+      );
       const res = await request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/${existSys._id}`)
         .set(ClientKeyHeader())

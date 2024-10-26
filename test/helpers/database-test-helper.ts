@@ -1,11 +1,15 @@
-import { AUTH_MODEL_NAME } from '@gdk-iam/auth/types';
+import {
+  AUTH_ACTIVITIES_MODEL_NAME,
+  AUTH_MODEL_NAME,
+} from '@gdk-iam/auth/statics';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types';
 import { SYSTEM_MODEL_NAME } from '@gdk-system/statics';
-import mongoose from 'mongoose';
+import mongoose, { Connection } from 'mongoose';
 import { DefaultSystemData } from 'test/data';
 
 class DatabaseTestHelper {
   private flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
+  private mongoDBConnection: Connection;
   private SystemMongoDBModel = mongoose.model(
     `${SYSTEM_MODEL_NAME}`,
     this.flexMongoDBSchema,
@@ -16,6 +20,10 @@ class DatabaseTestHelper {
   );
   private AuthMongoDBModel = mongoose.model(
     `${AUTH_MODEL_NAME}`,
+    this.flexMongoDBSchema,
+  );
+  private AuthActivitiesModel = mongoose.model(
+    `${AUTH_ACTIVITIES_MODEL_NAME}`,
     this.flexMongoDBSchema,
   );
 
@@ -52,9 +60,10 @@ class DatabaseTestHelper {
 
   async clearDatabase() {
     if (this.provider === 'MONGODB') {
+      await this.AuthMongoDBModel.deleteMany({});
       await this.SystemMongoDBModel.deleteMany({});
       await this.UserMongoDBModel.deleteMany({});
-      await this.AuthMongoDBModel.deleteMany({});
+      await this.AuthActivitiesModel.deleteMany({});
     } else {
       throw new Error('Not implemented');
     }
