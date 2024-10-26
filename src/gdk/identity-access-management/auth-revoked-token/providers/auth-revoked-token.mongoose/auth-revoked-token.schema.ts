@@ -9,9 +9,13 @@ import { MongoModelBuilder } from '@shared/mongodb';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 import WinstonLogger from '@shared/winston-logger/winston.logger';
 
-const REFRESH_TOKEN_TTL = parseInt(process.env.REFRESH_TOKEN_TTL) || 86400; // 30 days
+const REFRESH_TOKEN_TTL = parseInt(process.env.REFRESH_TOKEN_TTL) || 86400;
 WinstonLogger.info(
   `REFRESH_TOKEN_TTL: ${REFRESH_TOKEN_TTL}(${typeof REFRESH_TOKEN_TTL})`,
+  {
+    contextName: 'AuthRevokedTokenSchema',
+    methodName: 'createIndex',
+  },
 );
 
 export type AuthRevokedTokenDocument = HydratedDocument<AuthRevokedToken>;
