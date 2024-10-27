@@ -170,13 +170,6 @@ export class AuthController {
     return await this.authService.listAll(listOptions);
   }
 
-  @Get(`${V1}/:id`)
-  @HttpCode(200)
-  @ApiResponse({ status: 200, type: AuthDataResponseDto })
-  async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
-    return await this.authService.getById(id, options, false);
-  }
-
   @Get(`${V1}/${EMAIL_PATH}/:email`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
@@ -195,6 +188,13 @@ export class AuthController {
     @Query() options: GetOptionsDto,
   ) {
     return await this.authService.getByIdentifier(identifier, options, false);
+  }
+
+  @Get(`${V1}/:id`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
+    return await this.authService.getById(id, options, false);
   }
 
   @Patch(`${V1}/${ACTIVATING_PATH}/:id`)
