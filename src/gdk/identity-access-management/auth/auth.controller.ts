@@ -10,7 +10,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
+import {
+  CHECK_PATH,
+  DEACTIVATING_PATH,
+  GPI,
+  LIST_PATH,
+  V1,
+} from '@shared/statics';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
@@ -33,7 +39,6 @@ import {
   AuthVerifyRes,
   EmailSignUpDto,
   EmailSignUpRes,
-  UpdateAuthDto,
 } from './dto';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTH_TYPE, AUTHZ_TYPE } from './enums';
@@ -169,16 +174,15 @@ export class AuthController {
     return await this.authService.getById(id, options, false);
   }
 
-  // TODO Disable Auth
   // TODO Delete Auth and User
   // TODO User APIs
   // TODO 3rd party OAuth Login
   // TODO E2E testing planning
   // TODO Implement Event(Auth) webhooks / triggers
 
-  @Patch(':id')
+  @Patch(`${V1}/${DEACTIVATING_PATH}/:id`)
   async disableById(@Param('id') id: string) {
-    return await this.authService.disableById(id);
+    return await this.authService.deactivateById(id);
   }
 
   @Delete(':id')

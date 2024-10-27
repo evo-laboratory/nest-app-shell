@@ -70,7 +70,7 @@ export class AuthUtilService {
     }
     this.Logger.verbose('STEP 1B. Pass', 'checkAuthAllowSignIn');
     // * STEP 1C. Check is active
-    if (!auth.isActive) {
+    if (!auth.isActivated) {
       this.throwHttpError(
         ERROR_CODE.AUTH_INACTIVE,
         `Auth inactive, cannot sign in`,

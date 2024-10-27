@@ -23,8 +23,8 @@ export interface IAuth<
   codeUsage: AUTH_CODE_USAGE;
   codeExpiredAt: Date;
   isIdentifierVerified: boolean;
-  isActive: boolean;
-  inactiveAt: number;
+  isActivated: boolean;
+  inactivatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
   lastChangedPasswordAt: Date;

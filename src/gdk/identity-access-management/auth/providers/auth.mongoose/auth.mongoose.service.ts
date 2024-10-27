@@ -74,6 +74,8 @@ import {
   AUTH_MODEL_NAME,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
 } from '@gdk-iam/auth/statics';
+import { auth } from 'google-auth-library';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);
@@ -798,37 +800,101 @@ export class AuthMongooseService implements AuthService {
   enable(): void {
     throw new Error('Method not implemented.');
   }
+
   @MethodLogger()
-  public async disableById(authId: string) {
+  @MethodLogger()
+  public async deactivateById(
+    authId: string,
+    session?: ClientSession,
+  ): Promise<IAuth> {
+    if (!session) {
+      session = await this.connection.startSession();
+    }
     try {
+      this.Logger.verbose(authId, 'deactivateById(authId)');
+      this.Logger.verbose(session ? true : false, 'deactivateById(session)');
       // * STEP 1. Check if already disabled
       const check = await this.AuthModel.findById(authId);
+      this.Logger.verbose(
+        check === null,
+        'deactivateById.check is null or not',
+      );
       if (check === null) {
         this.throwHttpError(
           ERROR_CODE.AUTH_NOT_FOUND,
           `Auth: ${authId} not found`,
           404,
-          'disableById',
+          'deactivateById',
         );
       }
-      if (!check.isActive) {
+      if (!check.isActivated) {
         this.throwHttpError(
           ERROR_CODE.AUTH_ALREADY_DISABLED,
           `Auth: ${authId} already disabled`,
           400,
-          'disableById',
+          'deactivateById',
         );
       }
-      const disabled = await this.AuthModel.findByIdAndUpdate(authId, {
-        $set: {
-          isActive: true,
-          inactiveAt: new Date(),
-          updatedAt: new Date(),
+      session.startTransaction();
+      // * STEP 2. Disable Auth
+      const disabled = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $set: {
+            isActivated: false,
+            inactivatedAt: new Date(),
+            updatedAt: new Date(),
+          },
         },
-      });
-      // TODO Revoke All Refresh Tokens from this Auth
+        { session: session, new: true },
+      );
+      assert.ok(disabled, 'Deactivated Auth');
+      // * STEP 3. Get All Tokens and Revoke
+      const authActivities = await this.authActivities.getByAuthId(authId);
+      // * authActivities is possible null, because user may not have login before, thus no tokens
+      if (
+        authActivities !== null &&
+        authActivities.refreshTokenList.length > 0
+      ) {
+        this.Logger.verbose(
+          authActivities.refreshTokenList.length,
+          'deactivateById.authActivities.length',
+        );
+        const revokeAllTokens = await Promise.all(
+          authActivities.refreshTokenList.map(
+            async (item) =>
+              await this.revokeService.insert(
+                authId,
+                item.tokenId,
+                AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
+                AUTH_TOKEN_TYPE.REFRESH,
+                true,
+                session,
+              ),
+          ),
+        );
+        assert.ok(
+          revokeAllTokens.length === authActivities.refreshTokenList.length,
+          `Revoked ${revokeAllTokens.length} tokens should be equal to ${authActivities.refreshTokenList.length}`,
+        );
+        // * STEP 4. Clear refreshTokens in AuthActivities
+        const cleared = await this.authActivities.clearTokenListByAuthId(
+          authId,
+          false,
+          AUTH_TOKEN_TYPE.REFRESH,
+          session,
+        );
+        assert.ok(cleared, 'Cleared RefreshTokens in AuthActivities');
+      }
+      // * STEP 5. Complete session
+      await session.commitTransaction();
+      await session.endSession();
       return disabled;
     } catch (error) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }

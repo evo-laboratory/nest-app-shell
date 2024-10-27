@@ -61,9 +61,9 @@ export class Auth implements IAuth {
   @Prop({ type: Date, default: null })
   codeExpiredAt: Date;
   @Prop({ type: Boolean, default: true })
-  isActive: boolean;
+  isActivated: boolean;
   @Prop({ type: Date, default: null })
-  inactiveAt: number;
+  inactivatedAt: Date;
   @Prop({ type: Boolean, default: false })
   isIdentifierVerified: boolean;
   @Prop({ type: Date, default: new Date() })
@@ -84,6 +84,6 @@ AuthSchema.index({ googleSignInId: 1 }, { unique: true });
 AuthSchema.index({ githubSignId: 1 }, { unique: true });
 AuthSchema.index({ gitlabSignId: 1 }, { unique: true });
 AuthSchema.index({ microsoftSignId: 1 }, { unique: true });
-AuthSchema.index({ isActive: 1 });
+AuthSchema.index({ isActivated: 1 });
 AuthSchema.index({ createdAt: -1 });
 export const AuthModel = MongoModelBuilder(AUTH_MODEL_NAME, AuthSchema);

@@ -4,12 +4,11 @@ import {
 } from '@gdk-iam/auth/statics';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types';
 import { SYSTEM_MODEL_NAME } from '@gdk-system/statics';
-import mongoose, { Connection } from 'mongoose';
+import mongoose from 'mongoose';
 import { DefaultSystemData } from 'test/data';
 
 class DatabaseTestHelper {
   private flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
-  private mongoDBConnection: Connection;
   private SystemMongoDBModel = mongoose.model(
     `${SYSTEM_MODEL_NAME}`,
     this.flexMongoDBSchema,
@@ -46,7 +45,7 @@ class DatabaseTestHelper {
     }
   }
 
-  public async setupSystem() {
+  public async setupSystem(): Promise<void> {
     if (this.provider === 'MONGODB') {
       await this.SystemMongoDBModel.create(DefaultSystemData());
     } else {
@@ -54,18 +53,18 @@ class DatabaseTestHelper {
     }
   }
 
-  async disconnect() {
+  async disconnect(): Promise<void> {
     await mongoose.disconnect();
   }
 
-  async clearDatabase() {
+  async clearDatabase(): Promise<void> {
     if (this.provider === 'MONGODB') {
       await this.AuthMongoDBModel.deleteMany({});
       await this.SystemMongoDBModel.deleteMany({});
       await this.UserMongoDBModel.deleteMany({});
       await this.AuthActivitiesModel.deleteMany({});
     } else {
-      throw new Error('Not implemented');
+      throw new Error('clearDatabase Provider Not implemented');
     }
   }
 }

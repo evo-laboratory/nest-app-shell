@@ -56,7 +56,7 @@ describe('AuthUtilService', () => {
     it('should throw error if identifier is not verified', () => {
       const auth: IAuth = {
         isIdentifierVerified: false,
-        isActive: true,
+        isActivated: true,
       } as IAuth;
       expect(() =>
         service.checkAuthAllowSignIn('identifier', auth, null),
@@ -66,7 +66,7 @@ describe('AuthUtilService', () => {
     it('should throw error if auth is inactive', () => {
       const auth: IAuth = {
         isIdentifierVerified: true,
-        isActive: false,
+        isActivated: false,
       } as IAuth;
       expect(() =>
         service.checkAuthAllowSignIn('identifier', auth, null),
@@ -76,7 +76,7 @@ describe('AuthUtilService', () => {
     it('should throw error if sign in attempts exceed limit', () => {
       const auth: IAuth = {
         isIdentifierVerified: true,
-        isActive: true,
+        isActivated: true,
         lastChangedPasswordAt: new Date(),
       } as IAuth;
       const authActivities: IAuthActivities = {
@@ -93,7 +93,7 @@ describe('AuthUtilService', () => {
     it('should return true if all checks pass', () => {
       const auth: IAuth = {
         isIdentifierVerified: true,
-        isActive: true,
+        isActivated: true,
         lastChangedPasswordAt: new Date(),
       } as IAuth;
       const authActivities: IAuthActivities = {

@@ -5,6 +5,8 @@ export const V1 = 'v1';
 export const LIST_PATH = 'list';
 export const QUERY_PATH = 'query';
 export const CHECK_PATH = 'check';
+export const ACTIVATING_PATH = 'activating';
+export const DEACTIVATING_PATH = 'deactivating';
 // * Sync with IGetListOptions, please do not change
 export const QUERY_PAGINATION_METHOD = 'paginationMethod';
 export const QUERY_PAGE_CURSOR_TOKEN = 'pageCursorToken';

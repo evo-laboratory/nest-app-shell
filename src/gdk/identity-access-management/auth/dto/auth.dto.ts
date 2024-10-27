@@ -29,8 +29,8 @@ export class AuthDto implements IAuth {
   // @ApiProperty({ type: [AuthSignInFailedRecordItemDto] })
   // signInFailRecordList: IAuthSignInFailedRecordItem[];
   isIdentifierVerified: boolean;
-  isActive: boolean;
-  inactiveAt: number;
+  isActivated: boolean;
+  inactivatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
   lastChangedPasswordAt: Date;
