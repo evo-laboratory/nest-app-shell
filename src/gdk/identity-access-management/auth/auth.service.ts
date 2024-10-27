@@ -55,6 +55,11 @@ export abstract class AuthService {
     dto: GetOptionsDto,
     canBeNull: boolean,
   ): Promise<IAuthDataResponse>;
+  abstract getByIdentifier(
+    identifier: string,
+    dto: GetOptionsDto,
+    canBeNull: boolean,
+  ): Promise<IAuthDataResponse>;
   abstract activateById(id: string): Promise<IAuthDataResponse>;
   abstract deactivateById(id: string): Promise<IAuthDataResponse>;
 }

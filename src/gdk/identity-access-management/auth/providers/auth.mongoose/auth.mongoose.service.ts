@@ -835,6 +835,41 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
+  public async getByIdentifier(
+    email: string,
+    opt: GetOptionsDto,
+    canBeNull = true,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(email, 'getByIdentifier(email)');
+    this.Logger.verbose(canBeNull, 'getByIdentifier(canBeNull)');
+    const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+    this.Logger.verbose(
+      JsonStringify(mappedOpts),
+      'getByIdentifier(mappedOpts)',
+    );
+    try {
+      const data = await this.AuthModel.findOne({
+        identifier: email,
+      })
+        .select(mappedOpts.selectedFields)
+        .populate(mappedOpts.populateFields)
+        .lean();
+      if (data === null && !canBeNull) {
+        // * Throw 404
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Not found`,
+          404,
+          'getByIdentifier',
+        );
+      }
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
   public async activateById(
     authId: string,
     session?: ClientSession,

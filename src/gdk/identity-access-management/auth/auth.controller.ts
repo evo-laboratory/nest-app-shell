@@ -54,6 +54,7 @@ import {
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
+  IDENTIFIER_PATH,
   REFRESH_TOKEN_PATH,
   REVOKE_REFRESH_TOKEN_PATH,
   SIGN_OUT_PATH,
@@ -184,6 +185,16 @@ export class AuthController {
     @Query() options: GetOptionsDto,
   ) {
     return await this.authService.getByEmail(email, options, false);
+  }
+
+  @Get(`${V1}/${IDENTIFIER_PATH}/:identifier`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async getByIdentifierV1(
+    @Param('identifier') identifier: string,
+    @Query() options: GetOptionsDto,
+  ) {
+    return await this.authService.getByIdentifier(identifier, options, false);
   }
 
   @Patch(`${V1}/${ACTIVATING_PATH}/:id`)
