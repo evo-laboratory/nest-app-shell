@@ -46,7 +46,7 @@ export class AuthRevokedToken implements IAuthRevokedToken {
 export const AuthRevokedTokenSchema =
   SchemaFactory.createForClass(AuthRevokedToken);
 AuthRevokedTokenSchema.index({ tokenId: 1, authId: 1 });
-AuthRevokedTokenSchema.index({ authId: 1 }, { unique: true });
+AuthRevokedTokenSchema.index({ authId: 1 });
 AuthRevokedTokenSchema.index(
   { revokedAt: 1 },
   { expireAfterSeconds: REFRESH_TOKEN_TTL },

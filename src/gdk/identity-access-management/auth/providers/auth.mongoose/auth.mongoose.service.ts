@@ -574,6 +574,14 @@ export class AuthMongooseService implements AuthService {
       // * STEP 1. Check Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
       const authJson = auth === null ? null : auth.toJSON();
+      if (auth === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Identifier: ${dto.email} not found`,
+          404,
+          'emailSignIn',
+        );
+      }
       const authActivities = await this.authActivities.getByAuthId(
         `${auth._id}`,
       );
