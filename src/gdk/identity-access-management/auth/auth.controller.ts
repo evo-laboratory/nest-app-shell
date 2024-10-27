@@ -25,13 +25,12 @@ import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
   AuthCheckResult,
-  AuthDeactivatedResponseDto,
+  AuthDataResponseDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
   AuthExchangeNewAccessTokenDto,
   AuthExchangeNewAccessTokenRes,
-  AuthGetByIdResDto,
   AuthListResDto,
   AuthSignInRes,
   AuthSignOutDto,
@@ -51,6 +50,7 @@ import {
 import {
   ACCESS_TOKEN_PATH,
   AUTH_API,
+  EMAIL_PATH,
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
@@ -171,25 +171,31 @@ export class AuthController {
 
   @Get(`${V1}/:id`)
   @HttpCode(200)
-  @ApiResponse({ status: 200, type: AuthGetByIdResDto })
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
   async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
     return await this.authService.getById(id, options, false);
   }
 
-  // TODO Delete Auth and User
-  // TODO User APIs
-  // TODO 3rd party OAuth Login
-  // TODO E2E testing planning
-  // TODO Implement Event(Auth) webhooks / triggers
+  @Get(`${V1}/${EMAIL_PATH}/:email`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async getByEmailV1(
+    @Param('email') email: string,
+    @Query() options: GetOptionsDto,
+  ) {
+    return await this.authService.getByEmail(email, options, false);
+  }
 
   @Patch(`${V1}/${ACTIVATING_PATH}/:id`)
-  @ApiResponse({ status: 200, type: AuthDeactivatedResponseDto })
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
   async activateById(@Param('id') id: string) {
     return await this.authService.activateById(id);
   }
 
   @Patch(`${V1}/${DEACTIVATING_PATH}/:id`)
-  @ApiResponse({ status: 200, type: AuthDeactivatedResponseDto })
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
   async deactivateById(@Param('id') id: string) {
     return await this.authService.deactivateById(id);
   }
@@ -198,4 +204,10 @@ export class AuthController {
   remove(@Param('id') id: string) {
     // return this.authService.remove(+id);
   }
+
+  // TODO Delete Auth and User
+  // TODO User APIs
+  // TODO 3rd party OAuth Login
+  // TODO E2E testing planning
+  // TODO Implement Event(Auth) webhooks / triggers
 }

@@ -42,8 +42,6 @@ export abstract class AuthService {
   abstract exchangeAccessToken(
     dto: AuthExchangeNewAccessTokenDto,
   ): Promise<IAuthExchangeNewAccessTokenRes>;
-  abstract getAuthById(): void;
-  abstract getAuthByEmail(): void;
   abstract listAll(
     opt: GetListOptionsDto,
   ): Promise<IGetResponseWrapper<IAuth[]>>;
@@ -51,7 +49,12 @@ export abstract class AuthService {
     id: string,
     dto: GetOptionsDto,
     canBeNull: boolean,
-  ): Promise<IGetResponseWrapper<IAuth>>;
+  ): Promise<IAuthDataResponse>;
+  abstract getByEmail(
+    email: string,
+    dto: GetOptionsDto,
+    canBeNull: boolean,
+  ): Promise<IAuthDataResponse>;
   abstract activateById(id: string): Promise<IAuthDataResponse>;
   abstract deactivateById(id: string): Promise<IAuthDataResponse>;
 }

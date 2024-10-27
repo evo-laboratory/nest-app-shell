@@ -752,12 +752,6 @@ export class AuthMongooseService implements AuthService {
     }
   }
 
-  getAuthById(): void {
-    throw new Error('Method not implemented.');
-  }
-  getAuthByEmail(): void {
-    throw new Error('Method not implemented.');
-  }
   @MethodLogger()
   public async listAll(
     opt: GetListOptionsDto,
@@ -782,7 +776,7 @@ export class AuthMongooseService implements AuthService {
     id: string,
     opt: GetOptionsDto,
     canBeNull = true,
-  ): Promise<IGetResponseWrapper<IAuth>> {
+  ): Promise<IAuthDataResponse> {
     try {
       this.Logger.verbose(id, 'getById(id)');
       this.Logger.verbose(canBeNull, 'getById(canBeNull)');
@@ -799,6 +793,39 @@ export class AuthMongooseService implements AuthService {
           `Not found`,
           404,
           'getById',
+        );
+      }
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async getByEmail(
+    email: string,
+    opt: GetOptionsDto,
+    canBeNull = true,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(email, 'getByEmail(email)');
+    this.Logger.verbose(canBeNull, 'getByEmail(canBeNull)');
+    const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+    this.Logger.verbose(JsonStringify(mappedOpts), 'getByEmail(mappedOpts)');
+    try {
+      const data = await this.AuthModel.findOne({
+        identifier: email,
+        identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
+      })
+        .select(mappedOpts.selectedFields)
+        .populate(mappedOpts.populateFields)
+        .lean();
+      if (data === null && !canBeNull) {
+        // * Throw 404
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Not found`,
+          404,
+          'getByEmail',
         );
       }
       return GetResponseWrap(data);
@@ -845,9 +872,7 @@ export class AuthMongooseService implements AuthService {
         },
         { session: session, new: true },
       );
-      return {
-        data: activated,
-      };
+      return GetResponseWrap(activated);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -940,9 +965,7 @@ export class AuthMongooseService implements AuthService {
       // * STEP 5. Complete session
       await session.commitTransaction();
       await session.endSession();
-      return {
-        data: deactivated,
-      };
+      return GetResponseWrap(deactivated);
     } catch (error) {
       if (session.inTransaction()) {
         await session.abortTransaction();
