@@ -26,6 +26,7 @@ import {
   IAuth,
   IAuthGenerateCustomTokenResult,
   IAuthFlexUpdate,
+  IAuthDataResponse,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
@@ -74,7 +75,7 @@ import {
   AUTH_MODEL_NAME,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
 } from '@gdk-iam/auth/statics';
-import { auth } from 'google-auth-library';
+
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 @Injectable()
 export class AuthMongooseService implements AuthService {
@@ -805,22 +806,64 @@ export class AuthMongooseService implements AuthService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  enable(): void {
-    throw new Error('Method not implemented.');
-  }
 
   @MethodLogger()
+  public async activateById(
+    authId: string,
+    session?: ClientSession,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(authId, 'activateById(authId)');
+    this.Logger.verbose(session ? true : false, 'activateById(session)');
+    try {
+      // * STEP 1. Check if already activated
+      const check = await this.AuthModel.findById(authId);
+      this.Logger.verbose(check === null, 'activateById.check is null or not');
+      if (check === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${authId} not found`,
+          404,
+          'deactivateById',
+        );
+      }
+      if (check.isActivated) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_ALREADY_ACTIVATED,
+          `Auth: ${authId} already activated`,
+          400,
+          'activateById',
+        );
+      }
+      const activated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $set: {
+            isActivated: true,
+            inactivatedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        },
+        { session: session, new: true },
+      );
+      return {
+        data: activated,
+      };
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
   @MethodLogger()
   public async deactivateById(
     authId: string,
     session?: ClientSession,
-  ): Promise<IAuth> {
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(authId, 'deactivateById(authId)');
+    this.Logger.verbose(session ? true : false, 'deactivateById(session)');
     if (!session) {
       session = await this.connection.startSession();
     }
     try {
-      this.Logger.verbose(authId, 'deactivateById(authId)');
-      this.Logger.verbose(session ? true : false, 'deactivateById(session)');
       // * STEP 1. Check if already disabled
       const check = await this.AuthModel.findById(authId);
       this.Logger.verbose(
@@ -837,15 +880,15 @@ export class AuthMongooseService implements AuthService {
       }
       if (!check.isActivated) {
         this.throwHttpError(
-          ERROR_CODE.AUTH_ALREADY_DISABLED,
-          `Auth: ${authId} already disabled`,
+          ERROR_CODE.AUTH_ALREADY_DEACTIVATED,
+          `Auth: ${authId} already deactivated`,
           400,
           'deactivateById',
         );
       }
       session.startTransaction();
       // * STEP 2. Disable Auth
-      const disabled = await this.AuthModel.findByIdAndUpdate(
+      const deactivated = await this.AuthModel.findByIdAndUpdate(
         authId,
         {
           $set: {
@@ -856,7 +899,7 @@ export class AuthMongooseService implements AuthService {
         },
         { session: session, new: true },
       );
-      assert.ok(disabled, 'Deactivated Auth');
+      assert.ok(deactivated, 'Deactivated Auth');
       // * STEP 3. Get All Tokens and Revoke
       const authActivities = await this.authActivities.getByAuthId(authId);
       // * authActivities is possible null, because user may not have login before, thus no tokens
@@ -897,7 +940,9 @@ export class AuthMongooseService implements AuthService {
       // * STEP 5. Complete session
       await session.commitTransaction();
       await session.endSession();
-      return disabled;
+      return {
+        data: deactivated,
+      };
     } catch (error) {
       if (session.inTransaction()) {
         await session.abortTransaction();

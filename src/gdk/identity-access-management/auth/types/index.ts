@@ -2,6 +2,7 @@ export * from './auth-check-refresh-token.interface';
 export * from './auth-check-result.interface';
 export * from './auth-create-auth-with-user.interface';
 export * from './auth-create-auth-with-user-res.interface';
+export * from './auth-data-response.interface';
 export * from './auth-decoded-base-token.interface';
 export * from './auth-decoded-token.interface';
 export * from './auth-email-sign-in.interface';

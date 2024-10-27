@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
+  ACTIVATING_PATH,
   CHECK_PATH,
   DEACTIVATING_PATH,
   GPI,
@@ -24,6 +25,7 @@ import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
   AuthCheckResult,
+  AuthDeactivatedResponseDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
@@ -180,8 +182,15 @@ export class AuthController {
   // TODO E2E testing planning
   // TODO Implement Event(Auth) webhooks / triggers
 
+  @Patch(`${V1}/${ACTIVATING_PATH}/:id`)
+  @ApiResponse({ status: 200, type: AuthDeactivatedResponseDto })
+  async activateById(@Param('id') id: string) {
+    return await this.authService.activateById(id);
+  }
+
   @Patch(`${V1}/${DEACTIVATING_PATH}/:id`)
-  async disableById(@Param('id') id: string) {
+  @ApiResponse({ status: 200, type: AuthDeactivatedResponseDto })
+  async deactivateById(@Param('id') id: string) {
     return await this.authService.deactivateById(id);
   }
 

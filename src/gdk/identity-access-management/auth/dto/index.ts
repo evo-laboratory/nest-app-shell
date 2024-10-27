@@ -1,4 +1,5 @@
 export * from './auth-check-refresh-token.dto';
+export * from './auth-deactivated-response.dto';
 export * from './auth-check-result.dto';
 export * from './auth-email-sign-in.dto';
 export * from './auth-email-verification.dto';

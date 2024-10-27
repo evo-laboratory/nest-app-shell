@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { IGetResponseWrapper } from '@shared/types';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import {
   EmailSignUpDto,
   AuthVerifyDto,
@@ -16,9 +18,8 @@ import {
   IAuthCheckResult,
   IAuthExchangeNewAccessTokenRes,
   IAuth,
+  IAuthDataResponse,
 } from './types';
-import { IGetResponseWrapper } from '@shared/types';
-import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 
 @Injectable()
 export abstract class AuthService {
@@ -51,6 +52,6 @@ export abstract class AuthService {
     dto: GetOptionsDto,
     canBeNull: boolean,
   ): Promise<IGetResponseWrapper<IAuth>>;
-  abstract enable(): void;
-  abstract deactivateById(id: string): Promise<IAuth>;
+  abstract activateById(id: string): Promise<IAuthDataResponse>;
+  abstract deactivateById(id: string): Promise<IAuthDataResponse>;
 }
