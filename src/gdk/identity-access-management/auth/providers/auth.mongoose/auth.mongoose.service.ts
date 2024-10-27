@@ -46,7 +46,6 @@ import {
   GetResponseWrap,
   JsonStringify,
 } from '@shared/helper';
-
 import { MethodLogger } from '@shared/winston-logger';
 import {
   ERROR_CODE,
@@ -62,7 +61,6 @@ import {
   MongoDBErrorHandler,
 } from '@shared/mongodb';
 
-import { Auth } from './auth.schema';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
 import {
@@ -77,6 +75,8 @@ import {
 } from '@gdk-iam/auth/statics';
 
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
+
+import { Auth } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);

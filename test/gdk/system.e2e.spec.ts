@@ -3,11 +3,17 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import { GPI, V1 } from '@shared/statics';
+import { JsonStringify } from '@shared/helper';
+import { WinstonService } from '@shared/winston-logger';
 import {
   ENV_PATH,
   SYNC_HTTP_ENDPOINTS_PATH,
   SYSTEM_API,
 } from '@gdk-system/statics';
+import { AuthService } from '@gdk-iam/auth/auth.service';
+import { SystemService } from '@gdk-system/system.service';
+import { ROLE_SET_METHOD } from '@gdk-system/enums';
+
 import { DatabaseTestHelper } from 'test/helpers';
 import {
   BearerHeader,
@@ -19,11 +25,6 @@ import {
   TEST_SUPER_ROLE,
   TestSysOwnerData,
 } from 'test/data';
-import { WinstonService } from '@shared/winston-logger';
-import { AuthService } from '@gdk-iam/auth/auth.service';
-import { SystemService } from '@gdk-system/system.service';
-import { ROLE_SET_METHOD } from '@gdk-system/enums';
-import { JsonStringify } from '@shared/helper';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
