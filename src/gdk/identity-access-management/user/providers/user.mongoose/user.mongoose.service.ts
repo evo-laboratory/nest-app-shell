@@ -169,8 +169,17 @@ export class UserMongooseService implements UserService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  removeById(id: string): Promise<IUser> {
-    throw new Error('Method not implemented.');
+
+  @MethodLogger()
+  public async deleteById(id: string, session: ClientSession): Promise<IUser> {
+    try {
+      const deleted = await this.UserModel.findByIdAndDelete(id, {
+        session: session,
+      });
+      return deleted.toJSON();
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
   @MethodLogger()

@@ -62,4 +62,5 @@ export abstract class AuthService {
   ): Promise<IAuthDataResponse>;
   abstract activateById(id: string): Promise<IAuthDataResponse>;
   abstract deactivateById(id: string): Promise<IAuthDataResponse>;
+  abstract deleteById(id: string): Promise<IAuthDataResponse>;
 }

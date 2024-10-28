@@ -211,12 +211,13 @@ export class AuthController {
     return await this.authService.deactivateById(id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    // return this.authService.remove(+id);
+  @Delete(`${V1}/:id`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async remove(@Param('id') id: string) {
+    return this.authService.deleteById(id);
   }
 
-  // TODO Delete Auth and User
   // TODO User APIs
   // TODO 3rd party OAuth Login
   // TODO E2E testing planning

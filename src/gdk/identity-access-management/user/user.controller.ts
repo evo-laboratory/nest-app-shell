@@ -52,9 +52,4 @@ export class UserController {
   removeRoleListV1(@Body() removeRoleDto: UserRemoveRoleDto) {
     return this.userService.removeRole(removeRoleDto);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.removeById(id);
-  }
 }

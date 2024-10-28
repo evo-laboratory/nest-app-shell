@@ -1011,6 +1011,55 @@ export class AuthMongooseService implements AuthService {
   }
 
   @MethodLogger()
+  public async deleteById(
+    id: string,
+    session?: ClientSession,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(id, 'deleteById(id)');
+    this.Logger.verbose(session ? true : false, 'deleteById(session)');
+    if (!session) {
+      session = await this.connection.startSession();
+    }
+    try {
+      // * STEP 1. Check if already deleted
+      const check = await this.AuthModel.findById(id);
+      if (check === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${id} not found`,
+          404,
+          'deleteById',
+        );
+      }
+      session.startTransaction();
+      // * STEP 2. Deactivate Auth
+      const deactivated = await this.deactivateById(id, session);
+      // TODO DRY
+      const deleted = await this.AuthModel.findByIdAndDelete(id, {
+        session: session,
+        new: true,
+      });
+      if (deleted === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${id} not found`,
+          404,
+          'deleteById',
+        );
+      }
+      assert.ok(deleted, 'Deleted Auth');
+      const deletedUser = await this.userService.deleteById(
+        `${deleted.userId}`,
+        session,
+      );
+      assert.ok(deletedUser, 'Deleted User');
+      return GetResponseWrap(deleted);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
   private async createWithUser(
     dto: IAuthCreateAuthWithUser,
     hashPassword = true,

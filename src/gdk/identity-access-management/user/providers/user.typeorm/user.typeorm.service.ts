@@ -6,6 +6,9 @@ import { UpdateUserDto } from '../../dto/update-user.dto';
 import { Types } from 'mongoose';
 @Injectable()
 export class UserTypeOrmService implements UserService {
+  deleteById(id: string, dbOpt?: any): Promise<IUser> {
+    throw new Error('Method not implemented.');
+  }
   addRole(role: any): Promise<IUser> {
     throw new Error('Method not implemented.');
   }

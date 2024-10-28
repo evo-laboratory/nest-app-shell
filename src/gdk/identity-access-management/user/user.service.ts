@@ -21,5 +21,5 @@ export abstract class UserService {
     dto: UpdateUserDto,
   ): Promise<IUser>;
   abstract removeRole(role: UserRemoveRoleDto): Promise<IUser>;
-  abstract removeById(id: string): Promise<IUser>;
+  abstract deleteById(id: string, dbOpt?: any): Promise<IUser>;
 }
