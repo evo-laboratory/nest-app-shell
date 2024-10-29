@@ -2,7 +2,10 @@ import { MailService } from '@gdk-mail/mail.service';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as SendGrid from '@sendgrid/mail';
 import { ClientResponse } from '@sendgrid/mail';
-import { MethodLogger, WINSTON_LOG_VARIANT_LEVEL } from '@shared/winston-logger';
+import {
+  MethodLogger,
+  WINSTON_LOG_VARIANT_LEVEL,
+} from '@shared/winston-logger';
 import {
   ISendGridSendMailResItem,
   ISendMail,
