@@ -24,9 +24,9 @@ export class User implements IUser {
   })
   roleList: string[];
   @Prop({ type: Date, default: new Date() })
-  createdAt: number;
+  createdAt: Date;
   @Prop({ type: Date, default: new Date() })
-  updatedAt: number;
+  updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -28,7 +28,7 @@ async function Bootstrap() {
   await app.listen(PORT);
   WinstonLogger.info(`${STAGE}`, {
     contextName: 'Main',
-    methodName: 'Stage',
+    methodName: 'EnvStage',
   });
   WinstonLogger.info(
     `${
@@ -63,7 +63,8 @@ async function Bootstrap() {
   const NODE_ENV = process.env.NODE_ENV
     ? `${process.env.NODE_ENV}`.toLowerCase()
     : 'dev';
-  WinstonLogger.verbose(
+  // * Using which env file is controlled by NODE_ENV, reference to app.module.ts
+  WinstonLogger.info(
     `${
       process.env.NODE_ENV
         ? `${process.env.NODE_ENV}`.toLowerCase()

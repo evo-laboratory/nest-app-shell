@@ -73,7 +73,6 @@ import {
   AUTH_MODEL_NAME,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
 } from '@gdk-iam/auth/statics';
-
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 
 import { Auth } from './auth.schema';
@@ -1165,6 +1164,7 @@ export class AuthMongooseService implements AuthService {
     user: IUser,
     session: ClientSession,
   ): Promise<IAuthGenerateCustomTokenResult> {
+    // TODO Review this method usage, could be improved / refactored to better structure
     this.Logger.verbose(auth._id, 'issueJWTAndRecord(auth._id)');
     this.Logger.verbose(user._id, 'issueJWTAndRecord(user._id)');
     this.Logger.verbose(session ? true : false, 'issueJWTAndRecord(session)');

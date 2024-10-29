@@ -12,8 +12,8 @@ export class UserDto implements IUser {
   displayName: string;
   isEmailVerified: boolean;
   roleList: string[];
-  createdAt: number;
-  updatedAt: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const UserIdRefDto = MongoObjectIdDtoRef(UserDto);
