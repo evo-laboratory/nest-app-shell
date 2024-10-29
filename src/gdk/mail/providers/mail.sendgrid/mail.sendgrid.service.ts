@@ -2,7 +2,7 @@ import { MailService } from '@gdk-mail/mail.service';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as SendGrid from '@sendgrid/mail';
 import { ClientResponse } from '@sendgrid/mail';
-import { MethodLogger } from '@shared/winston-logger';
+import { MethodLogger, WINSTON_LOG_VARIANT_LEVEL } from '@shared/winston-logger';
 import {
   ISendGridSendMailResItem,
   ISendMail,
@@ -26,7 +26,10 @@ export class MailSendgridService implements MailService {
   private init(): void {
     SendGrid.setApiKey(this.mailEnvConfig.SENDGRID_API_KEY);
     this.DEFAULT_SENDER = this.mailEnvConfig.SENDGRID_SENDER_EMAIL;
-    this.Logger.verbose(this.DEFAULT_SENDER, 'init.DEFAULT_SENDER');
+    this.Logger.log(this.DEFAULT_SENDER, {
+      level: WINSTON_LOG_VARIANT_LEVEL.INFO,
+      methodName: 'init.DEFAULT_SENDER',
+    });
   }
 
   @MethodLogger()
