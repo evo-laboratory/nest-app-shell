@@ -26,5 +26,5 @@ export abstract class AuthActivitiesService {
     tokenType?: AUTH_TOKEN_TYPE,
     opts?: any,
   ): Promise<IAuthActivities>;
-  abstract deleteByAuthId(authId: string): Promise<IAuthActivities>;
+  abstract deleteByAuthId(authId: string, opts?: any): Promise<IAuthActivities>;
 }

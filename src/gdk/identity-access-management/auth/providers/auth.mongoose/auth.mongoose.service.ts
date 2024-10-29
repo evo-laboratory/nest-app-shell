@@ -919,9 +919,19 @@ export class AuthMongooseService implements AuthService {
     session?: ClientSession,
   ): Promise<IAuthDataResponse> {
     this.Logger.verbose(authId, 'deactivateById(authId)');
-    this.Logger.verbose(session ? true : false, 'deactivateById(session)');
+    let _session: ClientSession;
     if (!session) {
-      session = await this.connection.startSession();
+      _session = await this.connection.startSession();
+      this.Logger.verbose(
+        'Upstream not passed in session, started new session',
+        'deactivateById(session)',
+      );
+    } else {
+      this.Logger.verbose(
+        'Upstream passed in session',
+        'deactivateById(session)',
+      );
+      _session = session;
     }
     try {
       // * STEP 1. Check if already disabled
@@ -946,7 +956,9 @@ export class AuthMongooseService implements AuthService {
           'deactivateById',
         );
       }
-      session.startTransaction();
+      if (!session) {
+        _session.startTransaction();
+      }
       // * STEP 2. Disable Auth
       const deactivated = await this.AuthModel.findByIdAndUpdate(
         authId,
@@ -957,7 +969,7 @@ export class AuthMongooseService implements AuthService {
             updatedAt: new Date(),
           },
         },
-        { session: session, new: true },
+        { session: _session, new: true },
       );
       assert.ok(deactivated, 'Deactivated Auth');
       // * STEP 3. Get All Tokens and Revoke
@@ -980,7 +992,7 @@ export class AuthMongooseService implements AuthService {
                 AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
                 AUTH_TOKEN_TYPE.REFRESH,
                 true,
-                session,
+                _session,
               ),
           ),
         );
@@ -993,18 +1005,20 @@ export class AuthMongooseService implements AuthService {
           authId,
           false,
           AUTH_TOKEN_TYPE.REFRESH,
-          session,
+          _session,
         );
         assert.ok(cleared, 'Cleared RefreshTokens in AuthActivities');
       }
       // * STEP 5. Complete session
-      await session.commitTransaction();
-      await session.endSession();
+      if (!session) {
+        await _session.commitTransaction();
+        await _session.endSession();
+      }
       return GetResponseWrap(deactivated);
     } catch (error) {
-      if (session.inTransaction()) {
-        await session.abortTransaction();
-        await session.endSession();
+      if (_session.inTransaction()) {
+        await _session.abortTransaction();
+        await _session.endSession();
       }
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -1033,8 +1047,29 @@ export class AuthMongooseService implements AuthService {
       }
       session.startTransaction();
       // * STEP 2. Deactivate Auth
-      const deactivated = await this.deactivateById(id, session);
-      // TODO DRY
+      const auth = await this.AuthModel.findById(id);
+      if (auth.isActivated) {
+        this.Logger.verbose(
+          'Auth is activated, deactivate first',
+          'deleteById',
+        );
+        const deactivated = await this.deactivateById(id, session);
+        assert.ok(deactivated, 'Deactivated Auth');
+      }
+      // * STEP 3. Delete Auth Activities
+      const checkAuthActivities = await this.authActivities.getByAuthId(id);
+      if (checkAuthActivities !== null) {
+        this.Logger.verbose(
+          'AuthActivities found, user not login before',
+          'deleteById',
+        );
+        const deletedActivities = await this.authActivities.deleteByAuthId(
+          id,
+          session,
+        );
+        assert.ok(deletedActivities, 'Deleted Auth Activities');
+      }
+      // * STEP 4. Deleted Auth
       const deleted = await this.AuthModel.findByIdAndDelete(id, {
         session: session,
         new: true,
@@ -1048,11 +1083,21 @@ export class AuthMongooseService implements AuthService {
         );
       }
       assert.ok(deleted, 'Deleted Auth');
-      const deletedUser = await this.userService.deleteById(
-        `${deleted.userId}`,
-        session,
-      );
-      assert.ok(deletedUser, 'Deleted User');
+      const checkUser = await this.userService.findById(`${deleted.userId}`);
+      if (checkUser !== null) {
+        const deletedUser = await this.userService.deleteById(
+          `${deleted.userId}`,
+          session,
+        );
+        assert.ok(deletedUser, 'Deleted User');
+      } else {
+        this.Logger.warn(
+          `User: ${deleted.userId} not found, data inconsistent.`,
+          'deleteById.checkUser',
+        );
+      }
+      await session.commitTransaction();
+      await session.endSession();
       return GetResponseWrap(deleted);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
