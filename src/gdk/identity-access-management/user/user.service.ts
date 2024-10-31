@@ -5,13 +5,18 @@ import { IUser } from './types';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
 import { GetListOptionsDto } from '@shared/dto';
 import { IGetResponseWrapper } from '@shared/types';
+import { IUserDataResponse } from './types/user-data-response.interface';
 @Injectable()
 export abstract class UserService {
   abstract create(dto: CreateUserDto, mongoSession?: any): Promise<IUser>;
   abstract listAll(
     opt: GetListOptionsDto,
   ): Promise<IGetResponseWrapper<IUser[]>>;
-  abstract findById(id: string): Promise<IUser>;
+  abstract getById(
+    id: string,
+    opt: GetListOptionsDto,
+    canBeNull: boolean,
+  ): Promise<IUserDataResponse>;
   abstract findByAuthId(id: string): Promise<IUser>;
   abstract findByEmail(email: string): Promise<IUser>;
   abstract findOne(): Promise<IUser>;

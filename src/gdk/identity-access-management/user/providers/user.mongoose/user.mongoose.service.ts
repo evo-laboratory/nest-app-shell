@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
 import {
+  GetOptionsMongooseQueryMapper,
   ListOptionsMongooseQueryMapper,
   MongoDBErrorHandler,
 } from '@shared/mongodb';
@@ -24,10 +25,11 @@ import {
 
 import { User, UserDocument } from './user.schema';
 import { UserService } from '../../user.service';
-import { GetListOptionsDto } from '@shared/dto';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { AuthMongooseService } from '@gdk-iam/auth/providers/auth.mongoose/auth.mongoose.service';
 import { GetResponseWrap, JsonStringify } from '@shared/helper';
 import { IGetResponseWrapper } from '@shared/types';
+import { IUserDataResponse } from '@gdk-iam/user/types/user-data-response.interface';
 
 @Injectable()
 export class UserMongooseService implements UserService {
@@ -82,10 +84,30 @@ export class UserMongooseService implements UserService {
   }
 
   @MethodLogger()
-  public async findById(id: string): Promise<IUser> {
+  public async getById(
+    id: string,
+    opt: GetOptionsDto,
+    canBeNull = true,
+  ): Promise<IUserDataResponse> {
     try {
-      const user = await this.UserModel.findById(id);
-      return user;
+      this.Logger.verbose(id, 'getById(id)');
+      this.Logger.verbose(canBeNull, 'getById(canBeNull)');
+      const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+      this.Logger.verbose(JsonStringify(mappedOpts), 'getById(mappedOpts)');
+      const data = await this.UserModel.findById(id)
+        .select(mappedOpts.selectedFields)
+        .populate(mappedOpts.populateFields)
+        .lean();
+      if (data === null && !canBeNull) {
+        // * Throw 404
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Not found`,
+          404,
+          'getById',
+        );
+      }
+      return GetResponseWrap(data);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -139,13 +161,12 @@ export class UserMongooseService implements UserService {
         dto.roleName,
       ]);
       if (roleMap.length === 0) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.ROLE_NOT_EXIST,
           `${dto.roleName} is not a valid role`,
           400,
           'addRole',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 2. update User
       const updated = await this.UserModel.findByIdAndUpdate(
@@ -174,13 +195,12 @@ export class UserMongooseService implements UserService {
         dto.roleName,
       ]);
       if (roleMap.length === 0) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.ROLE_NOT_EXIST,
           `${dto.roleName} is not a valid role`,
           400,
           'removeRole',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 2. update User
       const updated = await this.UserModel.findByIdAndUpdate(
@@ -211,8 +231,7 @@ export class UserMongooseService implements UserService {
     }
   }
 
-  @MethodLogger()
-  private buildError(
+  private throwHttpError(
     code: ERROR_CODE,
     msg: string,
     statusCode?: number,
@@ -226,6 +245,6 @@ export class UserMongooseService implements UserService {
       contextName: 'UserMongooseService',
       methodName: `${methodName}`,
     };
-    return errorObj;
+    throw new UniteHttpException(errorObj);
   }
 }

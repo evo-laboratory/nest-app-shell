@@ -323,7 +323,7 @@ export class AuthMongooseService implements AuthService {
         );
       }
       // * STEP 2. Check User Exist
-      const user = await this.userService.findById(`${auth.userId}`);
+      const user = await this.userService.getById(`${auth.userId}`, {}, true);
       if (user === null) {
         this.throwHttpError(
           ERROR_CODE.USER_NOT_FOUND,
@@ -704,8 +704,10 @@ export class AuthMongooseService implements AuthService {
         true,
       );
       if (validResult.isValid) {
-        const user = await this.userService.findById(
+        const user = await this.userService.getById(
           validResult.decodedToken.userId,
+          {},
+          false,
         );
         const userPayload: IUserTokenPayload =
           ExtractPropertiesFromObj<IUserTokenPayload>(
@@ -1082,7 +1084,11 @@ export class AuthMongooseService implements AuthService {
         );
       }
       assert.ok(deleted, 'Deleted Auth');
-      const checkUser = await this.userService.findById(`${deleted.userId}`);
+      const checkUser = await this.userService.getById(
+        `${deleted.userId}`,
+        {},
+        true,
+      );
       if (checkUser !== null) {
         const deletedUser = await this.userService.deleteById(
           `${deleted.userId}`,
@@ -1209,7 +1215,6 @@ export class AuthMongooseService implements AuthService {
     }
   }
 
-  @MethodLogger()
   private throwHttpError(
     code: ERROR_CODE,
     msg: string,

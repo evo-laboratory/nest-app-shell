@@ -27,7 +27,7 @@ export class UserTypeOrmService implements UserService {
   listAll(): Promise<any> {
     throw new Error('Method not implemented.');
   }
-  findById(id: string): Promise<IUser> {
+  getById(id: string, any, canBeNull = true): Promise<any> {
     throw new Error('Method not implemented.');
   }
   findByAuthId(id: string): Promise<IUser> {
