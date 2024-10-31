@@ -6,31 +6,26 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
-import { GPI, V1 } from '@shared/statics';
+import { GPI, LIST_PATH, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { USER_API, USER_ROLE_LIST_PATH } from './types/user.static';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
-import { UserRemoveRoleDto } from './dto';
-import { UserListResDto } from './dto/user-list-res.dto';
+import { UserListResponseDto, UserRemoveRoleDto } from './dto';
+import { GetListOptionsDto } from '@shared/dto';
 
 @ApiTags(USER_API)
 @Controller(`${GPI}/${USER_API}`)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post(`${V1}`)
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
-
-  @Get()
-  @ApiResponse({ status: 200, type: UserListResDto })
-  listAllV1() {
-    return this.userService.findAll();
+  @Get(`${V1}/${LIST_PATH}`)
+  @ApiResponse({ status: 200, type: UserListResponseDto })
+  async listAllV1(@Query() listOptions: GetListOptionsDto) {
+    return this.userService.listAll(listOptions);
   }
 
   @Get(':id')

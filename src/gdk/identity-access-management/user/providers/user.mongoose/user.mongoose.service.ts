@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
-import { MongoDBErrorHandler } from '@shared/mongodb';
+import {
+  ListOptionsMongooseQueryMapper,
+  MongoDBErrorHandler,
+} from '@shared/mongodb';
 import { MethodLogger } from '@shared/winston-logger';
 import {
   CreateUserDto,
@@ -21,13 +24,18 @@ import {
 
 import { User, UserDocument } from './user.schema';
 import { UserService } from '../../user.service';
+import { GetListOptionsDto } from '@shared/dto';
+import { AuthMongooseService } from '@gdk-iam/auth/providers/auth.mongoose/auth.mongoose.service';
+import { GetResponseWrap, JsonStringify } from '@shared/helper';
+import { IGetResponseWrapper } from '@shared/types';
 
 @Injectable()
 export class UserMongooseService implements UserService {
+  private readonly Logger = new Logger(AuthMongooseService.name);
   constructor(
     @InjectModel(USER_MODEL_NAME)
     private readonly UserModel: Model<User>,
-    private readonly sys: SystemService,
+    private readonly systemService: SystemService,
   ) {}
 
   @MethodLogger()
@@ -38,7 +46,7 @@ export class UserMongooseService implements UserService {
     try {
       // * While create user, set default role that set in Sys.
       const defaultRoleList = [];
-      const system = await this.sys.getCached();
+      const system = await this.systemService.getCached();
       const defaultRole = system.newSignUpDefaultUserRole;
       const roleCheck = system.roles.filter((r) => r.name === defaultRole);
       if (system.newSignUpDefaultUserRole && roleCheck.length > 0) {
@@ -53,9 +61,26 @@ export class UserMongooseService implements UserService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  findAll(): Promise<IUser[]> {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async listAll(
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IUser[]>> {
+    try {
+      const mappedOpts = ListOptionsMongooseQueryMapper(opt);
+      this.Logger.verbose(JsonStringify(mappedOpts), 'listAll(mappedOpts)');
+      const data = await this.UserModel.find(mappedOpts.filterObjs)
+        .sort(mappedOpts.sortObjs)
+        .populate(mappedOpts.populateFields)
+        .select(mappedOpts.selectedFields)
+        .skip(mappedOpts.skip)
+        .limit(mappedOpts.limit)
+        .lean();
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
+
   @MethodLogger()
   public async findById(id: string): Promise<IUser> {
     try {
@@ -110,7 +135,9 @@ export class UserMongooseService implements UserService {
   public async addRole(dto: UserAddRoleDto): Promise<IUser> {
     try {
       // * STEP 1. Check dto.roleName valid
-      const roleMap = await this.sys.listRoleByNamesFromCache([dto.roleName]);
+      const roleMap = await this.systemService.listRoleByNamesFromCache([
+        dto.roleName,
+      ]);
       if (roleMap.length === 0) {
         const error = this.buildError(
           ERROR_CODE.ROLE_NOT_EXIST,
@@ -143,7 +170,9 @@ export class UserMongooseService implements UserService {
   public async removeRole(dto: UserRemoveRoleDto): Promise<IUser> {
     try {
       // * STEP 1. Check dto.roleName valid
-      const roleMap = await this.sys.listRoleByNamesFromCache([dto.roleName]);
+      const roleMap = await this.systemService.listRoleByNamesFromCache([
+        dto.roleName,
+      ]);
       if (roleMap.length === 0) {
         const error = this.buildError(
           ERROR_CODE.ROLE_NOT_EXIST,

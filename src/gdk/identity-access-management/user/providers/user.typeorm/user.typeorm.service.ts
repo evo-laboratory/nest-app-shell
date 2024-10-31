@@ -24,7 +24,7 @@ export class UserTypeOrmService implements UserService {
   create(dto: CreateUserDto): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  findAll(): Promise<IUser[]> {
+  listAll(): Promise<any> {
     throw new Error('Method not implemented.');
   }
   findById(id: string): Promise<IUser> {

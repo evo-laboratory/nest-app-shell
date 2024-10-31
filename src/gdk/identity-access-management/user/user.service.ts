@@ -3,10 +3,14 @@ import { Types } from 'mongoose';
 import { CreateUserDto, UpdateUserDto, UserRemoveRoleDto } from './dto';
 import { IUser } from './types';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
+import { GetListOptionsDto } from '@shared/dto';
+import { IGetResponseWrapper } from '@shared/types';
 @Injectable()
 export abstract class UserService {
   abstract create(dto: CreateUserDto, mongoSession?: any): Promise<IUser>;
-  abstract findAll(): Promise<IUser[]>;
+  abstract listAll(
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IUser[]>>;
   abstract findById(id: string): Promise<IUser>;
   abstract findByAuthId(id: string): Promise<IUser>;
   abstract findByEmail(email: string): Promise<IUser>;
