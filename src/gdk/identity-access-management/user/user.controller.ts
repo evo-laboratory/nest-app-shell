@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
@@ -12,10 +11,10 @@ import { GPI, LIST_PATH, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { USER_API, USER_ROLE_LIST_PATH } from './types/user.static';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
 import {
   UserDataResponseDto,
+  UserFlexUpdateByIdDto,
   UserListResponseDto,
   UserRemoveRoleDto,
 } from './dto';
@@ -39,17 +38,23 @@ export class UserController {
   }
 
   @Patch(`${V1}/${USER_ROLE_LIST_PATH}`)
-  updateRoleListV1(@Body() addRoleDto: UserAddRoleDto) {
-    return this.userService.addRole(addRoleDto);
+  @ApiResponse({ status: 200, type: UserDataResponseDto })
+  async updateRoleListV1(@Body() addRoleDto: UserAddRoleDto) {
+    return await this.userService.addRole(addRoleDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.updateById(id, updateUserDto);
+  @Patch(`${V1}/:id`)
+  @ApiResponse({ status: 200, type: UserDataResponseDto })
+  async updateById(
+    @Param('id') id: string,
+    @Body() dto: UserFlexUpdateByIdDto,
+  ) {
+    return await this.userService.updateById(id, dto);
   }
 
   @Delete(`${V1}/${USER_ROLE_LIST_PATH}`)
-  removeRoleListV1(@Body() removeRoleDto: UserRemoveRoleDto) {
-    return this.userService.removeRole(removeRoleDto);
+  @ApiResponse({ status: 200, type: UserDataResponseDto })
+  async removeRoleListV1(@Body() removeRoleDto: UserRemoveRoleDto) {
+    return await this.userService.removeRole(removeRoleDto);
   }
 }

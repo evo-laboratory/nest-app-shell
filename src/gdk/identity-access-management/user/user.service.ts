@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { CreateUserDto, UpdateUserDto, UserRemoveRoleDto } from './dto';
+import { CreateUserDto, UserFlexUpdateByIdDto, UserRemoveRoleDto } from './dto';
 import { IUser } from './types';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
 import { GetListOptionsDto } from '@shared/dto';
@@ -21,14 +21,14 @@ export abstract class UserService {
   abstract findByEmail(email: string): Promise<IUser>;
   abstract findOne(): Promise<IUser>;
   abstract updateEmailVerifiedById(
-    id: Types.ObjectId | string,
+    id: string,
     mongoSession?: any,
   ): Promise<IUser>;
-  abstract addRole(role: UserAddRoleDto): Promise<IUser>;
+  abstract addRole(role: UserAddRoleDto): Promise<IUserDataResponse>;
   abstract updateById(
-    id: Types.ObjectId | string,
-    dto: UpdateUserDto,
-  ): Promise<IUser>;
-  abstract removeRole(role: UserRemoveRoleDto): Promise<IUser>;
+    id: string,
+    dto: UserFlexUpdateByIdDto,
+  ): Promise<IUserDataResponse>;
+  abstract removeRole(role: UserRemoveRoleDto): Promise<IUserDataResponse>;
   abstract deleteById(id: string, dbOpt?: any): Promise<IUser>;
 }

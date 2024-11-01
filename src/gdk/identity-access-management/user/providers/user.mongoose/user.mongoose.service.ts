@@ -9,7 +9,7 @@ import {
 import { MethodLogger } from '@shared/winston-logger';
 import {
   CreateUserDto,
-  UpdateUserDto,
+  UserFlexUpdateByIdDto,
   UserRemoveRoleDto,
 } from '@gdk-iam/user/dto';
 import { USER_MODEL_NAME, IUser } from '@gdk-iam/user/types';
@@ -133,7 +133,7 @@ export class UserMongooseService implements UserService {
   }
   @MethodLogger()
   public async updateEmailVerifiedById(
-    id: Types.ObjectId,
+    id: string,
     session?: ClientSession,
   ): Promise<IUser> {
     try {
@@ -154,7 +154,7 @@ export class UserMongooseService implements UserService {
   }
 
   @MethodLogger()
-  public async addRole(dto: UserAddRoleDto): Promise<IUser> {
+  public async addRole(dto: UserAddRoleDto): Promise<IUserDataResponse> {
     try {
       // * STEP 1. Check dto.roleName valid
       const roleMap = await this.systemService.listRoleByNamesFromCache([
@@ -179,16 +179,35 @@ export class UserMongooseService implements UserService {
         },
         { new: true },
       );
-      return updated;
+      return GetResponseWrap(updated.toJSON());
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  updateById(id: string, dto: UpdateUserDto): Promise<IUser> {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async updateById(
+    id: string,
+    dto: UserFlexUpdateByIdDto,
+    session?: ClientSession,
+  ): Promise<IUserDataResponse> {
+    try {
+      const updated = await this.UserModel.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            ...dto,
+            updatedAt: new Date(),
+          },
+        },
+        { session: session, new: true },
+      );
+      return GetResponseWrap(updated.toJSON());
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   @MethodLogger()
-  public async removeRole(dto: UserRemoveRoleDto): Promise<IUser> {
+  public async removeRole(dto: UserRemoveRoleDto): Promise<IUserDataResponse> {
     try {
       // * STEP 1. Check dto.roleName valid
       const roleMap = await this.systemService.listRoleByNamesFromCache([
@@ -213,7 +232,7 @@ export class UserMongooseService implements UserService {
         },
         { new: true },
       );
-      return updated;
+      return GetResponseWrap(updated.toJSON());
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
