@@ -7,8 +7,9 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { GPI, LIST_PATH, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { GPI, LIST_PATH, V1 } from '@shared/statics';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { UserService } from './user.service';
 import { USER_API, USER_ROLE_LIST_PATH } from './types/user.static';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
@@ -18,7 +19,6 @@ import {
   UserListResponseDto,
   UserRemoveRoleDto,
 } from './dto';
-import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 
 @ApiTags(USER_API)
 @Controller(`${GPI}/${USER_API}`)

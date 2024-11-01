@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model, Types } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import {
   GetOptionsMongooseQueryMapper,
   ListOptionsMongooseQueryMapper,
@@ -13,7 +13,7 @@ import {
   UserRemoveRoleDto,
 } from '@gdk-iam/user/dto';
 import { USER_MODEL_NAME, IUser } from '@gdk-iam/user/types';
-
+import { IUserDataResponse } from '@gdk-iam/user/types/user-data-response.interface';
 import { UserAddRoleDto } from '@gdk-iam/user/dto/user-add-role.dto';
 import { SystemService } from '@gdk-system/system.service';
 import {
@@ -22,14 +22,13 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
-
-import { User, UserDocument } from './user.schema';
-import { UserService } from '../../user.service';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { AuthMongooseService } from '@gdk-iam/auth/providers/auth.mongoose/auth.mongoose.service';
 import { GetResponseWrap, JsonStringify } from '@shared/helper';
 import { IGetResponseWrapper } from '@shared/types';
-import { IUserDataResponse } from '@gdk-iam/user/types/user-data-response.interface';
+
+import { User, UserDocument } from './user.schema';
+import { UserService } from '../../user.service';
 
 @Injectable()
 export class UserMongooseService implements UserService {
