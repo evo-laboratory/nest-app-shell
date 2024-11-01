@@ -49,7 +49,6 @@ describe('GDK/UserController', () => {
     await DBTestHelper.setupSystem();
     // * STEP 3. Create a system owner for Authorization
     const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
-    // await authService.emailSignUp(TestOwner, true);
     const { accessToken } = await authService.emailSignIn({
       email: TestOwner.email,
       password: TestOwner.password,
