@@ -36,6 +36,7 @@ describe('GDK/SystemController', () => {
   let sysOwnerAccessToken: string;
 
   beforeAll(async () => {
+    // * STEP 1. Setup the NestJS application Test Bed
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
     app = moduleFixture.createNestApplication({
       logger: new WinstonService(),
@@ -46,27 +47,27 @@ describe('GDK/SystemController', () => {
         whitelist: true,
       }),
     );
+    await app.init();
+    authService = moduleFixture.get<AuthService>(AuthService);
+    systemService = moduleFixture.get<SystemService>(SystemService);
+    // * STEP 2. Use the DatabaseTestHelper to setup database
     DBTestHelper = await DatabaseTestHelper.init(
       process.env.DATABASE_PROVIDER as 'MONGODB',
       process.env.MONGO_URI,
       MONGO_E2E_TEST_DB,
     );
     await DBTestHelper.setupSystem();
-    await app.init();
-    authService = moduleFixture.get<AuthService>(AuthService);
-    systemService = moduleFixture.get<SystemService>(SystemService);
+    // * STEP 3. Create a system owner for Authorization
+    const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
+    await authService.emailSignUp(TestOwner, true);
+    const { accessToken } = await authService.emailSignIn({
+      email: TestOwner.email,
+      password: TestOwner.password,
+    });
+    sysOwnerAccessToken = accessToken;
   });
   const PUBLIC_ENV_API = `${SYS_API}/${V1}/${ENV_PATH}`;
   describe(`[GET] ${PUBLIC_ENV_API}`, () => {
-    beforeAll(async () => {
-      const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
-      await authService.emailSignUp(TestOwner, true);
-      const { accessToken } = await authService.emailSignIn({
-        email: TestOwner.email,
-        password: TestOwner.password,
-      });
-      sysOwnerAccessToken = accessToken;
-    });
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer()).get(`${PUBLIC_ENV_API}`).expect(403);
     });

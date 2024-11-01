@@ -47,6 +47,13 @@ class DatabaseTestHelper {
 
   public async setupSystem(): Promise<void> {
     if (this.provider === 'MONGODB') {
+      // * Check Before Creating
+      const check = await this.SystemMongoDBModel.findOne({});
+      console.log(check);
+      if (check !== null) {
+        console.info('System Data already exists');
+        return;
+      }
       await this.SystemMongoDBModel.create(DefaultSystemData());
     } else {
       throw new Error('Not implemented');
