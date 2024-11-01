@@ -17,9 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "NODE_ENV=test-mongodb npx jest --config jest-e2e.config.js",
-    "test:gdk:sys": "NODE_ENV=test-mongodb npx jest test/gdk/system.e2e.spec.ts --config jest-e2e.config.js",
-    "test:gdk:user": "NODE_ENV=test-mongodb npx jest test/gdk/user-gpi.e2e.spec.ts --config jest-e2e.config.js"
+    "test-e2e": "NODE_ENV=test-mongodb npx jest --config jest-e2e.config.js",
+    "test-e2e:gdk:sys": "NODE_ENV=test-mongodb npx jest test/gdk/system.e2e.spec.ts --config jest-e2e.config.js",
+    "test-e2e:gdk:user": "NODE_ENV=test-mongodb npx jest test/gdk/user-gpi.e2e.spec.ts --config jest-e2e.config.js"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.21.1",
