@@ -8,7 +8,13 @@ import { GPI, LIST_PATH, V1 } from '@shared/statics';
 import { WinstonService } from '@shared/winston-logger';
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import { DatabaseTestHelper } from 'test/helpers';
-import { MONGO_E2E_TEST_DB } from 'test/data';
+import {
+  BearerHeader,
+  ClientKeyHeader,
+  EmptyBearerHeader,
+  MONGO_E2E_TEST_DB,
+  TestSysOwnerData,
+} from 'test/data';
 
 describe('GDK/UserController', () => {
   const _USER_API = `/${GPI}/${USER_API}`;
@@ -20,6 +26,7 @@ describe('GDK/UserController', () => {
   let sysOwnerAccessToken: string;
 
   beforeAll(async () => {
+    // * STEP 1. Setup the NestJS application Test Bed
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
     app = moduleFixture.createNestApplication({
       logger: new WinstonService(),
@@ -30,15 +37,24 @@ describe('GDK/UserController', () => {
         whitelist: true,
       }),
     );
+    await app.init();
+    userService = app.get<UserService>(UserService);
+    authService = moduleFixture.get<AuthService>(AuthService);
+    // * STEP 2. Use the DatabaseTestHelper to setup database
     DBTestHelper = await DatabaseTestHelper.init(
       process.env.DATABASE_PROVIDER as 'MONGODB',
       process.env.MONGO_URI,
       MONGO_E2E_TEST_DB,
     );
     await DBTestHelper.setupSystem();
-    await app.init();
-    userService = app.get<UserService>(UserService);
-    authService = moduleFixture.get<AuthService>(AuthService);
+    // * STEP 3. Create a system owner for Authorization
+    const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
+    await authService.emailSignUp(TestOwner, true);
+    const { accessToken } = await authService.emailSignIn({
+      email: TestOwner.email,
+      password: TestOwner.password,
+    });
+    sysOwnerAccessToken = accessToken;
   });
 
   describe(`[GET] ${USER_RESOURCE_V1_PATH}/${LIST_PATH}`, () => {
@@ -46,6 +62,31 @@ describe('GDK/UserController', () => {
       return request(app.getHttpServer())
         .get(`${USER_RESOURCE_V1_PATH}/${LIST_PATH}`)
         .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${USER_RESOURCE_V1_PATH}/${LIST_PATH}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${USER_RESOURCE_V1_PATH}/${LIST_PATH}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it('BearerHeader (system-owner), should return 200', () => {
+      return request(app.getHttpServer())
+        .get(`${USER_RESOURCE_V1_PATH}/${LIST_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({})
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.data).toBeDefined();
+          expect(res.body.data).toBeInstanceOf(Array);
+        });
     });
   });
   afterAll(async () => {
