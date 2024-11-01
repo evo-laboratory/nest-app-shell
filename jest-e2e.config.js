@@ -14,6 +14,7 @@ module.exports = {
   testRegex: '.*\\.e2e.spec\\.ts$',
   transform: { '^.+\\.(t|j)s$': 'ts-jest' },
   collectCoverageFrom: ['**/*.(t|j)s'],
+  globalSetup: '<rootDir>/test/fixtures/jest-e2e.setup.ts',
   reporters: [
     'default',
     [
