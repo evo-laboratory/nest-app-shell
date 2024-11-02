@@ -18,7 +18,11 @@ config({
 module.exports = async function (globalConfig, projectConfig) {
   console.info(`Global setup.... ${process.env.NODE_ENV}`);
   const SYS_OWNER_EMAIL = `${process.env.SYS_OWNER_EMAIL}`;
-  // * Below code is same as AuthService.emailSignUp(TestOwnerData, true);
+  await SimulateAuthEmailSignUp(SYS_OWNER_EMAIL);
+};
+
+async function SimulateAuthEmailSignUp(email) {
+  // * Below code should same as AuthService.emailSignUp(TestOwnerData, true);
   if (process.env.DATABASE_PROVIDER === 'MONGODB') {
     try {
       await mongoose.connect(process.env.MONGO_URI, {
@@ -34,7 +38,7 @@ module.exports = async function (globalConfig, projectConfig) {
         flexMongoDBSchema,
       );
       const newUser = await new UserMongoDBModel({
-        email: SYS_OWNER_EMAIL,
+        email: email,
         firstName: 'Sys',
         lastName: 'Owner',
         displayName: 'Sys Owner', // * Check TestSysOwnerData from test-sys-owner-data.ts
@@ -45,9 +49,8 @@ module.exports = async function (globalConfig, projectConfig) {
       await new AuthMongoDBModel({
         googleSignInId: '',
         identifierType: 'EMAIL',
-        identifier: SYS_OWNER_EMAIL,
+        identifier: email,
         userId: newUser._id,
-        email: SYS_OWNER_EMAIL,
         password: hashedPassword,
         code: '',
         codeExpiredAt: 0,
@@ -65,4 +68,4 @@ module.exports = async function (globalConfig, projectConfig) {
   } else {
     throw new Error('Database provider not supported');
   }
-};
+}
