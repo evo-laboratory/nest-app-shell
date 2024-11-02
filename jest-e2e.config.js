@@ -21,7 +21,7 @@ module.exports = {
     [
       './node_modules/jest-html-reporter',
       {
-        pageTitle: 'App Shell E2E Test Report',
+        pageTitle: `Nest App Shell E2E Test Report ( NODE_ENV: ${process.env.NODE_ENV} )`,
         outputPath: `./test/reports/e2e/${process.env.NODE_ENV}/report.html`,
       },
     ],
