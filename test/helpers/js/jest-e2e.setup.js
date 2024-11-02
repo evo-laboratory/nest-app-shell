@@ -81,46 +81,52 @@ async function SimulateAuthEmailSignUp(email) {
 }
 
 async function SetupSystem() {
-  try {
-    const SystemMongoDBModel = mongoose.model(
-      `${SYSTEM_MODEL_NAME}`,
-      flexMongoDBSchema,
+  if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+    try {
+      const SystemMongoDBModel = mongoose.model(
+        `${SYSTEM_MODEL_NAME}`,
+        flexMongoDBSchema,
+      );
+      await new SystemMongoDBModel({
+        roles: [
+          {
+            name: TEST_SUPER_ROLE,
+            setMethod: 'BLACK_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
+            endpointPermissions: [],
+            description: 'Super Admin Role',
+          },
+          {
+            name: TEST_GENERAL_ROLE,
+            setMethod: 'WHITE_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
+            endpointPermissions: [],
+            description: 'General User Role',
+          },
+        ],
+        rolesUpdatedAt: new Date(),
+        endpoints: [],
+        endpointUpdatedAt: new Date(),
+        clients: [
+          {
+            id: TEST_CLIENT_ID,
+            name: 'test-runner',
+            willExpire: false,
+            expiredAt: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        newSignUpDefaultUserRole: TEST_GENERAL_ROLE,
+        clientUpdatedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).save();
+    } catch (error) {
+      console.error(error);
+      throw new Error(error);
+    }
+  } else {
+    throw new Error(
+      `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV} SetupSystem failed, ${process.env.DATABASE_PROVIDER} is not supported`,
     );
-    await new SystemMongoDBModel({
-      roles: [
-        {
-          name: TEST_SUPER_ROLE,
-          setMethod: 'BLACK_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
-          endpointPermissions: [],
-          description: 'Super Admin Role',
-        },
-        {
-          name: TEST_GENERAL_ROLE,
-          setMethod: 'WHITE_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
-          endpointPermissions: [],
-          description: 'General User Role',
-        },
-      ],
-      rolesUpdatedAt: new Date(),
-      endpoints: [],
-      endpointUpdatedAt: new Date(),
-      clients: [
-        {
-          id: TEST_CLIENT_ID,
-          name: 'test-runner',
-          willExpire: false,
-          expiredAt: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ],
-      newSignUpDefaultUserRole: TEST_GENERAL_ROLE,
-      clientUpdatedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).save();
-  } catch (error) {
-    console.error(error);
-    throw new Error(error);
   }
 }
