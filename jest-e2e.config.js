@@ -16,7 +16,7 @@ module.exports = {
   collectCoverageFrom: ['**/*.(t|j)s'],
   globalSetup: '<rootDir>/test/helpers/js/jest-e2e.setup.js',
   globalTeardown: '<rootDir>/test/helpers/js/jest-e2e.teardown.js',
-  collectCoverage: true,
+  collectCoverage: false,
   coverageDirectory: `./test/reports/e2e-coverage/${process.env.NODE_ENV}/coverage`,
   reporters: [
     'default',

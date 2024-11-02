@@ -75,7 +75,7 @@ async function SimulateAuthEmailSignUp(email) {
     }
   } else {
     throw new Error(
-      `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV} SimulateAuthEmailSignUp failed, ${process.env.DATABASE_PROVIDER} is not supported`,
+      `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV} SimulateAuthEmailSignUp failed,\n${process.env.DATABASE_PROVIDER} is not supported`,
     );
   }
 }
@@ -126,7 +126,7 @@ async function SetupSystem() {
     }
   } else {
     throw new Error(
-      `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV} SetupSystem failed, ${process.env.DATABASE_PROVIDER} is not supported`,
+      `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV} SetupSystem failed, \n${process.env.DATABASE_PROVIDER} is not supported`,
     );
   }
 }

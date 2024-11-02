@@ -40,7 +40,7 @@ async function ClearDatabase() {
     }
   } else {
     throw new Error(
-      `[jest-e2e-config.globalTeardown] ${__filename}@${process.env.NODE_ENV} ClearDatabase failed, ${process.env.DATABASE_PROVIDER} is not supported`,
+      `[jest-e2e-config.globalTeardown] ${__filename}@${process.env.NODE_ENV} ClearDatabase failed,\n${process.env.DATABASE_PROVIDER} is not supported`,
     );
   }
 }
