@@ -66,6 +66,8 @@ async function SimulateAuthEmailSignUp(email) {
       throw new Error(error);
     }
   } else {
-    throw new Error('Database provider not supported');
+    throw new Error(
+      `[jest-e2e-setup.js] SimulateAuthEmailSignUp failed, ${process.env.DATABASE_PROVIDER} is not supported`,
+    );
   }
 }
