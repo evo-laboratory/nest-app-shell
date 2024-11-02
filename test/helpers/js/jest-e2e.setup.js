@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 import { config } from '@dotenvx/dotenvx';
 import { genSalt, hash } from 'bcrypt';
+import {
+  E2E_TEST_DB_NAME,
+  AUTH_MODEL_NAME,
+  USER_MODEL_NAME,
+  SYS_OWNER_PASSWORD,
+} from './static';
 // * Same as app.module.ts
 const NODE_ENV = process.env.NODE_ENV
   ? `${process.env.NODE_ENV}`.toLowerCase()
@@ -11,15 +17,12 @@ config({
 
 module.exports = async function (globalConfig, projectConfig) {
   console.info(`Global setup.... ${process.env.NODE_ENV}`);
-  const DB_NAME = 'e2e-testing'; // * This should be same as the dbName in the test-data.static.ts
-  const AUTH_MODEL_NAME = 'Auth'; // * This should be same as the AUTH_MODEL_NAME in auth.static.ts
-  const USER_MODEL_NAME = 'User'; // * This should be same as the USER_MODEL_NAME in user.static.ts
   const SYS_OWNER_EMAIL = `${process.env.SYS_OWNER_EMAIL}`;
   // * Below code is same as AuthService.emailSignUp(TestOwnerData, true);
   if (process.env.DATABASE_PROVIDER === 'MONGODB') {
     try {
       await mongoose.connect(process.env.MONGO_URI, {
-        dbName: DB_NAME,
+        dbName: E2E_TEST_DB_NAME,
       });
       const flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
       const UserMongoDBModel = mongoose.model(
@@ -38,7 +41,7 @@ module.exports = async function (globalConfig, projectConfig) {
         isEmailVerified: true,
       }).save();
       const salt = await genSalt();
-      const hashedPassword = await hash('sys-owner-password1234', salt); // * Check TestSysOwnerData from test-sys-owner-data.ts
+      const hashedPassword = await hash(SYS_OWNER_PASSWORD, salt);
       await new AuthMongoDBModel({
         googleSignInId: '',
         identifierType: 'EMAIL',
