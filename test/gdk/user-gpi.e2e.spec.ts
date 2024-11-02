@@ -7,12 +7,10 @@ import { TestingModule } from '@nestjs/testing';
 import { GPI, LIST_PATH, V1 } from '@shared/statics';
 import { WinstonService } from '@shared/winston-logger';
 import { TestModuleBuilderFixture } from 'test/fixtures';
-import { DatabaseTestHelper } from 'test/helpers';
 import {
   BearerHeader,
   ClientKeyHeader,
   EmptyBearerHeader,
-  MONGO_E2E_TEST_DB,
   TestSysOwnerData,
 } from 'test/data';
 
@@ -20,7 +18,6 @@ describe('GDK/UserController', () => {
   const _USER_API = `/${GPI}/${USER_API}`;
   const USER_RESOURCE_V1_PATH = `${_USER_API}/${V1}`;
   let app: INestApplication;
-  let DBTestHelper: DatabaseTestHelper;
   let authService: AuthService;
   let userService: UserService;
   let sysOwnerAccessToken: string;
@@ -40,14 +37,7 @@ describe('GDK/UserController', () => {
     await app.init();
     userService = app.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
-    // * STEP 2. Use the DatabaseTestHelper to setup database
-    DBTestHelper = await DatabaseTestHelper.init(
-      process.env.DATABASE_PROVIDER as 'MONGODB',
-      process.env.MONGO_URI,
-      MONGO_E2E_TEST_DB,
-    );
-    await DBTestHelper.setupSystem();
-    // * STEP 3. Create a system owner for Authorization
+    // * STEP 2. Create a system owner for Authorization
     const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
     const { accessToken } = await authService.emailSignIn({
       email: TestOwner.email,
@@ -89,8 +79,6 @@ describe('GDK/UserController', () => {
     });
   });
   afterAll(async () => {
-    await DBTestHelper.clearDatabase();
-    await DBTestHelper.disconnect();
     await app.close();
   });
 });

@@ -5,7 +5,11 @@ import {
   E2E_TEST_DB_NAME,
   AUTH_MODEL_NAME,
   USER_MODEL_NAME,
+  SYSTEM_MODEL_NAME,
   SYS_OWNER_PASSWORD,
+  TEST_SUPER_ROLE,
+  TEST_GENERAL_ROLE,
+  TEST_CLIENT_ID,
 } from './static';
 // * Same as app.module.ts
 const NODE_ENV = process.env.NODE_ENV
@@ -15,11 +19,16 @@ config({
   path: `.env.${NODE_ENV}`,
 });
 
-module.exports = async function (globalConfig, projectConfig) {
-  console.info(`Global setup.... ${process.env.NODE_ENV}`);
+module.exports = async function () {
+  console.info(
+    `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV}`,
+  );
   const SYS_OWNER_EMAIL = `${process.env.SYS_OWNER_EMAIL}`;
   await SimulateAuthEmailSignUp(SYS_OWNER_EMAIL);
+  await SetupSystem();
 };
+
+const flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
 
 async function SimulateAuthEmailSignUp(email) {
   // * Below code should same as AuthService.emailSignUp(TestOwnerData, true);
@@ -28,7 +37,6 @@ async function SimulateAuthEmailSignUp(email) {
       await mongoose.connect(process.env.MONGO_URI, {
         dbName: E2E_TEST_DB_NAME,
       });
-      const flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
       const UserMongoDBModel = mongoose.model(
         USER_MODEL_NAME,
         flexMongoDBSchema,
@@ -67,7 +75,52 @@ async function SimulateAuthEmailSignUp(email) {
     }
   } else {
     throw new Error(
-      `[jest-e2e-setup.js] SimulateAuthEmailSignUp failed, ${process.env.DATABASE_PROVIDER} is not supported`,
+      `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV} SimulateAuthEmailSignUp failed, ${process.env.DATABASE_PROVIDER} is not supported`,
     );
+  }
+}
+
+async function SetupSystem() {
+  try {
+    const SystemMongoDBModel = mongoose.model(
+      `${SYSTEM_MODEL_NAME}`,
+      flexMongoDBSchema,
+    );
+    await new SystemMongoDBModel({
+      roles: [
+        {
+          name: TEST_SUPER_ROLE,
+          setMethod: 'BLACK_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
+          endpointPermissions: [],
+          description: 'Super Admin Role',
+        },
+        {
+          name: TEST_GENERAL_ROLE,
+          setMethod: 'WHITE_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
+          endpointPermissions: [],
+          description: 'General User Role',
+        },
+      ],
+      rolesUpdatedAt: new Date(),
+      endpoints: [],
+      endpointUpdatedAt: new Date(),
+      clients: [
+        {
+          id: TEST_CLIENT_ID,
+          name: 'test-runner',
+          willExpire: false,
+          expiredAt: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      newSignUpDefaultUserRole: TEST_GENERAL_ROLE,
+      clientUpdatedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).save();
+  } catch (error) {
+    console.error(error);
+    throw new Error(error);
   }
 }

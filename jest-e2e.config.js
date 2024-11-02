@@ -15,6 +15,7 @@ module.exports = {
   transform: { '^.+\\.(t|j)s$': 'ts-jest' },
   collectCoverageFrom: ['**/*.(t|j)s'],
   globalSetup: '<rootDir>/test/helpers/js/jest-e2e.setup.js',
+  globalTeardown: '<rootDir>/test/helpers/js/jest-e2e.teardown.js',
   reporters: [
     'default',
     [
