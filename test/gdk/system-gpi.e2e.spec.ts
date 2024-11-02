@@ -17,11 +17,13 @@ import {
   BearerHeader,
   ClientKeyHeader,
   EmptyBearerHeader,
+  TestSysOwnerData,
+} from 'test/data';
+import {
   TEST_CLIENT_ID,
   TEST_GENERAL_ROLE,
   TEST_SUPER_ROLE,
-  TestSysOwnerData,
-} from 'test/data';
+} from 'test/helpers/js/static';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;

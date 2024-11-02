@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { config } from '@dotenvx/dotenvx';
 import { genSalt, hash } from 'bcrypt';
 import {
-  E2E_TEST_DB_NAME,
+  MONGO_E2E_TEST_DB,
   AUTH_MODEL_NAME,
   USER_MODEL_NAME,
   SYSTEM_MODEL_NAME,
@@ -36,7 +36,7 @@ async function SimulateAuthEmailSignUp(email) {
   if (process.env.DATABASE_PROVIDER === 'MONGODB') {
     try {
       await mongoose.connect(process.env.MONGO_URI, {
-        dbName: E2E_TEST_DB_NAME,
+        dbName: MONGO_E2E_TEST_DB,
       });
       const UserMongoDBModel = mongoose.model(
         USER_MODEL_NAME,
