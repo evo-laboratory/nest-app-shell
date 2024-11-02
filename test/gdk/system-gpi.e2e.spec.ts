@@ -202,7 +202,7 @@ describe('GDK/SystemController', () => {
           .set(ClientKeyHeader())
           .set(BearerHeader(sysOwnerAccessToken))
           .send({})
-          .expect(500);
+          .expect(400);
       });
     }
     it('BearerHeader (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {

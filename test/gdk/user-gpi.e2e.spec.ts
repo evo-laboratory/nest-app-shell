@@ -13,6 +13,7 @@ import {
   EmptyBearerHeader,
   TestSysOwnerData,
 } from 'test/data';
+import e from 'express';
 
 describe('GDK/UserController', () => {
   const _USER_API = `/${GPI}/${USER_API}`;
@@ -76,6 +77,66 @@ describe('GDK/UserController', () => {
           expect(res.body.data).toBeDefined();
           expect(res.body.data).toBeInstanceOf(Array);
         });
+    });
+  });
+  describe(`[GET] ${USER_RESOURCE_V1_PATH}/{ID}`, () => {
+    it(`ClientGuarded by default, should return 403`, () => {
+      return request(app.getHttpServer())
+        .get(`${USER_RESOURCE_V1_PATH}/1234`)
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${USER_RESOURCE_V1_PATH}/1234`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${USER_RESOURCE_V1_PATH}/1234`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+      it('BearerHeader (system-owner), but id(1234) not a valid ObjectId  should return 500', () => {
+        return request(app.getHttpServer())
+          .get(`${USER_RESOURCE_V1_PATH}/1234`)
+          .set(ClientKeyHeader())
+          .set(BearerHeader(sysOwnerAccessToken))
+          .send({})
+          .expect(400);
+      });
+    }
+    it('BearerHeader (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {
+      return request(app.getHttpServer())
+        .put(`${USER_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({})
+        .expect(404);
+    });
+    it('BearerHeader (system-owner), with exist id should return 200', async () => {
+      const existId = await userService.findByEmail(
+        `${process.env.SYS_OWNER_EMAIL}`,
+      );
+      const res = await request(app.getHttpServer())
+        .get(`${USER_RESOURCE_V1_PATH}/${existId._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({});
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      expect(res.body.data).toBeInstanceOf(Object);
+      expect(res.body.data.email).toBeDefined();
+      expect(res.body.data.firstName).toBeDefined();
+      expect(res.body.data.lastName).toBeDefined();
+      expect(res.body.data.displayName).toBeDefined();
+      expect(res.body.data.isEmailVerified).toBeDefined();
+      expect(res.body.data.roleList).toBeInstanceOf(Array);
+      expect(res.body.data.createdAt).toBeDefined();
+      expect(res.body.data.updatedAt).toBeDefined();
+      expect(res.body.meta).toBeUndefined();
     });
   });
   afterAll(async () => {

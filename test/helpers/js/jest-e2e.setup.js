@@ -51,6 +51,9 @@ async function SimulateAuthEmailSignUp(email) {
         lastName: 'Owner',
         displayName: 'Sys Owner', // * Check TestSysOwnerData from test-sys-owner-data.ts
         isEmailVerified: true,
+        roleList: [TEST_SUPER_ROLE],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }).save();
       const salt = await genSalt();
       const hashedPassword = await hash(SYS_OWNER_PASSWORD, salt);
