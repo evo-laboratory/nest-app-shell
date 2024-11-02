@@ -278,6 +278,75 @@ describe('GDK/UserController', () => {
       expect(res.body.errorCode).toBe(ERROR_CODE.USER_NOT_FOUND);
       expect(res.body.message).toBeDefined();
     });
+    it(`BearerHeader (system-owner), updating exist userId (empty dto) should return 200`, async () => {
+      const generalUser = await userService.findByEmail(JESTER01_EMAIL);
+      const res = await request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/${generalUser._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({});
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      expect(res.body.data).toBeInstanceOf(Object);
+      expect(res.body.data.email).toBeDefined();
+      expect(res.body.data.firstName).toBeDefined();
+      expect(res.body.data.lastName).toBeDefined();
+      expect(res.body.data.displayName).toBeDefined();
+      expect(res.body.data.isEmailVerified).toBeDefined();
+      expect(res.body.data.roleList).toBeInstanceOf(Array);
+      expect(res.body.data.createdAt).toBeDefined();
+      expect(res.body.data.updatedAt).toBeDefined();
+    });
+    it(`BearerHeader (system-owner), updating exist userId (valid UserFlexUpdateByIdDto) should return 200 and confirm updated`, async () => {
+      const generalUser = await userService.findByEmail(JESTER01_EMAIL);
+      const userFlexUpdateByIdDto = {
+        firstName: 'Jester Updated',
+        lastName: 'Automaticode Updated',
+        displayName: 'Jester Automaticode Updated',
+      };
+      const res = await request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/${generalUser._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send(userFlexUpdateByIdDto);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      expect(res.body.data).toBeInstanceOf(Object);
+      expect(res.body.data.email).toBeDefined();
+      expect(res.body.data.firstName).toBe(userFlexUpdateByIdDto.firstName);
+      expect(res.body.data.lastName).toBe(userFlexUpdateByIdDto.lastName);
+      expect(res.body.data.displayName).toBe(userFlexUpdateByIdDto.displayName);
+      expect(res.body.data.isEmailVerified).toBeDefined();
+      expect(res.body.data.roleList).toBeInstanceOf(Array);
+      expect(res.body.data.createdAt).toBeDefined();
+      expect(res.body.data.updatedAt).toBeDefined();
+    });
+    it(`BearerHeader (system-owner), updating exist userId (valid UserFlexUpdateByIdDto, but extra pass in) should return 200 and confirm updated`, async () => {
+      const generalUser = await userService.findByEmail(JESTER01_EMAIL);
+      const userFlexUpdateByIdDto = {
+        firstName: 'Jester Updated',
+        lastName: 'Automaticode Updated',
+        displayName: 'Jester Automaticode Updated',
+        extraPassIn: 'Extra Pass In',
+      };
+      const res = await request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/${generalUser._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send(userFlexUpdateByIdDto);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      expect(res.body.data).toBeInstanceOf(Object);
+      expect(res.body.data.email).toBeDefined();
+      expect(res.body.data.firstName).toBe(userFlexUpdateByIdDto.firstName);
+      expect(res.body.data.lastName).toBe(userFlexUpdateByIdDto.lastName);
+      expect(res.body.data.displayName).toBe(userFlexUpdateByIdDto.displayName);
+      expect(res.body.data.extraPassIn).toBeUndefined();
+      expect(res.body.data.isEmailVerified).toBeDefined();
+      expect(res.body.data.roleList).toBeInstanceOf(Array);
+      expect(res.body.data.createdAt).toBeDefined();
+      expect(res.body.data.updatedAt).toBeDefined();
+    });
   });
   afterAll(async () => {
     await app.close();
