@@ -23,6 +23,7 @@ import {
   TEST_CLIENT_ID,
   TEST_GENERAL_ROLE,
   TEST_SUPER_ROLE,
+  TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
 
 describe('GDK/SystemController', () => {
@@ -196,9 +197,9 @@ describe('GDK/SystemController', () => {
           .expect(400);
       });
     }
-    it('BearerHeader (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {
+    it(`BearerHeader (system-owner), but id(${TEST_VALID_MONGODB_OBJECT_ID}) not exist should return 404`, () => {
       return request(app.getHttpServer())
-        .put(`${SYE_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
+        .put(`${SYE_RESOURCE_V1_PATH}/${TEST_VALID_MONGODB_OBJECT_ID}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({})
