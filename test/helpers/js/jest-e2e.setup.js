@@ -10,6 +10,7 @@ import {
   TEST_SUPER_ROLE,
   TEST_GENERAL_ROLE,
   TEST_CLIENT_ID,
+  TEST_GENERAL_TWO_ROLE,
 } from './static';
 // * Same as app.module.ts
 const NODE_ENV = process.env.NODE_ENV
@@ -100,6 +101,18 @@ async function SetupSystem() {
           },
           {
             name: TEST_GENERAL_ROLE,
+            setMethod: 'WHITE_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
+            endpointPermissions: [],
+            description: 'General User Role',
+          },
+          {
+            name: TEST_SUPER_ROLE,
+            setMethod: 'BLACK_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
+            endpointPermissions: [],
+            description: 'Super Admin Role',
+          },
+          {
+            name: TEST_GENERAL_TWO_ROLE,
             setMethod: 'WHITE_LIST', // * This should be 'WHITE_LIST' or 'BLACK_LIST' in role-set-method.enum.ts
             endpointPermissions: [],
             description: 'General User Role',

@@ -13,12 +13,10 @@ import { AuthService } from '@gdk-iam/auth/auth.service';
 import { SystemService } from '@gdk-system/system.service';
 import { ROLE_SET_METHOD } from '@gdk-system/enums';
 
-import { DatabaseTestHelper } from 'test/helpers';
 import {
   BearerHeader,
   ClientKeyHeader,
   EmptyBearerHeader,
-  MONGO_E2E_TEST_DB,
   TEST_CLIENT_ID,
   TEST_GENERAL_ROLE,
   TEST_SUPER_ROLE,
@@ -29,7 +27,6 @@ describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
   const SYE_RESOURCE_V1_PATH = `${SYS_API}/${V1}`;
   let app: INestApplication;
-  let DBTestHelper: DatabaseTestHelper;
   let authService: AuthService;
   let systemService: SystemService;
   let sysOwnerAccessToken: string;
@@ -49,14 +46,7 @@ describe('GDK/SystemController', () => {
     await app.init();
     authService = moduleFixture.get<AuthService>(AuthService);
     systemService = moduleFixture.get<SystemService>(SystemService);
-    // * STEP 2. Use the DatabaseTestHelper to setup database
-    DBTestHelper = await DatabaseTestHelper.init(
-      process.env.DATABASE_PROVIDER as 'MONGODB',
-      process.env.MONGO_URI,
-      MONGO_E2E_TEST_DB,
-    );
-    await DBTestHelper.setupSystem();
-    // * STEP 3. Create a system owner for Authorization
+    // * STEP 2. Create a system owner for Authorization
     const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
     const { accessToken } = await authService.emailSignIn({
       email: TestOwner.email,
@@ -289,8 +279,6 @@ describe('GDK/SystemController', () => {
     });
   });
   afterAll(async () => {
-    await DBTestHelper.clearDatabase();
-    await DBTestHelper.disconnect();
     await app.close();
   });
 });
