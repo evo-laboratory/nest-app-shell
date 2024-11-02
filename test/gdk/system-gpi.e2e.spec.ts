@@ -3,7 +3,6 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import { GPI, V1 } from '@shared/statics';
-import { JsonStringify } from '@shared/helper';
 import { WinstonService } from '@shared/winston-logger';
 import {
   ENV_PATH,

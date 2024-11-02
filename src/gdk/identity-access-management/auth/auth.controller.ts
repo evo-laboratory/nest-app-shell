@@ -218,7 +218,6 @@ export class AuthController {
     return this.authService.deleteById(id);
   }
 
-  // TODO User APIs
   // TODO 3rd party OAuth Login
   // TODO E2E testing planning
   // TODO Implement Event(Auth) webhooks / triggers

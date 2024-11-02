@@ -7,4 +7,5 @@ export const SYS_OWNER_PASSWORD = 'sys-owner-password1234'; // * Check TestSysOw
 
 export const TEST_SUPER_ROLE = 'SUPER_ADMIN';
 export const TEST_GENERAL_ROLE = 'GENERAL_USER';
+export const TEST_GENERAL_TWO_ROLE = 'GENERAL_USER_TWO';
 export const TEST_CLIENT_ID = 'e2e-testing-client-id';

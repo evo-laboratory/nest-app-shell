@@ -200,6 +200,16 @@ export class UserMongooseService implements UserService {
     session?: ClientSession,
   ): Promise<IUserDataResponse> {
     try {
+      // * STEP 1. Check User
+      const user = await this.UserModel.findById(id);
+      if (user === null) {
+        this.throwHttpError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User not found`,
+          404,
+          'addRole',
+        );
+      }
       const updated = await this.UserModel.findByIdAndUpdate(
         id,
         {

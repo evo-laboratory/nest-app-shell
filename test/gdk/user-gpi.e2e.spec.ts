@@ -237,6 +237,45 @@ describe('GDK/UserController', () => {
       expect(res.body.data.updatedAt).toBeDefined();
     });
   });
+  describe(`[PATCH] ${USER_RESOURCE_V1_PATH}/{ID}`, () => {
+    it(`ClientGuarded by default, should return 403`, () => {
+      return request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/1234`)
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/1234`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/1234`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it('BearerHeader (general-user), should return 403', () => {
+      return request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/1234`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(generalUserAccessToken))
+        .send({})
+        .expect(403);
+    });
+    it('BearerHeader (system-owner), non exist userId(66a265d9e0e615ee831b5f1c) should return 404', async () => {
+      const res = await request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({});
+      expect(res.status).toBe(404);
+      expect(res.body.errorCode).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.USER_NOT_FOUND);
+      expect(res.body.message).toBeDefined();
+    });
+  });
   afterAll(async () => {
     await app.close();
   });
