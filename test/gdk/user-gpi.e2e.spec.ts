@@ -278,6 +278,39 @@ describe('GDK/UserController', () => {
       expect(res.body.errorCode).toBe(ERROR_CODE.USER_NOT_FOUND);
       expect(res.body.message).toBeDefined();
     });
+    it(`BearerHeader (system-owner), updating exist userId (invalid dto - displayName: true ) should return 400`, async () => {
+      const generalUser = await userService.findByEmail(JESTER01_EMAIL);
+      const res = await request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/${generalUser._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({
+          displayName: true,
+        });
+      expect(res.status).toBe(400);
+    });
+    it(`BearerHeader (system-owner), updating exist userId (invalid dto - firstName: 1234 ) should return 400`, async () => {
+      const generalUser = await userService.findByEmail(JESTER01_EMAIL);
+      const res = await request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/${generalUser._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({
+          firstName: 1234,
+        });
+      expect(res.status).toBe(400);
+    });
+    it(`BearerHeader (system-owner), updating exist userId (invalid dto - lastName: 1234 ) should return 400`, async () => {
+      const generalUser = await userService.findByEmail(JESTER01_EMAIL);
+      const res = await request(app.getHttpServer())
+        .patch(`${USER_RESOURCE_V1_PATH}/${generalUser._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({
+          lastName: 1234,
+        });
+      expect(res.status).toBe(400);
+    });
     it(`BearerHeader (system-owner), updating exist userId (empty dto) should return 200`, async () => {
       const generalUser = await userService.findByEmail(JESTER01_EMAIL);
       const res = await request(app.getHttpServer())
