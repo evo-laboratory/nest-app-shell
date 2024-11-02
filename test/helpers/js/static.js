@@ -9,3 +9,4 @@ export const TEST_SUPER_ROLE = 'SUPER_ADMIN';
 export const TEST_GENERAL_ROLE = 'GENERAL_USER';
 export const TEST_GENERAL_TWO_ROLE = 'GENERAL_USER_TWO';
 export const TEST_CLIENT_ID = 'e2e-testing-client-id';
+export const TEST_VALID_MONGODB_OBJECT_ID = '66a265d9e0e615ee831b5f1c';

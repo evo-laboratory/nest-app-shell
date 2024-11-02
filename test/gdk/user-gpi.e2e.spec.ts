@@ -10,12 +10,15 @@ import {
   BearerHeader,
   ClientKeyHeader,
   EmptyBearerHeader,
-  TEST_GENERAL_ROLE,
-  TEST_SUPER_ROLE,
   TestSysOwnerData,
 } from 'test/data';
 import { ERROR_CODE } from '@shared/exceptions';
 import { TestModuleBuilderFixture } from 'test/fixtures';
+import {
+  TEST_GENERAL_ROLE,
+  TEST_SUPER_ROLE,
+  TEST_VALID_MONGODB_OBJECT_ID,
+} from 'test/helpers/js/static';
 
 describe('GDK/UserController', () => {
   const _USER_API = `/${GPI}/${USER_API}`;
@@ -126,9 +129,9 @@ describe('GDK/UserController', () => {
           .expect(400);
       });
     }
-    it('BearerHeader (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {
+    it(`BearerHeader (system-owner), but id(${TEST_VALID_MONGODB_OBJECT_ID}) not exist should return 404`, () => {
       return request(app.getHttpServer())
-        .put(`${USER_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
+        .put(`${USER_RESOURCE_V1_PATH}/${TEST_VALID_MONGODB_OBJECT_ID}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({})
@@ -199,13 +202,13 @@ describe('GDK/UserController', () => {
       expect(res.body.errorCode).toBe(ERROR_CODE.ROLE_NOT_EXIST);
       expect(res.body.message).toBeDefined();
     });
-    it('BearerHeader (system-owner), non exist userId(66a265d9e0e615ee831b5f1c) should return 404', async () => {
+    it(`BearerHeader (system-owner), non exist userId(${TEST_VALID_MONGODB_OBJECT_ID}) should return 404`, async () => {
       const res = await request(app.getHttpServer())
         .patch(`${USER_RESOURCE_V1_PATH}/${USER_ROLE_LIST_PATH}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({
-          userId: '66a265d9e0e615ee831b5f1c',
+          userId: `${TEST_VALID_MONGODB_OBJECT_ID}`,
           roleName: TEST_GENERAL_ROLE,
         });
       expect(res.status).toBe(404);
@@ -264,9 +267,9 @@ describe('GDK/UserController', () => {
         .send({})
         .expect(403);
     });
-    it('BearerHeader (system-owner), non exist userId(66a265d9e0e615ee831b5f1c) should return 404', async () => {
+    it(`BearerHeader (system-owner), non exist userId(${TEST_VALID_MONGODB_OBJECT_ID}) should return 404`, async () => {
       const res = await request(app.getHttpServer())
-        .patch(`${USER_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
+        .patch(`${USER_RESOURCE_V1_PATH}/${TEST_VALID_MONGODB_OBJECT_ID}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({});
