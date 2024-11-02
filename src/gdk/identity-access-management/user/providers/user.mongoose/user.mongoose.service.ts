@@ -167,6 +167,16 @@ export class UserMongooseService implements UserService {
           'addRole',
         );
       }
+      // * STEP 2. Check User
+      const user = await this.UserModel.findById(dto.userId);
+      if (user === null) {
+        this.throwHttpError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User not found`,
+          404,
+          'addRole',
+        );
+      }
       // * STEP 2. update User
       const updated = await this.UserModel.findByIdAndUpdate(
         dto.userId,

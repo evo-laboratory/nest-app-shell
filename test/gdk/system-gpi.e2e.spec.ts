@@ -273,13 +273,6 @@ describe('GDK/SystemController', () => {
           updatedAt: new Date(),
         },
       ];
-      console.log(
-        JsonStringify({
-          roles: rolesUpdate,
-          clients: clientsUpdate,
-          newSignUpDefaultUserRole: 'NEW_ROLE',
-        }),
-      );
       const res = await request(app.getHttpServer())
         .put(`${SYE_RESOURCE_V1_PATH}/${existSys._id}`)
         .set(ClientKeyHeader())
