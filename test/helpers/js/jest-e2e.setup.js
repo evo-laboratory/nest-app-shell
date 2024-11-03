@@ -24,6 +24,7 @@ module.exports = async function () {
   console.info(
     `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV}`,
   );
+  await SetupDatabase();
   const SYS_OWNER_EMAIL = `${process.env.SYS_OWNER_EMAIL}`;
   await SimulateAuthEmailSignUp(SYS_OWNER_EMAIL);
   await SetupSystem();
@@ -31,13 +32,26 @@ module.exports = async function () {
 
 const flexMongoDBSchema = new mongoose.Schema({}, { strict: false });
 
-async function SimulateAuthEmailSignUp(email) {
-  // * Below code should same as AuthService.emailSignUp(TestOwnerData, true);
+async function SetupDatabase() {
   if (process.env.DATABASE_PROVIDER === 'MONGODB') {
     try {
       await mongoose.connect(process.env.MONGO_URI, {
         dbName: MONGO_E2E_TEST_DB,
       });
+    } catch (error) {
+      throw new Error(error);
+    }
+  } else {
+    throw new Error(
+      `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV} SetupDatabase failed,\n${process.env.DATABASE_PROVIDER} is not supported`,
+    );
+  }
+}
+
+async function SimulateAuthEmailSignUp(email) {
+  // * Below code should same as AuthService.emailSignUp(TestOwnerData, true);
+  if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+    try {
       const UserMongoDBModel = mongoose.model(
         USER_MODEL_NAME,
         flexMongoDBSchema,
