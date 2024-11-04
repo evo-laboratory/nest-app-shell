@@ -14,7 +14,6 @@ import { OauthClientService } from '@gdk-iam/oauth-client/oauth-client.service';
 
 import {
   IEmailSignUpRes,
-  AUTH_IDENTIFIER_TYPE,
   IAuthVerifyRes,
   IAuthGeneratedCode,
   IAuthSignInRes,
@@ -65,6 +64,7 @@ import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
 import {
   AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
   AUTH_METHOD,
   AUTH_PROVIDER,
   AUTH_TOKEN_TYPE,

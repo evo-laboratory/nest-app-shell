@@ -2,10 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
-import { AUTH_IDENTIFIER_TYPE, IAuth } from '@gdk-iam/auth/types';
+import { IAuth } from '@gdk-iam/auth/types';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types';
 import {
   AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
   AUTH_METHOD,
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';

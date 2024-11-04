@@ -12,7 +12,7 @@ export * from './auth-exchange-new-access-token.interface';
 export * from './auth-flex-update.interface';
 export * from './auth-generate-custom-token-result.interface';
 export * from './auth-generated-code.interface';
-export * from './auth-identifier-type';
+export * from '../enums/auth-identifier-type.enum';
 export * from './auth-token.interface';
 export * from './auth-register-token.interface';
 export * from './auth-check-refresh-token.interface';
