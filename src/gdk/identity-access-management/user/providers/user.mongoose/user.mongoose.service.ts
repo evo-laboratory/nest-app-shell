@@ -15,6 +15,7 @@ import {
 import { USER_MODEL_NAME, IUser } from '@gdk-iam/user/types';
 import { IUserDataResponse } from '@gdk-iam/user/types/user-data-response.interface';
 import { UserAddRoleDto } from '@gdk-iam/user/dto/user-add-role.dto';
+import { IAuth } from '@gdk-iam/auth/types';
 import { SystemService } from '@gdk-system/system.service';
 import {
   ERROR_CODE,
@@ -29,7 +30,6 @@ import { IGetResponseWrapper } from '@shared/types';
 
 import { User, UserDocument } from './user.schema';
 import { UserService } from '../../user.service';
-import { IAuth } from '@gdk-iam/auth/types';
 
 @Injectable()
 export class UserMongooseService implements UserService {
