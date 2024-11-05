@@ -16,6 +16,7 @@ import {
   DEACTIVATING_PATH,
   GPI,
   LIST_PATH,
+  SELF_PATH,
   V1,
 } from '@shared/statics';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
@@ -200,22 +201,29 @@ export class AuthController {
   @Patch(`${V1}/${ACTIVATING_PATH}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
-  async activateById(@Param('id') id: string) {
+  async activateByIdV1(@Param('id') id: string) {
     return await this.authService.activateById(id);
   }
 
   @Patch(`${V1}/${DEACTIVATING_PATH}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
-  async deactivateById(@Param('id') id: string) {
+  async deactivateByIdV1(@Param('id') id: string) {
     return await this.authService.deactivateById(id);
+  }
+
+  @Delete(`${V1}/${SELF_PATH}`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async selfDeleteV1(@Param('id') id: string) {
+    return this.authService.deleteById(id, true);
   }
 
   @Delete(`${V1}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
-  async remove(@Param('id') id: string) {
-    return this.authService.deleteById(id);
+  async deleteByIdV1(@Param('id') id: string) {
+    return this.authService.deleteById(id, false);
   }
 
   // TODO 3rd party OAuth Login

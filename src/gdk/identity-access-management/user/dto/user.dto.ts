@@ -12,6 +12,9 @@ export class UserDto implements IUser {
   displayName: string;
   isEmailVerified: boolean;
   roleList: string[];
+  isSelfDeleted: boolean;
+  selfDeletedAt: Date;
+  backupAuth: any | null;
   createdAt: Date;
   updatedAt: Date;
 }

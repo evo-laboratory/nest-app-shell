@@ -23,6 +23,12 @@ export class User implements IUser {
     default: [],
   })
   roleList: string[];
+  @Prop({ type: Boolean, default: false })
+  isSelfDeleted: boolean;
+  @Prop({ type: Date, default: new Date() })
+  selfDeletedAt: Date;
+  @Prop({ type: Map, default: null })
+  backupAuth: any;
   @Prop({ type: Date, default: new Date() })
   createdAt: Date;
   @Prop({ type: Date, default: new Date() })

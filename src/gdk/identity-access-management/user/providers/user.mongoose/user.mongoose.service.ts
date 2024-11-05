@@ -29,6 +29,7 @@ import { IGetResponseWrapper } from '@shared/types';
 
 import { User, UserDocument } from './user.schema';
 import { UserService } from '../../user.service';
+import { IAuth } from '@gdk-iam/auth/types';
 
 @Injectable()
 export class UserMongooseService implements UserService {
@@ -264,6 +265,30 @@ export class UserMongooseService implements UserService {
         session: session,
       });
       return deleted.toJSON();
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async selfDeleteById(
+    id: string,
+    deletedAuth: IAuth,
+    session: ClientSession,
+  ): Promise<IUser> {
+    try {
+      const selfDeleteUpdated = await this.UserModel.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            isSelfDeleted: true,
+            backupAuth: deletedAuth,
+            selfDeletedAt: new Date(),
+          },
+        },
+        { session: session, new: true },
+      );
+      return selfDeleteUpdated.toJSON();
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }

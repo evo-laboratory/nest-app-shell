@@ -36,6 +36,7 @@ export const EnvironmentConfigSchema = Joi.object({
   ENABLE_GOOGLE_SIGN_IN: Joi.boolean().default(false),
   GOOGLE_CLIENT_ID: Joi.optional(),
   GOOGLE_CLIENT_SECRET: Joi.optional(),
+  SELF_HARD_DELETE_ENABLED: Joi.boolean().default(false),
   SENDGRID_API_KEY: Joi.string(),
   SENDGRID_SENDER_EMAIL: Joi.string(),
 });

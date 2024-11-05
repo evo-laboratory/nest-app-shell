@@ -1028,9 +1028,11 @@ export class AuthMongooseService implements AuthService {
   @MethodLogger()
   public async deleteById(
     id: string,
+    isSelfDelete = false,
     session?: ClientSession,
   ): Promise<IAuthDataResponse> {
     this.Logger.verbose(id, 'deleteById(id)');
+    this.Logger.verbose(isSelfDelete, 'deleteById(isSelfDelete)');
     this.Logger.verbose(session ? true : false, 'deleteById(session)');
     if (!session) {
       session = await this.connection.startSession();
@@ -1090,11 +1092,20 @@ export class AuthMongooseService implements AuthService {
         true,
       );
       if (checkUser !== null) {
-        const deletedUser = await this.userService.deleteById(
-          `${deleted.userId}`,
-          session,
-        );
-        assert.ok(deletedUser, 'Deleted User');
+        if (isSelfDelete && !this.iamConfig.SELF_HARD_DELETE_ENABLED) {
+          const deletedUser = await this.userService.selfDeleteById(
+            `${deleted.userId}`,
+            auth,
+            session,
+          );
+          assert.ok(deletedUser, 'Deleted User');
+        } else {
+          const deletedUser = await this.userService.deleteById(
+            `${deleted.userId}`,
+            session,
+          );
+          assert.ok(deletedUser, 'Deleted User');
+        }
       } else {
         this.Logger.warn(
           `User: ${deleted.userId} not found, data inconsistent.`,

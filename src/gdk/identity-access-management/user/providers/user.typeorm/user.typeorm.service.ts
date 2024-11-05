@@ -7,6 +7,9 @@ import { IUserDataResponse } from '@gdk-iam/user/types/user-data-response.interf
 import { UserFlexUpdateByIdDto } from '@gdk-iam/user/dto';
 @Injectable()
 export class UserTypeOrmService implements UserService {
+  selfDeleteById(id: string): Promise<IUser> {
+    throw new Error('Method not implemented.');
+  }
   deleteById(id: string, dbOpt?: any): Promise<IUser> {
     throw new Error('Method not implemented.');
   }

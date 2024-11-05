@@ -32,4 +32,7 @@ export default registerAs(IAM_CONFIG_KEY, () => ({
   ENABLE_GOOGLE_SIGN_IN: ParseAnyToBoolean(process.env.ENABLE_GOOGLE_SIGN_IN),
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  SELF_HARD_DELETE_ENABLED: ParseAnyToBoolean(
+    process.env.SELF_HARD_DELETE_ENABLED,
+  ),
 }));
