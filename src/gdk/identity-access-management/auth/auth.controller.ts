@@ -215,8 +215,8 @@ export class AuthController {
   @Delete(`${V1}/${SELF_PATH}`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
-  async selfDeleteV1(@Param('id') id: string) {
-    return this.authService.deleteById(id, true);
+  async selfDeleteV1(@VerifiedToken() token: IAuthDecodedToken) {
+    return this.authService.deleteById(token.sub, true);
   }
 
   @Delete(`${V1}/:id`)

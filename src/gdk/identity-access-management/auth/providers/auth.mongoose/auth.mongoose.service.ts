@@ -1093,18 +1093,26 @@ export class AuthMongooseService implements AuthService {
       );
       if (checkUser !== null) {
         if (isSelfDelete && !this.iamConfig.SELF_HARD_DELETE_ENABLED) {
-          const deletedUser = await this.userService.selfDeleteById(
+          this.Logger.verbose(
+            'Soft Delete User',
+            'deleteById.checkSoftDeleteOrHardDelete',
+          );
+          const softDeletedUser = await this.userService.selfDeleteById(
             `${deleted.userId}`,
             auth,
             session,
           );
-          assert.ok(deletedUser, 'Deleted User');
+          assert.ok(softDeletedUser, 'Soft Deleted User');
         } else {
-          const deletedUser = await this.userService.deleteById(
+          this.Logger.verbose(
+            'Hard Delete User',
+            'deleteById.checkSoftDeleteOrHardDelete',
+          );
+          const hardDeletedUser = await this.userService.deleteById(
             `${deleted.userId}`,
             session,
           );
-          assert.ok(deletedUser, 'Deleted User');
+          assert.ok(hardDeletedUser, 'Hard Deleted User');
         }
       } else {
         this.Logger.warn(
