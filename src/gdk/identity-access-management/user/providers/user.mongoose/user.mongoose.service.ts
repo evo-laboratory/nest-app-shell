@@ -277,10 +277,12 @@ export class UserMongooseService implements UserService {
     session: ClientSession,
   ): Promise<IUser> {
     try {
+      const user = await this.UserModel.findById(id);
       const selfDeleteUpdated = await this.UserModel.findByIdAndUpdate(
         id,
         {
           $set: {
+            email: `SELF-DELETED-AT_${new Date().getTime()}_${user.email}`,
             isSelfDeleted: true,
             backupAuth: deletedAuth,
             selfDeletedAt: new Date(),
