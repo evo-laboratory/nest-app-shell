@@ -19,6 +19,6 @@ export class EmailSignUpDto implements IEmailSignUp {
 export class EmailSignUpRes implements IEmailSignUpRes {
   email: string;
   isEmailSent: boolean;
-  canResendAt: number;
+  canResendAt: Date;
   provider: AUTH_PROVIDER;
 }

@@ -1,5 +1,5 @@
 import { IClient } from '@gdk-system/types';
-import { IsBoolean, IsInt, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsISO8601, IsString } from 'class-validator';
 
 export class ClientDto implements IClient {
   @IsString()
@@ -9,9 +9,9 @@ export class ClientDto implements IClient {
   @IsBoolean()
   willExpire: boolean;
   @IsInt()
-  expiredAt: number;
-  @IsNumber()
-  createdAt: number;
-  @IsNumber()
-  updatedAt: number;
+  expiredAt: Date;
+  @IsISO8601()
+  createdAt: Date;
+  @IsISO8601()
+  updatedAt: Date;
 }

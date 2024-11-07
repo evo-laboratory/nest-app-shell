@@ -3,37 +3,39 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import { GPI, V1 } from '@shared/statics';
+import { WinstonService } from '@shared/winston-logger';
 import {
   ENV_PATH,
   SYNC_HTTP_ENDPOINTS_PATH,
   SYSTEM_API,
 } from '@gdk-system/statics';
-import { DatabaseTestHelper } from 'test/helpers';
+import { AuthService } from '@gdk-iam/auth/auth.service';
+import { SystemService } from '@gdk-system/system.service';
+import { ROLE_SET_METHOD } from '@gdk-system/enums';
+
 import {
   BearerHeader,
   ClientKeyHeader,
   EmptyBearerHeader,
-  MONGO_E2E_TEST_DB,
+  TestSysOwnerData,
+} from 'test/data';
+import {
   TEST_CLIENT_ID,
   TEST_GENERAL_ROLE,
   TEST_SUPER_ROLE,
-  TestSysOwnerData,
-} from 'test/data';
-import { WinstonService } from '@shared/winston-logger';
-import { AuthService } from '@gdk-iam/auth/auth.service';
-import { SystemService } from '@gdk-system/system.service';
-import { ROLE_SET_METHOD } from '@gdk-system/enums';
+  TEST_VALID_MONGODB_OBJECT_ID,
+} from 'test/helpers/js/static';
 
 describe('GDK/SystemController', () => {
   const SYS_API = `/${GPI}/${SYSTEM_API}`;
   const SYE_RESOURCE_V1_PATH = `${SYS_API}/${V1}`;
   let app: INestApplication;
-  let DBTestHelper: DatabaseTestHelper;
   let authService: AuthService;
   let systemService: SystemService;
   let sysOwnerAccessToken: string;
 
   beforeAll(async () => {
+    // * STEP 1. Setup the NestJS application Test Bed
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
     app = moduleFixture.createNestApplication({
       logger: new WinstonService(),
@@ -44,27 +46,19 @@ describe('GDK/SystemController', () => {
         whitelist: true,
       }),
     );
-    DBTestHelper = await DatabaseTestHelper.init(
-      process.env.DATABASE_PROVIDER as 'MONGODB',
-      process.env.MONGO_URI,
-      MONGO_E2E_TEST_DB,
-    );
-    await DBTestHelper.setupSystem();
     await app.init();
     authService = moduleFixture.get<AuthService>(AuthService);
     systemService = moduleFixture.get<SystemService>(SystemService);
+    // * STEP 2. Create a system owner for Authorization
+    const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
+    const { accessToken } = await authService.emailSignIn({
+      email: TestOwner.email,
+      password: TestOwner.password,
+    });
+    sysOwnerAccessToken = accessToken;
   });
   const PUBLIC_ENV_API = `${SYS_API}/${V1}/${ENV_PATH}`;
   describe(`[GET] ${PUBLIC_ENV_API}`, () => {
-    beforeAll(async () => {
-      const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
-      await authService.emailSignUp(TestOwner, true);
-      const { accessToken } = await authService.emailSignIn({
-        email: TestOwner.email,
-        password: TestOwner.password,
-      });
-      sysOwnerAccessToken = accessToken;
-    });
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME} by default, should return 403`, () => {
       return request(app.getHttpServer()).get(`${PUBLIC_ENV_API}`).expect(403);
     });
@@ -200,12 +194,12 @@ describe('GDK/SystemController', () => {
           .set(ClientKeyHeader())
           .set(BearerHeader(sysOwnerAccessToken))
           .send({})
-          .expect(500);
+          .expect(400);
       });
     }
-    it('BearerHeader (system-owner), but id(66a265d9e0e615ee831b5f1c) not exist should return 404', () => {
+    it(`BearerHeader (system-owner), but id(${TEST_VALID_MONGODB_OBJECT_ID}) not exist should return 404`, () => {
       return request(app.getHttpServer())
-        .put(`${SYE_RESOURCE_V1_PATH}/66a265d9e0e615ee831b5f1c`)
+        .put(`${SYE_RESOURCE_V1_PATH}/${TEST_VALID_MONGODB_OBJECT_ID}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({})
@@ -259,16 +253,16 @@ describe('GDK/SystemController', () => {
           name: 'test-runner',
           willExpire: false,
           expiredAt: 0,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
         {
           id: 'new-client-id',
           name: 'test-case-runner',
           willExpire: true,
           expiredAt: 0,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       ];
       const res = await request(app.getHttpServer())
@@ -288,8 +282,6 @@ describe('GDK/SystemController', () => {
     });
   });
   afterAll(async () => {
-    await DBTestHelper.clearDatabase();
-    await DBTestHelper.disconnect();
     await app.close();
   });
 });

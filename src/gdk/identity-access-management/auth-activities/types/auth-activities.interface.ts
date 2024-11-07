@@ -7,6 +7,6 @@ export interface IAuthActivities {
   refreshTokenList: IAuthTokenItem[];
   accessTokenList: IAuthTokenItem[];
   signInFailRecordList: IAuthSignInFailedRecordItem[];
-  lastIssueAccessTokenAt: number;
-  lastIssueRefreshTokenAt: number;
+  lastIssueAccessTokenAt: Date;
+  lastIssueRefreshTokenAt: Date;
 }

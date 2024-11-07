@@ -1,4 +1,5 @@
 export * from './auth-code-usage.enum';
+export * from './auth-identifier-type.enum';
 export * from './auth-method.enum';
 export * from './auth-provider.enum';
 export * from './auth-token-type.enum';

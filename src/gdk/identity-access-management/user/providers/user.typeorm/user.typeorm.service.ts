@@ -2,14 +2,21 @@ import { Injectable } from '@nestjs/common';
 import { IUser } from '@gdk-iam/user/types/user.interface';
 import { UserService } from '../../user.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
-import { UpdateUserDto } from '../../dto/update-user.dto';
 import { Types } from 'mongoose';
+import { IUserDataResponse } from '@gdk-iam/user/types/user-data-response.interface';
+import { UserFlexUpdateByIdDto } from '@gdk-iam/user/dto';
 @Injectable()
 export class UserTypeOrmService implements UserService {
-  addRole(role: any): Promise<IUser> {
+  selfDeleteById(id: string): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  removeRole(role: any): Promise<IUser> {
+  deleteById(id: string, dbOpt?: any): Promise<IUser> {
+    throw new Error('Method not implemented.');
+  }
+  addRole(role: any): Promise<IUserDataResponse> {
+    throw new Error('Method not implemented.');
+  }
+  removeRole(role: any): Promise<IUserDataResponse> {
     throw new Error('Method not implemented.');
   }
   updateEmailVerifiedById(
@@ -21,10 +28,10 @@ export class UserTypeOrmService implements UserService {
   create(dto: CreateUserDto): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  findAll(): Promise<IUser[]> {
+  listAll(): Promise<any> {
     throw new Error('Method not implemented.');
   }
-  findById(id: string): Promise<IUser> {
+  getById(id: string, any, canBeNull = true): Promise<any> {
     throw new Error('Method not implemented.');
   }
   findByAuthId(id: string): Promise<IUser> {
@@ -36,7 +43,10 @@ export class UserTypeOrmService implements UserService {
   findOne(): Promise<IUser> {
     throw new Error('Method not implemented.');
   }
-  updateById(id: string, dto: UpdateUserDto): Promise<IUser> {
+  updateById(
+    id: string,
+    dto: UserFlexUpdateByIdDto,
+  ): Promise<IUserDataResponse> {
     throw new Error('Method not implemented.');
   }
   removeById(id: string): Promise<IUser> {

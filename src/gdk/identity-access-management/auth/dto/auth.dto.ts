@@ -1,9 +1,14 @@
 import { Types } from 'mongoose';
-import { AUTH_IDENTIFIER_TYPE, IAuth } from '../types';
+import { IAuth } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserIdRefDto } from '@gdk-iam/user/dto';
 import { MongoObjectIdDtoRef } from '@shared/swagger';
-import { AUTH_CODE_USAGE, AUTH_METHOD, AUTH_PROVIDER } from '../enums';
+import {
+  AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
+  AUTH_METHOD,
+  AUTH_PROVIDER,
+} from '../enums';
 
 export class AuthDto implements IAuth {
   @ApiProperty({ type: String })
@@ -25,15 +30,15 @@ export class AuthDto implements IAuth {
   password: string;
   code: string;
   codeUsage: AUTH_CODE_USAGE;
-  codeExpiredAt: number;
+  codeExpiredAt: Date;
   // @ApiProperty({ type: [AuthSignInFailedRecordItemDto] })
   // signInFailRecordList: IAuthSignInFailedRecordItem[];
   isIdentifierVerified: boolean;
-  isActive: boolean;
-  inactiveAt: number;
-  createdAt: number;
-  updatedAt: number;
-  lastChangedPasswordAt: number;
+  isActivated: boolean;
+  inactivatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  lastChangedPasswordAt: Date;
 }
 
 export const AuthIdRefDto = MongoObjectIdDtoRef(AuthDto);

@@ -10,7 +10,15 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CHECK_PATH, GPI, LIST_PATH, V1 } from '@shared/statics';
+import {
+  ACTIVATING_PATH,
+  CHECK_PATH,
+  DEACTIVATING_PATH,
+  GPI,
+  LIST_PATH,
+  SELF_PATH,
+  V1,
+} from '@shared/statics';
 import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
@@ -18,12 +26,12 @@ import { AuthService } from './auth.service';
 import {
   AuthCheckRefreshTokenDto,
   AuthCheckResult,
+  AuthDataResponseDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
   AuthEmailVerificationRes,
   AuthExchangeNewAccessTokenDto,
   AuthExchangeNewAccessTokenRes,
-  AuthGetByIdResDto,
   AuthListResDto,
   AuthSignInRes,
   AuthSignOutDto,
@@ -33,7 +41,6 @@ import {
   AuthVerifyRes,
   EmailSignUpDto,
   EmailSignUpRes,
-  UpdateAuthDto,
 } from './dto';
 import { AuthType, AuthZType, VerifiedToken } from './decorators';
 import { AUTH_TYPE, AUTHZ_TYPE } from './enums';
@@ -44,9 +51,11 @@ import {
 import {
   ACCESS_TOKEN_PATH,
   AUTH_API,
+  EMAIL_PATH,
   EMAIL_SIGN_IN_PATH,
   EMAIL_SIGN_UP_PATH,
   EMAIL_VERIFICATION_PATH,
+  IDENTIFIER_PATH,
   REFRESH_TOKEN_PATH,
   REVOKE_REFRESH_TOKEN_PATH,
   SIGN_OUT_PATH,
@@ -162,27 +171,62 @@ export class AuthController {
     return await this.authService.listAll(listOptions);
   }
 
+  @Get(`${V1}/${EMAIL_PATH}/:email`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async getByEmailV1(
+    @Param('email') email: string,
+    @Query() options: GetOptionsDto,
+  ) {
+    return await this.authService.getByEmail(email, options, false);
+  }
+
+  @Get(`${V1}/${IDENTIFIER_PATH}/:identifier`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async getByIdentifierV1(
+    @Param('identifier') identifier: string,
+    @Query() options: GetOptionsDto,
+  ) {
+    return await this.authService.getByIdentifier(identifier, options, false);
+  }
+
   @Get(`${V1}/:id`)
   @HttpCode(200)
-  @ApiResponse({ status: 200, type: AuthGetByIdResDto })
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
   async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
     return await this.authService.getById(id, options, false);
   }
 
-  // TODO Disable Auth
-  // TODO Delete Auth and User
-  // TODO User APIs
+  @Patch(`${V1}/${ACTIVATING_PATH}/:id`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async activateByIdV1(@Param('id') id: string) {
+    return await this.authService.activateById(id);
+  }
+
+  @Patch(`${V1}/${DEACTIVATING_PATH}/:id`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async deactivateByIdV1(@Param('id') id: string) {
+    return await this.authService.deactivateById(id);
+  }
+
+  @Delete(`${V1}/${SELF_PATH}`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async selfDeleteV1(@VerifiedToken() token: IAuthDecodedToken) {
+    return this.authService.deleteById(token.sub, true);
+  }
+
+  @Delete(`${V1}/:id`)
+  @HttpCode(200)
+  @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  async deleteByIdV1(@Param('id') id: string) {
+    return this.authService.deleteById(id, false);
+  }
+
   // TODO 3rd party OAuth Login
   // TODO E2E testing planning
   // TODO Implement Event(Auth) webhooks / triggers
-
-  @Patch(':id')
-  async disableById(@Param('id') id: string) {
-    return await this.authService.disableById(id);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    // return this.authService.remove(+id);
-  }
 }

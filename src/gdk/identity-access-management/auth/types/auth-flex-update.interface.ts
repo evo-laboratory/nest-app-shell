@@ -1,10 +1,10 @@
 export interface IAuthFlexUpdate {
   googleSignInId?: string;
-  codeExpiredAt?: number;
+  codeExpiredAt?: Date;
   code?: string;
   codeUsage?: string;
   isIdentifierVerified?: boolean;
   password?: string;
-  lastChangedPasswordAt?: number;
-  updatedAt?: number;
+  lastChangedPasswordAt?: Date;
+  updatedAt?: Date;
 }

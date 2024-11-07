@@ -6,12 +6,12 @@ import { IRole } from './role.interface';
 export interface ISystem {
   _id?: Types.ObjectId;
   roles: IRole[];
-  rolesUpdatedAt: number;
+  rolesUpdatedAt: Date;
   endpoints: IHttpEndpoint[];
-  endpointUpdatedAt: number;
+  endpointUpdatedAt: Date;
   clients: IClient[];
   newSignUpDefaultUserRole: string;
-  clientUpdatedAt: number;
-  createdAt: number;
-  updatedAt: number;
+  clientUpdatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

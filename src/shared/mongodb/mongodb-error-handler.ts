@@ -26,6 +26,7 @@ export function MongoDBErrorHandler(error: any): IUnitedHttpException {
   }
   if (error.message && error.message.includes('Cast to ObjectId failed')) {
     errorObj.errorCode = ERROR_CODE.CAST_TO_OBJECT_FAILED;
+    errorObj.statusCode = 400;
   }
   console.log(error.message);
   console.log('--------------');

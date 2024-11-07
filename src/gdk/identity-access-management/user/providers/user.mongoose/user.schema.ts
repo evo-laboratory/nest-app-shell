@@ -23,12 +23,19 @@ export class User implements IUser {
     default: [],
   })
   roleList: string[];
-  @Prop({ type: Number, default: Date.now() })
-  createdAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  updatedAt: number;
+  @Prop({ type: Boolean, default: false })
+  isSelfDeleted: boolean;
+  @Prop({ type: Date, default: new Date() })
+  selfDeletedAt: Date;
+  @Prop({ type: Map, default: null })
+  backupAuth: any;
+  @Prop({ type: Date, default: new Date() })
+  createdAt: Date;
+  @Prop({ type: Date, default: new Date() })
+  updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.index({ email: 1 });
+UserSchema.index({ isSelfDeleted: 1 });
 export const UserModel = MongoModelBuilder(USER_MODEL_NAME, UserSchema);

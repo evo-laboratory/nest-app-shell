@@ -1,8 +1,12 @@
 import { Types } from 'mongoose';
 import { ICreateAuth } from '../types/create-auth.interface';
 import { IsArray, IsEnum, IsString, MinLength } from 'class-validator';
-import { AUTH_IDENTIFIER_TYPE } from '../types/auth-identifier-type';
-import { AUTH_CODE_USAGE, AUTH_METHOD, AUTH_PROVIDER } from '../enums';
+import {
+  AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
+  AUTH_METHOD,
+  AUTH_PROVIDER,
+} from '../enums';
 
 export class CreateAuthDto implements ICreateAuth {
   @IsString()

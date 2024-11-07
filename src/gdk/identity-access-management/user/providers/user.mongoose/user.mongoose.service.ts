@@ -1,16 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientSession, Model, Types } from 'mongoose';
-import { MongoDBErrorHandler } from '@shared/mongodb';
+import { ClientSession, Model } from 'mongoose';
+import {
+  GetOptionsMongooseQueryMapper,
+  ListOptionsMongooseQueryMapper,
+  MongoDBErrorHandler,
+} from '@shared/mongodb';
 import { MethodLogger } from '@shared/winston-logger';
 import {
   CreateUserDto,
-  UpdateUserDto,
+  UserFlexUpdateByIdDto,
   UserRemoveRoleDto,
 } from '@gdk-iam/user/dto';
 import { USER_MODEL_NAME, IUser } from '@gdk-iam/user/types';
-
+import { IUserDataResponse } from '@gdk-iam/user/types/user-data-response.interface';
 import { UserAddRoleDto } from '@gdk-iam/user/dto/user-add-role.dto';
+import { IAuth } from '@gdk-iam/auth/types';
 import { SystemService } from '@gdk-system/system.service';
 import {
   ERROR_CODE,
@@ -18,16 +23,21 @@ import {
   IUnitedHttpException,
   UniteHttpException,
 } from '@shared/exceptions';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
+import { AuthMongooseService } from '@gdk-iam/auth/providers/auth.mongoose/auth.mongoose.service';
+import { GetResponseWrap, JsonStringify } from '@shared/helper';
+import { IGetResponseWrapper } from '@shared/types';
 
 import { User, UserDocument } from './user.schema';
 import { UserService } from '../../user.service';
 
 @Injectable()
 export class UserMongooseService implements UserService {
+  private readonly Logger = new Logger(AuthMongooseService.name);
   constructor(
     @InjectModel(USER_MODEL_NAME)
     private readonly UserModel: Model<User>,
-    private readonly sys: SystemService,
+    private readonly systemService: SystemService,
   ) {}
 
   @MethodLogger()
@@ -38,7 +48,7 @@ export class UserMongooseService implements UserService {
     try {
       // * While create user, set default role that set in Sys.
       const defaultRoleList = [];
-      const system = await this.sys.getCached();
+      const system = await this.systemService.getCached();
       const defaultRole = system.newSignUpDefaultUserRole;
       const roleCheck = system.roles.filter((r) => r.name === defaultRole);
       if (system.newSignUpDefaultUserRole && roleCheck.length > 0) {
@@ -53,14 +63,51 @@ export class UserMongooseService implements UserService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  findAll(): Promise<IUser[]> {
-    throw new Error('Method not implemented.');
-  }
   @MethodLogger()
-  public async findById(id: string): Promise<IUser> {
+  public async listAll(
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IUser[]>> {
     try {
-      const user = await this.UserModel.findById(id);
-      return user;
+      const mappedOpts = ListOptionsMongooseQueryMapper(opt);
+      this.Logger.verbose(JsonStringify(mappedOpts), 'listAll(mappedOpts)');
+      const data = await this.UserModel.find(mappedOpts.filterObjs)
+        .sort(mappedOpts.sortObjs)
+        .populate(mappedOpts.populateFields)
+        .select(mappedOpts.selectedFields)
+        .skip(mappedOpts.skip)
+        .limit(mappedOpts.limit)
+        .lean();
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async getById(
+    id: string,
+    opt: GetOptionsDto,
+    canBeNull = true,
+  ): Promise<IUserDataResponse> {
+    try {
+      this.Logger.verbose(id, 'getById(id)');
+      this.Logger.verbose(canBeNull, 'getById(canBeNull)');
+      const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+      this.Logger.verbose(JsonStringify(mappedOpts), 'getById(mappedOpts)');
+      const data = await this.UserModel.findById(id)
+        .select(mappedOpts.selectedFields)
+        .populate(mappedOpts.populateFields)
+        .lean();
+      if (data === null && !canBeNull) {
+        // * Throw 404
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Not found`,
+          404,
+          'getById',
+        );
+      }
+      return GetResponseWrap(data);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -86,7 +133,7 @@ export class UserMongooseService implements UserService {
   }
   @MethodLogger()
   public async updateEmailVerifiedById(
-    id: Types.ObjectId,
+    id: string,
     session?: ClientSession,
   ): Promise<IUser> {
     try {
@@ -95,7 +142,7 @@ export class UserMongooseService implements UserService {
         {
           $set: {
             isEmailVerified: true,
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { session: session },
@@ -107,18 +154,29 @@ export class UserMongooseService implements UserService {
   }
 
   @MethodLogger()
-  public async addRole(dto: UserAddRoleDto): Promise<IUser> {
+  public async addRole(dto: UserAddRoleDto): Promise<IUserDataResponse> {
     try {
       // * STEP 1. Check dto.roleName valid
-      const roleMap = await this.sys.listRoleByNamesFromCache([dto.roleName]);
+      const roleMap = await this.systemService.listRoleByNamesFromCache([
+        dto.roleName,
+      ]);
       if (roleMap.length === 0) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.ROLE_NOT_EXIST,
           `${dto.roleName} is not a valid role`,
           400,
           'addRole',
         );
-        throw new UniteHttpException(error);
+      }
+      // * STEP 2. Check User
+      const user = await this.UserModel.findById(dto.userId);
+      if (user === null) {
+        this.throwHttpError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User not found`,
+          404,
+          'addRole',
+        );
       }
       // * STEP 2. update User
       const updated = await this.UserModel.findByIdAndUpdate(
@@ -126,32 +184,62 @@ export class UserMongooseService implements UserService {
         {
           $addToSet: { roleList: dto.roleName },
           $set: {
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { new: true },
       );
-      return updated;
+      return GetResponseWrap(updated.toJSON());
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  updateById(id: string, dto: UpdateUserDto): Promise<IUser> {
-    throw new Error('Method not implemented.');
+  @MethodLogger()
+  public async updateById(
+    id: string,
+    dto: UserFlexUpdateByIdDto,
+    session?: ClientSession,
+  ): Promise<IUserDataResponse> {
+    try {
+      // * STEP 1. Check User
+      const user = await this.UserModel.findById(id);
+      if (user === null) {
+        this.throwHttpError(
+          ERROR_CODE.USER_NOT_FOUND,
+          `User not found`,
+          404,
+          'addRole',
+        );
+      }
+      const updated = await this.UserModel.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            ...dto,
+            updatedAt: new Date(),
+          },
+        },
+        { session: session, new: true },
+      );
+      return GetResponseWrap(updated.toJSON());
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
   @MethodLogger()
-  public async removeRole(dto: UserRemoveRoleDto): Promise<IUser> {
+  public async removeRole(dto: UserRemoveRoleDto): Promise<IUserDataResponse> {
     try {
       // * STEP 1. Check dto.roleName valid
-      const roleMap = await this.sys.listRoleByNamesFromCache([dto.roleName]);
+      const roleMap = await this.systemService.listRoleByNamesFromCache([
+        dto.roleName,
+      ]);
       if (roleMap.length === 0) {
-        const error = this.buildError(
+        this.throwHttpError(
           ERROR_CODE.ROLE_NOT_EXIST,
           `${dto.roleName} is not a valid role`,
           400,
           'removeRole',
         );
-        throw new UniteHttpException(error);
       }
       // * STEP 2. update User
       const updated = await this.UserModel.findByIdAndUpdate(
@@ -159,22 +247,56 @@ export class UserMongooseService implements UserService {
         {
           $pull: { roleList: dto.roleName },
           $set: {
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { new: true },
       );
-      return updated;
+      return GetResponseWrap(updated.toJSON());
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  removeById(id: string): Promise<IUser> {
-    throw new Error('Method not implemented.');
+
+  @MethodLogger()
+  public async deleteById(id: string, session: ClientSession): Promise<IUser> {
+    try {
+      const deleted = await this.UserModel.findByIdAndDelete(id, {
+        session: session,
+      });
+      return deleted.toJSON();
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
   }
 
   @MethodLogger()
-  private buildError(
+  public async selfDeleteById(
+    id: string,
+    deletedAuth: IAuth,
+    session: ClientSession,
+  ): Promise<IUser> {
+    try {
+      const user = await this.UserModel.findById(id);
+      const selfDeleteUpdated = await this.UserModel.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            email: `SELF-DELETED-AT_${new Date().getTime()}_${user.email}`,
+            isSelfDeleted: true,
+            backupAuth: deletedAuth,
+            selfDeletedAt: new Date(),
+          },
+        },
+        { session: session, new: true },
+      );
+      return selfDeleteUpdated.toJSON();
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  private throwHttpError(
     code: ERROR_CODE,
     msg: string,
     statusCode?: number,
@@ -188,6 +310,6 @@ export class UserMongooseService implements UserService {
       contextName: 'UserMongooseService',
       methodName: `${methodName}`,
     };
-    return errorObj;
+    throw new UniteHttpException(errorObj);
   }
 }

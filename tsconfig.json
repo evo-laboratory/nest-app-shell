@@ -17,6 +17,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "allowJs": true,
     "paths": {
       "@shared/*": ["src/shared/*"],
       "@gdk-iam/*": ["src/gdk/identity-access-management/*"],

@@ -8,5 +8,5 @@ export class AuthSignInFailedRecordItemDto
   errorCode: string;
   ipAddress: string;
   failedPassword: string;
-  createdAt: number;
+  createdAt: Date;
 }

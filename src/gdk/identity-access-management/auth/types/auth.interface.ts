@@ -1,7 +1,11 @@
 import { Types } from 'mongoose';
-import { AUTH_IDENTIFIER_TYPE } from '.';
 import { IUser } from '@gdk-iam/user/types';
-import { AUTH_CODE_USAGE, AUTH_METHOD, AUTH_PROVIDER } from '../enums';
+import {
+  AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
+  AUTH_METHOD,
+  AUTH_PROVIDER,
+} from '../enums';
 
 export interface IAuth<
   UserIdT extends IUser | Types.ObjectId = Types.ObjectId,
@@ -21,11 +25,11 @@ export interface IAuth<
   password: string;
   code: string;
   codeUsage: AUTH_CODE_USAGE;
-  codeExpiredAt: number;
+  codeExpiredAt: Date;
   isIdentifierVerified: boolean;
-  isActive: boolean;
-  inactiveAt: number;
-  createdAt: number;
-  updatedAt: number;
-  lastChangedPasswordAt: number;
+  isActivated: boolean;
+  inactivatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  lastChangedPasswordAt: Date;
 }

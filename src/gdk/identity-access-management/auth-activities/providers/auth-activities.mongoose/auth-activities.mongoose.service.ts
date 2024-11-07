@@ -80,8 +80,8 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
           authId: authObjectId,
           accessTokenList: accessItems,
           refreshTokenList: refreshItems,
-          lastIssueAccessTokenAt: Date.now(),
-          lastIssueRefreshTokenAt: Date.now(),
+          lastIssueAccessTokenAt: new Date(),
+          lastIssueRefreshTokenAt: new Date(),
         }).save({ session });
         return newData;
       } else {
@@ -279,9 +279,12 @@ export class AuthActivitiesMongooseService implements AuthActivitiesService {
     // * This should be use when delete Auth.
     try {
       const authObjectId = StringToObjectId(authId);
-      const deleted = await this.AuthActivitiesModel.findOneAndDelete({
-        authId: authObjectId,
-      });
+      const deleted = await this.AuthActivitiesModel.findOneAndDelete(
+        {
+          authId: authObjectId,
+        },
+        { session: session ? session : null },
+      );
       return deleted;
     } catch (error) {
       if (session.inTransaction()) {

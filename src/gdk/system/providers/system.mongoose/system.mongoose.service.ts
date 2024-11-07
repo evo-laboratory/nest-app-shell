@@ -165,7 +165,7 @@ export class SystemMongooseService implements SystemService {
           {
             $set: {
               endpoints: endpoints,
-              endpointUpdatedAt: Date.now(),
+              endpointUpdatedAt: new Date(),
             },
           },
           { new: true },
@@ -192,11 +192,11 @@ export class SystemMongooseService implements SystemService {
       const updateObj: IUpdateSystem = {};
       if (dto.roles && dto.roles.length > 0) {
         updateObj.roles = dto.roles;
-        updateObj.rolesUpdatedAt = Date.now();
+        updateObj.rolesUpdatedAt = new Date();
       }
       if (dto.clients && dto.clients.length > 0) {
         updateObj.clients = dto.clients;
-        updateObj.clientsUpdatedAt = Date.now();
+        updateObj.clientsUpdatedAt = new Date();
       }
       if (dto.newSignUpDefaultUserRole) {
         updateObj.newSignUpDefaultUserRole = dto.newSignUpDefaultUserRole;

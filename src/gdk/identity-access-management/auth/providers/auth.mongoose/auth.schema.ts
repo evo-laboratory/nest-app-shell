@@ -2,10 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { MongoModelBuilder } from '@shared/mongodb';
 import { EnumToArray } from '@shared/helper';
-import { AUTH_IDENTIFIER_TYPE, IAuth } from '@gdk-iam/auth/types';
+import { IAuth } from '@gdk-iam/auth/types';
 import { USER_MODEL_NAME } from '@gdk-iam/user/types';
 import {
   AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
   AUTH_METHOD,
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';
@@ -58,20 +59,20 @@ export class Auth implements IAuth {
   codeUsage: AUTH_CODE_USAGE;
   @Prop({ type: String, default: '' })
   code: string;
-  @Prop({ type: Number, default: 0 })
-  codeExpiredAt: number;
+  @Prop({ type: Date, default: null })
+  codeExpiredAt: Date;
   @Prop({ type: Boolean, default: true })
-  isActive: boolean;
-  @Prop({ type: Number, default: 0 })
-  inactiveAt: number;
+  isActivated: boolean;
+  @Prop({ type: Date, default: null })
+  inactivatedAt: Date;
   @Prop({ type: Boolean, default: false })
   isIdentifierVerified: boolean;
-  @Prop({ type: Number, default: Date.now() })
-  createdAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  updatedAt: number;
-  @Prop({ type: Number, default: 0 })
-  lastChangedPasswordAt: number;
+  @Prop({ type: Date, default: new Date() })
+  createdAt: Date;
+  @Prop({ type: Date, default: new Date() })
+  updatedAt: Date;
+  @Prop({ type: Date, default: null })
+  lastChangedPasswordAt: Date;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(Auth);
@@ -84,6 +85,6 @@ AuthSchema.index({ googleSignInId: 1 }, { unique: true });
 AuthSchema.index({ githubSignId: 1 }, { unique: true });
 AuthSchema.index({ gitlabSignId: 1 }, { unique: true });
 AuthSchema.index({ microsoftSignId: 1 }, { unique: true });
-AuthSchema.index({ isActive: 1 });
+AuthSchema.index({ isActivated: 1 });
 AuthSchema.index({ createdAt: -1 });
 export const AuthModel = MongoModelBuilder(AUTH_MODEL_NAME, AuthSchema);

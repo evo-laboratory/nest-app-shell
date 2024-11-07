@@ -8,6 +8,9 @@ export interface IUser {
   displayName: string;
   isEmailVerified: boolean;
   roleList: string[];
-  createdAt: number;
-  updatedAt: number;
+  isSelfDeleted: boolean;
+  backupAuth: any | null;
+  selfDeletedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

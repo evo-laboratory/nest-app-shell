@@ -33,10 +33,10 @@ export class AuthActivities implements IAuthActivities {
     default: [],
   })
   signInFailRecordList: IAuthSignInFailedRecordItem[];
-  @Prop({ type: Number, default: 0 })
-  lastIssueAccessTokenAt: number;
-  @Prop({ type: Number, default: 0 })
-  lastIssueRefreshTokenAt: number;
+  @Prop({ type: Date, default: 0 })
+  lastIssueAccessTokenAt: Date;
+  @Prop({ type: Date, default: 0 })
+  lastIssueRefreshTokenAt: Date;
 }
 
 export const AuthActivitiesSchema =

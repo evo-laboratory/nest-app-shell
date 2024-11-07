@@ -1,4 +1,4 @@
-import { TEST_CLIENT_ID } from './test-data.static';
+import { TEST_CLIENT_ID } from 'test/helpers/js/static';
 
 const header = {};
 

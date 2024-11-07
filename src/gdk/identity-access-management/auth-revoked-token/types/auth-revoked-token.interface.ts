@@ -8,5 +8,5 @@ export interface IAuthRevokedToken {
   type: AUTH_TOKEN_TYPE;
   authId: IAuth | Types.ObjectId;
   tokenId: string;
-  revokedAt: number;
+  revokedAt: Date;
 }

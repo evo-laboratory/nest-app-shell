@@ -32,7 +32,7 @@ export class AuthUtilService {
     const expiredAt = Date.now() + MinToMilliseconds(EXPIRE_MIN);
     return {
       code: code,
-      codeExpiredAt: expiredAt,
+      codeExpiredAt: new Date(expiredAt),
     };
   }
 
@@ -70,7 +70,7 @@ export class AuthUtilService {
     }
     this.Logger.verbose('STEP 1B. Pass', 'checkAuthAllowSignIn');
     // * STEP 1C. Check is active
-    if (!auth.isActive) {
+    if (!auth.isActivated) {
       this.throwHttpError(
         ERROR_CODE.AUTH_INACTIVE,
         `Auth inactive, cannot sign in`,
@@ -115,15 +115,19 @@ export class AuthUtilService {
     const currentTimeStamp = Date.now();
     const startingTimeStamp = LOCK_ATTEMPT_EXCEED
       ? currentTimeStamp
-      : auth.lastChangedPasswordAt;
+      : new Date(auth.lastChangedPasswordAt).getTime();
     const hourAgo = startingTimeStamp - 3600000;
     const recentFailAttempts = authActivities.signInFailRecordList.filter(
       (record: IAuthSignInFailedRecordItem) => {
-        if (auth.lastChangedPasswordAt > record.createdAt) {
+        const recordCreatedAtTimestamp = new Date(record.createdAt).getTime();
+        const lastChangedPasswordAtTimestamp = new Date(
+          auth.lastChangedPasswordAt,
+        ).getTime();
+        if (lastChangedPasswordAtTimestamp > recordCreatedAtTimestamp) {
           // * Ignore failed record before lastChangedPasswordAt
           return false;
         } else {
-          return record.createdAt > hourAgo;
+          return recordCreatedAtTimestamp > hourAgo;
         }
       },
     );

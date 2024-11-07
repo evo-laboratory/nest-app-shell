@@ -4,5 +4,5 @@ export interface IAuthSignInFailedRecordItem {
   errorCode: string;
   ipAddress: string;
   failedPassword: string;
-  createdAt: number;
+  createdAt: Date;
 }

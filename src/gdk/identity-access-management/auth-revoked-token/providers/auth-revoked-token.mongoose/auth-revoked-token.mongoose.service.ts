@@ -92,6 +92,7 @@ export class AuthRevokedTokenMongooseService
     tokenId: string,
     source: AUTH_REVOKED_TOKEN_SOURCE,
     type: AUTH_TOKEN_TYPE,
+    ignoreCheckError = false,
     session?: ClientSession,
   ): Promise<IAuthRevokedToken> {
     this.Logger.verbose(authId, 'insert(authId)');
@@ -100,6 +101,25 @@ export class AuthRevokedTokenMongooseService
     this.Logger.verbose(type, 'insert(type)');
     this.Logger.verbose(session ? true : false, 'insert(session)');
     try {
+      if (ignoreCheckError) {
+        return await this.AuthRevokedTokenModel.findOneAndUpdate(
+          {
+            authId: authId,
+            tokenId: tokenId,
+          },
+          {
+            $set: {
+              source: source,
+              type: type,
+            },
+          },
+          {
+            upsert: true,
+            new: true,
+            session: session,
+          },
+        );
+      }
       const check = await this.AuthRevokedTokenModel.findOne({
         authId: authId,
         tokenId: tokenId,

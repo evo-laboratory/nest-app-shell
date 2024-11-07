@@ -1,60 +1,60 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
-import { GPI, V1 } from '@shared/statics';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { GPI, LIST_PATH, V1 } from '@shared/statics';
+import { GetListOptionsDto, GetOptionsDto } from '@shared/dto';
 import { UserService } from './user.service';
 import { USER_API, USER_ROLE_LIST_PATH } from './types/user.static';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
-import { UserRemoveRoleDto } from './dto';
-import { UserListResDto } from './dto/user-list-res.dto';
+import {
+  UserDataResponseDto,
+  UserFlexUpdateByIdDto,
+  UserListResponseDto,
+  UserRemoveRoleDto,
+} from './dto';
 
 @ApiTags(USER_API)
 @Controller(`${GPI}/${USER_API}`)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post(`${V1}`)
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Get(`${V1}/${LIST_PATH}`)
+  @ApiResponse({ status: 200, type: UserListResponseDto })
+  async listAllV1(@Query() listOptions: GetListOptionsDto) {
+    return await this.userService.listAll(listOptions);
   }
 
-  @Get()
-  @ApiResponse({ status: 200, type: UserListResDto })
-  listAllV1() {
-    return this.userService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findById(id);
+  @Get(`${V1}/:id`)
+  @ApiResponse({ status: 200, type: UserDataResponseDto })
+  async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
+    return await this.userService.getById(id, options, false);
   }
 
   @Patch(`${V1}/${USER_ROLE_LIST_PATH}`)
-  updateRoleListV1(@Body() addRoleDto: UserAddRoleDto) {
-    return this.userService.addRole(addRoleDto);
+  @ApiResponse({ status: 200, type: UserDataResponseDto })
+  async updateRoleListV1(@Body() addRoleDto: UserAddRoleDto) {
+    return await this.userService.addRole(addRoleDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.updateById(id, updateUserDto);
+  @Patch(`${V1}/:id`)
+  @ApiResponse({ status: 200, type: UserDataResponseDto })
+  async updateById(
+    @Param('id') id: string,
+    @Body() dto: UserFlexUpdateByIdDto,
+  ) {
+    return await this.userService.updateById(id, dto);
   }
 
   @Delete(`${V1}/${USER_ROLE_LIST_PATH}`)
-  removeRoleListV1(@Body() removeRoleDto: UserRemoveRoleDto) {
-    return this.userService.removeRole(removeRoleDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.removeById(id);
+  @ApiResponse({ status: 200, type: UserDataResponseDto })
+  async removeRoleListV1(@Body() removeRoleDto: UserRemoveRoleDto) {
+    return await this.userService.removeRole(removeRoleDto);
   }
 }

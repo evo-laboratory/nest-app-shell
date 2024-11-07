@@ -26,9 +26,9 @@ export class AuthTokenItem implements IAuthTokenItem {
   @Prop({ type: String, default: '' })
   issuer: string;
   @Prop({ type: Number, required: true })
-  expiredAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  createdAt: number;
+  expiredAt: Date;
+  @Prop({ type: Number, default: new Date() })
+  createdAt: Date;
 }
 
 export const AuthTokenItemSchema = SchemaFactory.createForClass(AuthTokenItem);

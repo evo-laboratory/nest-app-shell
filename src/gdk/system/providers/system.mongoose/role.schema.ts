@@ -21,9 +21,9 @@ export class Role implements IRole {
   endpointPermissions: string[];
   @Prop({ type: String, default: '' })
   description: string;
-  @Prop({ type: Number, default: Date.now() })
+  @Prop({ type: Date, default: new Date() })
   createdAt: number;
-  @Prop({ type: Number, default: Date.now() })
+  @Prop({ type: Date, default: new Date() })
   updatedAt: number;
 }
 

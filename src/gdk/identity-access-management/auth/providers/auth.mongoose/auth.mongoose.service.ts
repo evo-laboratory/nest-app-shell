@@ -14,7 +14,6 @@ import { OauthClientService } from '@gdk-iam/oauth-client/oauth-client.service';
 
 import {
   IEmailSignUpRes,
-  AUTH_IDENTIFIER_TYPE,
   IAuthVerifyRes,
   IAuthGeneratedCode,
   IAuthSignInRes,
@@ -26,6 +25,7 @@ import {
   IAuth,
   IAuthGenerateCustomTokenResult,
   IAuthFlexUpdate,
+  IAuthDataResponse,
 } from '@gdk-iam/auth/types';
 import {
   AuthCheckRefreshTokenDto,
@@ -45,7 +45,6 @@ import {
   GetResponseWrap,
   JsonStringify,
 } from '@shared/helper';
-
 import { MethodLogger } from '@shared/winston-logger';
 import {
   ERROR_CODE,
@@ -61,11 +60,11 @@ import {
   MongoDBErrorHandler,
 } from '@shared/mongodb';
 
-import { Auth } from './auth.schema';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { IAuthTokenItem } from '@gdk-iam/auth-activities/types';
 import {
   AUTH_CODE_USAGE,
+  AUTH_IDENTIFIER_TYPE,
   AUTH_METHOD,
   AUTH_PROVIDER,
   AUTH_TOKEN_TYPE,
@@ -74,6 +73,9 @@ import {
   AUTH_MODEL_NAME,
   EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
 } from '@gdk-iam/auth/statics';
+import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
+
+import { Auth } from './auth.schema';
 @Injectable()
 export class AuthMongooseService implements AuthService {
   private readonly Logger = new Logger(AuthMongooseService.name);
@@ -166,7 +168,7 @@ export class AuthMongooseService implements AuthService {
       const res: IEmailSignUpRes = {
         email: dto.email,
         isEmailSent: isAlreadyVerified ? false : true,
-        canResendAt: isAlreadyVerified ? 0 : setup.newAuth.codeExpiredAt,
+        canResendAt: isAlreadyVerified ? null : setup.newAuth.codeExpiredAt,
         provider: AUTH_PROVIDER.MONGOOSE,
       };
       return res;
@@ -228,7 +230,7 @@ export class AuthMongooseService implements AuthService {
         const updateAuth: IAuthFlexUpdate = {};
         if (dto.method === AUTH_METHOD.GOOGLE_SIGN_IN && !auth.googleSignInId) {
           updateAuth.googleSignInId = oauthUser.sub;
-          updateAuth.updatedAt = Date.now();
+          updateAuth.updatedAt = new Date();
         }
         if (Object.keys(updateAuth).length > 0) {
           const newMethod = [];
@@ -321,7 +323,7 @@ export class AuthMongooseService implements AuthService {
         );
       }
       // * STEP 2. Check User Exist
-      const user = await this.userService.findById(`${auth.userId}`);
+      const user = await this.userService.getById(`${auth.userId}`, {}, true);
       if (user === null) {
         this.throwHttpError(
           ERROR_CODE.USER_NOT_FOUND,
@@ -355,7 +357,7 @@ export class AuthMongooseService implements AuthService {
           isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.FORGOT_PASSWORD;
         }
         const isCodeMatched = auth.code === dto.code;
-        const isNotExpired = auth.codeExpiredAt > currentTimeStamp;
+        const isNotExpired = auth.codeExpiredAt.getTime() > currentTimeStamp;
         const isValid = isMatchUsage && isCodeMatched && isNotExpired;
         if (!isValid) {
           this.throwHttpError(
@@ -394,10 +396,10 @@ export class AuthMongooseService implements AuthService {
       session.startTransaction();
       // * STEP B. Reset Auth State
       const updateQuery: IAuthFlexUpdate = {
-        codeExpiredAt: 0,
+        codeExpiredAt: null,
         code: '',
         codeUsage: AUTH_CODE_USAGE.NOT_SET,
-        updatedAt: Date.now(),
+        updatedAt: new Date(),
       };
       if (auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
         updateQuery.isIdentifierVerified = true;
@@ -409,7 +411,7 @@ export class AuthMongooseService implements AuthService {
         updateQuery.password = await this.encryptService.hashPassword(
           dto.newPassword,
         );
-        updateQuery.lastChangedPasswordAt = currentTimeStamp;
+        updateQuery.lastChangedPasswordAt = new Date();
       }
       this.Logger.verbose(JsonStringify(updateQuery), 'verifyAuth.updateQuery');
       const resetAuthState = await this.AuthModel.findByIdAndUpdate(
@@ -486,7 +488,7 @@ export class AuthMongooseService implements AuthService {
           'emailVerification',
         );
       }
-      if (auth.codeExpiredAt > currentTimeStamp) {
+      if (auth.codeExpiredAt.getTime() > currentTimeStamp) {
         const EXPIRE_MIN = this.iamConfig.CODE_EXPIRE_MIN || 3;
         this.throwHttpError(
           ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT,
@@ -537,7 +539,7 @@ export class AuthMongooseService implements AuthService {
             code: generated.code,
             codeExpiredAt: generated.codeExpiredAt,
             codeUsage: dto.usage,
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         },
         { session: session },
@@ -572,6 +574,14 @@ export class AuthMongooseService implements AuthService {
       // * STEP 1. Check Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
       const authJson = auth === null ? null : auth.toJSON();
+      if (auth === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Identifier: ${dto.email} not found`,
+          404,
+          'emailSignIn',
+        );
+      }
       const authActivities = await this.authActivities.getByAuthId(
         `${auth._id}`,
       );
@@ -599,7 +609,7 @@ export class AuthMongooseService implements AuthService {
           errorCode: ERROR_CODE.AUTH_PASSWORD_INVALID,
           ipAddress: '',
           failedPassword: dto.password,
-          createdAt: Date.now(),
+          createdAt: new Date(),
         });
         this.throwHttpError(
           ERROR_CODE.AUTH_PASSWORD_INVALID,
@@ -694,8 +704,10 @@ export class AuthMongooseService implements AuthService {
         true,
       );
       if (validResult.isValid) {
-        const user = await this.userService.findById(
+        const user = await this.userService.getById(
           validResult.decodedToken.userId,
+          {},
+          false,
         );
         const userPayload: IUserTokenPayload =
           ExtractPropertiesFromObj<IUserTokenPayload>(
@@ -719,8 +731,8 @@ export class AuthMongooseService implements AuthService {
           tokenId: signed.tokenId,
           tokenContent: signed.token,
           issuer: aToken.iss,
-          expiredAt: aToken.exp * 1000,
-          createdAt: Date.now(),
+          expiredAt: new Date(aToken.exp * 1000),
+          createdAt: new Date(),
         };
         await this.authActivities.pushTokenItemByAuthId(
           validResult.decodedToken.sub,
@@ -741,12 +753,6 @@ export class AuthMongooseService implements AuthService {
     }
   }
 
-  getAuthById(): void {
-    throw new Error('Method not implemented.');
-  }
-  getAuthByEmail(): void {
-    throw new Error('Method not implemented.');
-  }
   @MethodLogger()
   public async listAll(
     opt: GetListOptionsDto,
@@ -771,7 +777,7 @@ export class AuthMongooseService implements AuthService {
     id: string,
     opt: GetOptionsDto,
     canBeNull = true,
-  ): Promise<IGetResponseWrapper<IAuth>> {
+  ): Promise<IAuthDataResponse> {
     try {
       this.Logger.verbose(id, 'getById(id)');
       this.Logger.verbose(canBeNull, 'getById(canBeNull)');
@@ -795,39 +801,328 @@ export class AuthMongooseService implements AuthService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
-  enable(): void {
-    throw new Error('Method not implemented.');
-  }
+
   @MethodLogger()
-  public async disableById(authId: string) {
+  public async getByEmail(
+    email: string,
+    opt: GetOptionsDto,
+    canBeNull = true,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(email, 'getByEmail(email)');
+    this.Logger.verbose(canBeNull, 'getByEmail(canBeNull)');
+    const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+    this.Logger.verbose(JsonStringify(mappedOpts), 'getByEmail(mappedOpts)');
     try {
-      // * STEP 1. Check if already disabled
+      const data = await this.AuthModel.findOne({
+        identifier: email,
+        identifierType: AUTH_IDENTIFIER_TYPE.EMAIL,
+      })
+        .select(mappedOpts.selectedFields)
+        .populate(mappedOpts.populateFields)
+        .lean();
+      if (data === null && !canBeNull) {
+        // * Throw 404
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Not found`,
+          404,
+          'getByEmail',
+        );
+      }
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async getByIdentifier(
+    email: string,
+    opt: GetOptionsDto,
+    canBeNull = true,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(email, 'getByIdentifier(email)');
+    this.Logger.verbose(canBeNull, 'getByIdentifier(canBeNull)');
+    const mappedOpts = GetOptionsMongooseQueryMapper(opt);
+    this.Logger.verbose(
+      JsonStringify(mappedOpts),
+      'getByIdentifier(mappedOpts)',
+    );
+    try {
+      const data = await this.AuthModel.findOne({
+        identifier: email,
+      })
+        .select(mappedOpts.selectedFields)
+        .populate(mappedOpts.populateFields)
+        .lean();
+      if (data === null && !canBeNull) {
+        // * Throw 404
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Not found`,
+          404,
+          'getByIdentifier',
+        );
+      }
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async activateById(
+    authId: string,
+    session?: ClientSession,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(authId, 'activateById(authId)');
+    this.Logger.verbose(session ? true : false, 'activateById(session)');
+    try {
+      // * STEP 1. Check if already activated
       const check = await this.AuthModel.findById(authId);
+      this.Logger.verbose(check === null, 'activateById.check is null or not');
       if (check === null) {
         this.throwHttpError(
           ERROR_CODE.AUTH_NOT_FOUND,
           `Auth: ${authId} not found`,
           404,
-          'disableById',
+          'deactivateById',
         );
       }
-      if (!check.isActive) {
+      if (check.isActivated) {
         this.throwHttpError(
-          ERROR_CODE.AUTH_ALREADY_DISABLED,
-          `Auth: ${authId} already disabled`,
+          ERROR_CODE.AUTH_ALREADY_ACTIVATED,
+          `Auth: ${authId} already activated`,
           400,
-          'disableById',
+          'activateById',
         );
       }
-      const disabled = await this.AuthModel.findByIdAndUpdate(authId, {
-        $set: {
-          isActive: true,
-          inactiveAt: Date.now(),
-          updatedAt: Date.now(),
+      const activated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $set: {
+            isActivated: true,
+            inactivatedAt: new Date(),
+            updatedAt: new Date(),
+          },
         },
+        { session: session, new: true },
+      );
+      return GetResponseWrap(activated);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async deactivateById(
+    authId: string,
+    session?: ClientSession,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(authId, 'deactivateById(authId)');
+    let _session: ClientSession;
+    if (!session) {
+      _session = await this.connection.startSession();
+      this.Logger.verbose(
+        'Upstream not passed in session, started new session',
+        'deactivateById(session)',
+      );
+    } else {
+      this.Logger.verbose(
+        'Upstream passed in session',
+        'deactivateById(session)',
+      );
+      _session = session;
+    }
+    try {
+      // * STEP 1. Check if already disabled
+      const check = await this.AuthModel.findById(authId);
+      this.Logger.verbose(
+        check === null,
+        'deactivateById.check is null or not',
+      );
+      if (check === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${authId} not found`,
+          404,
+          'deactivateById',
+        );
+      }
+      if (!check.isActivated) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_ALREADY_DEACTIVATED,
+          `Auth: ${authId} already deactivated`,
+          400,
+          'deactivateById',
+        );
+      }
+      if (!session) {
+        _session.startTransaction();
+      }
+      // * STEP 2. Disable Auth
+      const deactivated = await this.AuthModel.findByIdAndUpdate(
+        authId,
+        {
+          $set: {
+            isActivated: false,
+            inactivatedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        },
+        { session: _session, new: true },
+      );
+      assert.ok(deactivated, 'Deactivated Auth');
+      // * STEP 3. Get All Tokens and Revoke
+      const authActivities = await this.authActivities.getByAuthId(authId);
+      // * authActivities is possible null, because user may not have login before, thus no tokens
+      if (
+        authActivities !== null &&
+        authActivities.refreshTokenList.length > 0
+      ) {
+        this.Logger.verbose(
+          authActivities.refreshTokenList.length,
+          'deactivateById.authActivities.length',
+        );
+        const revokeAllTokens = await Promise.all(
+          authActivities.refreshTokenList.map(
+            async (item) =>
+              await this.revokeService.insert(
+                authId,
+                item.tokenId,
+                AUTH_REVOKED_TOKEN_SOURCE.ADMIN,
+                AUTH_TOKEN_TYPE.REFRESH,
+                true,
+                _session,
+              ),
+          ),
+        );
+        assert.ok(
+          revokeAllTokens.length === authActivities.refreshTokenList.length,
+          `Revoked ${revokeAllTokens.length} tokens should be equal to ${authActivities.refreshTokenList.length}`,
+        );
+        // * STEP 4. Clear refreshTokens in AuthActivities
+        const cleared = await this.authActivities.clearTokenListByAuthId(
+          authId,
+          false,
+          AUTH_TOKEN_TYPE.REFRESH,
+          _session,
+        );
+        assert.ok(cleared, 'Cleared RefreshTokens in AuthActivities');
+      }
+      // * STEP 5. Complete session
+      if (!session) {
+        await _session.commitTransaction();
+        await _session.endSession();
+      }
+      return GetResponseWrap(deactivated);
+    } catch (error) {
+      if (_session.inTransaction()) {
+        await _session.abortTransaction();
+        await _session.endSession();
+      }
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
+  public async deleteById(
+    id: string,
+    isSelfDelete = false,
+    session?: ClientSession,
+  ): Promise<IAuthDataResponse> {
+    this.Logger.verbose(id, 'deleteById(id)');
+    this.Logger.verbose(isSelfDelete, 'deleteById(isSelfDelete)');
+    this.Logger.verbose(session ? true : false, 'deleteById(session)');
+    if (!session) {
+      session = await this.connection.startSession();
+    }
+    try {
+      // * STEP 1. Check if already deleted
+      const check = await this.AuthModel.findById(id);
+      if (check === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${id} not found`,
+          404,
+          'deleteById',
+        );
+      }
+      session.startTransaction();
+      // * STEP 2. Deactivate Auth
+      const auth = await this.AuthModel.findById(id);
+      if (auth.isActivated) {
+        this.Logger.verbose(
+          'Auth is activated, deactivate first',
+          'deleteById',
+        );
+        const deactivated = await this.deactivateById(id, session);
+        assert.ok(deactivated, 'Deactivated Auth');
+      }
+      // * STEP 3. Delete Auth Activities
+      const checkAuthActivities = await this.authActivities.getByAuthId(id);
+      if (checkAuthActivities !== null) {
+        this.Logger.verbose(
+          'AuthActivities found, user not login before',
+          'deleteById',
+        );
+        const deletedActivities = await this.authActivities.deleteByAuthId(
+          id,
+          session,
+        );
+        assert.ok(deletedActivities, 'Deleted Auth Activities');
+      }
+      // * STEP 4. Deleted Auth
+      const deleted = await this.AuthModel.findByIdAndDelete(id, {
+        session: session,
+        new: true,
       });
-      // TODO Revoke All Refresh Tokens from this Auth
-      return disabled;
+      if (deleted === null) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_NOT_FOUND,
+          `Auth: ${id} not found`,
+          404,
+          'deleteById',
+        );
+      }
+      assert.ok(deleted, 'Deleted Auth');
+      const checkUser = await this.userService.getById(
+        `${deleted.userId}`,
+        {},
+        true,
+      );
+      if (checkUser !== null) {
+        if (isSelfDelete && !this.iamConfig.SELF_HARD_DELETE_ENABLED) {
+          this.Logger.verbose(
+            'Soft Delete User',
+            'deleteById.checkSoftDeleteOrHardDelete',
+          );
+          const softDeletedUser = await this.userService.selfDeleteById(
+            `${deleted.userId}`,
+            auth,
+            session,
+          );
+          assert.ok(softDeletedUser, 'Soft Deleted User');
+        } else {
+          this.Logger.verbose(
+            'Hard Delete User',
+            'deleteById.checkSoftDeleteOrHardDelete',
+          );
+          const hardDeletedUser = await this.userService.deleteById(
+            `${deleted.userId}`,
+            session,
+          );
+          assert.ok(hardDeletedUser, 'Hard Deleted User');
+        }
+      } else {
+        this.Logger.warn(
+          `User: ${deleted.userId} not found, data inconsistent.`,
+          'deleteById.checkUser',
+        );
+      }
+      await session.commitTransaction();
+      await session.endSession();
+      return GetResponseWrap(deleted);
     } catch (error) {
       return Promise.reject(MongoDBErrorHandler(error));
     }
@@ -894,6 +1189,7 @@ export class AuthMongooseService implements AuthService {
     user: IUser,
     session: ClientSession,
   ): Promise<IAuthGenerateCustomTokenResult> {
+    // TODO Review this method usage, could be improved / refactored to better structure
     this.Logger.verbose(auth._id, 'issueJWTAndRecord(auth._id)');
     this.Logger.verbose(user._id, 'issueJWTAndRecord(user._id)');
     this.Logger.verbose(session ? true : false, 'issueJWTAndRecord(session)');
@@ -914,8 +1210,8 @@ export class AuthMongooseService implements AuthService {
         tokenId: tokenResults.refreshTokenId,
         tokenContent: tokenResults.refreshToken,
         issuer: rToken.iss,
-        expiredAt: rToken.exp * 1000,
-        createdAt: Date.now(),
+        expiredAt: new Date(rToken.exp * 1000),
+        createdAt: new Date(),
       };
       const accessItem: IAuthTokenItem = {
         type: AUTH_TOKEN_TYPE.ACCESS,
@@ -923,8 +1219,8 @@ export class AuthMongooseService implements AuthService {
         tokenId: tokenResults.accessTokenId,
         tokenContent: tokenResults.accessToken,
         issuer: aToken.iss,
-        expiredAt: aToken.exp * 1000,
-        createdAt: Date.now(),
+        expiredAt: new Date(aToken.exp * 1000),
+        createdAt: new Date(),
       };
       const pushedBothItems = await this.authActivities.pushTokenItemByAuthId(
         `${auth._id}`,
@@ -938,7 +1234,6 @@ export class AuthMongooseService implements AuthService {
     }
   }
 
-  @MethodLogger()
   private throwHttpError(
     code: ERROR_CODE,
     msg: string,

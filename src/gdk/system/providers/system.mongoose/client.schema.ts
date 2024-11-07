@@ -13,12 +13,12 @@ export class Client implements IClient {
   name: string;
   @Prop({ type: Boolean, default: true })
   willExpire: boolean;
-  @Prop({ type: Number, default: 0 })
-  expiredAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  createdAt: number;
-  @Prop({ type: Number, default: Date.now() })
-  updatedAt: number;
+  @Prop({ type: Date, default: null })
+  expiredAt: Date;
+  @Prop({ type: Date, default: new Date() })
+  createdAt: Date;
+  @Prop({ type: Date, default: new Date() })
+  updatedAt: Date;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);
