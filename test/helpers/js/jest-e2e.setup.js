@@ -24,8 +24,8 @@ module.exports = async function () {
   console.info(
     `[jest-e2e-config.globalSetup] ${__filename}@${process.env.NODE_ENV}`,
   );
-  await SetupDatabase();
   const SYS_OWNER_EMAIL = `${process.env.SYS_OWNER_EMAIL}`;
+  await SetupDatabase();
   await SimulateAuthEmailSignUp(SYS_OWNER_EMAIL);
   await SetupSystem();
 };
