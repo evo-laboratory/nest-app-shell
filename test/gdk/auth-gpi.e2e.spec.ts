@@ -26,6 +26,7 @@ import {
   AUTH_IDENTIFIER_TYPE,
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';
+import { ICreateUser } from '@gdk-iam/user/types';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -146,6 +147,26 @@ describe('GDK/AuthController', () => {
           displayName: 'displayName',
         })
         .expect(400);
+    });
+    it(`Existed user/auth email, should return 400 and ${ERROR_CODE.AUTH_EMAIL_EXIST}`, async () => {
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, false);
+      // * Validate the response
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_UP_GPI}`)
+        .set(ClientKeyHeader())
+        .send(DTO);
+      expect(res.status).toBe(400);
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_EMAIL_EXIST);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(400);
     });
     it(`Valid EmailSignUpDto, should return 201 and validate database state`, async () => {
       const DTO: IEmailSignUp = {
