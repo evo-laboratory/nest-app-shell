@@ -27,7 +27,7 @@ import {
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';
 
-describe('GDK/{Rename}Controller', () => {
+describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
   const TARGET_PATH = `${CONTROLLER_ENDPOINT}/${V1}`;
   const JESTER01_EMAIL = `jester_${new Date().getTime()}@user.com`;
