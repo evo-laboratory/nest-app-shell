@@ -26,7 +26,6 @@ import {
   AUTH_IDENTIFIER_TYPE,
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';
-import e from 'express';
 
 describe('GDK/{Rename}Controller', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -127,7 +126,7 @@ describe('GDK/{Rename}Controller', () => {
         .post(`${EMAIL_SIGN_UP_GPI}`)
         .set(ClientKeyHeader())
         .send({
-          email: 'jester_email@user.com',
+          email: 'jester_should_not_created@user.com',
           password: `123456`,
           firstName: true,
           lastName: 'lstName',
@@ -140,7 +139,7 @@ describe('GDK/{Rename}Controller', () => {
         .post(`${EMAIL_SIGN_UP_GPI}`)
         .set(ClientKeyHeader())
         .send({
-          email: 'jester_email@user.com',
+          email: 'jester_should_not_created@user.com',
           password: `123456`,
           firstName: 'fstName',
           lastName: 99999,
