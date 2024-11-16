@@ -26,6 +26,7 @@ import {
   AUTH_IDENTIFIER_TYPE,
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';
+import { MailService } from '@gdk-mail/mail.service';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -41,6 +42,7 @@ describe('GDK/AuthController', () => {
   let app: INestApplication;
   let authService: AuthService;
   let userService: UserService;
+  let mailService: MailService;
   let sysOwnerAccessToken: string;
   let generalUserAccessToken: string;
   beforeAll(async () => {
@@ -58,6 +60,7 @@ describe('GDK/AuthController', () => {
     await app.init();
     userService = moduleFixture.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
+    mailService = moduleFixture.get<MailService>(MailService);
     // * STEP 2. Create a system owner for Authorization
     const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
     const { accessToken } = await authService.emailSignIn({
@@ -148,6 +151,10 @@ describe('GDK/AuthController', () => {
         .expect(400);
     });
     it(`Existed user/auth email, should return 400 and ${ERROR_CODE.AUTH_EMAIL_EXIST}`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
         password: `123456`,
@@ -168,6 +175,10 @@ describe('GDK/AuthController', () => {
       expect(res.body.statusCode).toBe(400);
     });
     it(`Existed only auth email (not supposed to happen), should return 400 and ${ERROR_CODE.AUTH_IDENTIFIER_EXIST}`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
         password: `123456`,
@@ -192,6 +203,10 @@ describe('GDK/AuthController', () => {
       expect(res.body.statusCode).toBe(400);
     });
     it(`Valid EmailSignUpDto, should return 201 and validate database state`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
         password: `123456`,
