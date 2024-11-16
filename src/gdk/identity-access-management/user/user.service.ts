@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { IAuth } from '@gdk-iam/auth/types';
+import { GetListOptionsDto } from '@shared/dto';
+import { IGetResponseWrapper } from '@shared/types';
 import { CreateUserDto, UserFlexUpdateByIdDto, UserRemoveRoleDto } from './dto';
 import { IUser } from './types';
 import { UserAddRoleDto } from './dto/user-add-role.dto';
-import { GetListOptionsDto } from '@shared/dto';
-import { IGetResponseWrapper } from '@shared/types';
 import { IUserDataResponse } from './types/user-data-response.interface';
-import { IAuth } from '@gdk-iam/auth/types';
+
 @Injectable()
 export abstract class UserService {
   abstract create(dto: CreateUserDto, mongoSession?: any): Promise<IUser>;

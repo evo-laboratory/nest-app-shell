@@ -8,5 +8,12 @@
         "SIGNIN",
         "TYPEORM",
         "Wnst"
-    ]
+    ],
+    "jest.jestCommandLine": "NODE_ENV=test-mongodb npx jest test/gdk/auth-gpi.e2e.spec.ts --config jest-e2e.config.js",
+    "testing.openTesting": "neverOpen",
+    "jest.outputConfig": {
+        "revealOn": "run",
+        "revealWithFocus": "none",
+        "clearOnRun": "none"
+    }
 }
