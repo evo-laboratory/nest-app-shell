@@ -13,6 +13,12 @@ import {
 } from '@gdk-mail/types';
 import { ConfigType } from '@nestjs/config';
 import mailConfig from '@gdk-mail/mail.config';
+import {
+  ERROR_CODE,
+  ERROR_SOURCE,
+  IUnitedHttpException,
+  UniteHttpException,
+} from '@shared/exceptions';
 
 @Injectable()
 export class MailSendgridService implements MailService {
@@ -55,10 +61,32 @@ export class MailSendgridService implements MailService {
       };
       return mappedRes;
     } catch (error) {
-      return Promise.reject(error);
+      this.throwHttpError(
+        ERROR_CODE.MAIL_PROVIDER_FAILED,
+        error.message || error || 'Unknown error from Sendgrid',
+        500,
+        'send',
+      );
     }
   }
   public sendMany(): void {
     throw new Error('Method not implemented.');
+  }
+
+  private throwHttpError(
+    code: ERROR_CODE,
+    msg: string,
+    statusCode?: number,
+    methodName?: string,
+  ): IUnitedHttpException {
+    const errorObj: IUnitedHttpException = {
+      source: ERROR_SOURCE.SENDGRID_MAIL,
+      errorCode: code || ERROR_CODE.UNKNOWN,
+      message: msg,
+      statusCode: statusCode || 500,
+      contextName: 'MailSendgridService',
+      methodName: `${methodName}`,
+    };
+    throw new UniteHttpException(errorObj);
   }
 }
