@@ -8,7 +8,11 @@ import {
   EmptyBearerHeader,
   TestSysOwnerData,
 } from 'test/data';
-import { ERROR_CODE } from '@shared/exceptions';
+import {
+  ERROR_CODE,
+  ERROR_SOURCE,
+  UniteHttpException,
+} from '@shared/exceptions';
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import {
   TEST_GENERAL_ROLE,
@@ -201,6 +205,44 @@ describe('GDK/AuthController', () => {
       expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_IDENTIFIER_EXIST);
       expect(res.body.message).toBeDefined();
       expect(res.body.statusCode).toBe(400);
+    });
+    it(`Failed mail service (not supposed to happen), should return 500 and ${ERROR_CODE.MAIL_PROVIDER_FAILED}`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.reject(
+          new UniteHttpException({
+            source: ERROR_SOURCE.SENDGRID_MAIL,
+            errorCode: ERROR_CODE.MAIL_PROVIDER_FAILED,
+            message: 'Test error message',
+            statusCode: 500,
+            contextName: 'MailSendgridService',
+            methodName: 'send',
+          }),
+        );
+      });
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      // * Validate the response
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_UP_GPI}`)
+        .set(ClientKeyHeader())
+        .send(DTO);
+      expect(res.status).toBe(500);
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.MAIL_PROVIDER_FAILED);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(500);
+      // * Validate the database state (USER)
+      const user = await userService.findByEmail(DTO.email);
+      expect(user).toBeNull();
+      // * Validate the database state (AUTH)
+      const auth = await authService.getByEmail(DTO.email, {}, true);
+      expect(auth.data).toBeNull();
     });
     it(`Valid EmailSignUpDto, should return 201 and validate database state`, async () => {
       jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
