@@ -121,7 +121,7 @@ describe('GDK/UserController', () => {
         .expect(401);
     });
     if (process.env.DATABASE_PROVIDER === 'MONGODB') {
-      it('BearerHeader (system-owner), but id(1234) not a valid ObjectId  should return 500', () => {
+      it('BearerHeader (system-owner), but id(1234) not a valid ObjectId  should return 400', () => {
         return request(app.getHttpServer())
           .get(`${USER_RESOURCE_V1_PATH}/1234`)
           .set(ClientKeyHeader())

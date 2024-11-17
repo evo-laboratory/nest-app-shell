@@ -13,7 +13,7 @@ module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   testRegex: '.*\\.e2e.spec\\.ts$',
   transform: { '^.+\\.(t|j)s$': 'ts-jest' },
-  collectCoverageFrom: ['**/*.(t|j)s'],
+  collectCoverageFrom: ['**/*.ts'],
   globalSetup: '<rootDir>/test/helpers/js/jest-e2e.setup.js',
   globalTeardown: '<rootDir>/test/helpers/js/jest-e2e.teardown.js',
   collectCoverage: false,
