@@ -26,6 +26,7 @@ import { UserService } from '@gdk-iam/user/user.service';
 import {
   AUTH_API,
   EMAIL_SIGN_UP_PATH,
+  VERIFICATION_PATH,
   VERIFIED_EMAIL_SIGN_UP_PATH,
 } from '@gdk-iam/auth/statics';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
@@ -743,6 +744,28 @@ describe('GDK/AuthController', () => {
     expect(auth.data.createdAt).toBeDefined();
     expect(auth.data.updatedAt).toBeDefined();
     expect(auth.data.lastChangedPasswordAt).toBe(null);
+  });
+  const VERIFICATION_GPI = `${TARGET_PATH}/${VERIFICATION_PATH}`;
+  describe(`[POST] ${VERIFICATION_GPI}`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .expect(400);
+    });
+    it(`EmptyBearerHeader, should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(400);
+    });
   });
   // * --- End of TEST CASES ---
   afterAll(async () => {
