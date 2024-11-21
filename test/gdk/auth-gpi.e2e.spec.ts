@@ -766,6 +766,103 @@ describe('GDK/AuthController', () => {
         .set(EmptyBearerHeader())
         .expect(400);
     });
+    it('Invalid AuthVerifyDto (identifier, empty string), should return 400', () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: '',
+          code: '123456',
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        })
+        .expect(400);
+    });
+    it('Invalid AuthVerifyDto (identifier, boolean), should return 400', () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: true,
+          code: '123456',
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        })
+        .expect(400);
+    });
+    it('Invalid AuthVerifyDto (code invalid, less that 6), should return 400', () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: 'jester_should_not_created@user.com',
+          code: '123',
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        })
+        .expect(400);
+    });
+    it('Invalid AuthVerifyDto (code invalid, number), should return 400', () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: 'jester_should_not_created@user.com',
+          code: 123456,
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        })
+        .expect(400);
+    });
+    it(`Invalid AuthVerifyDto (codeUsage, ${AUTH_CODE_USAGE.NOT_SET}), should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: 'jester_should_not_created@user.com',
+          code: '123456',
+          codeUsage: AUTH_CODE_USAGE.NOT_SET,
+        })
+        .expect(400);
+    });
+    it(`Identifier not exist, should return 404 with ${ERROR_CODE.AUTH_NOT_FOUND}`, async () => {
+      const res = await request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: 'jester_should_not_found@user.com',
+          code: '123456',
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        });
+      expect(res.status).toBe(404);
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_NOT_FOUND);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(404);
+    });
+    it(`Identifier exist but user not exist (should not happened), should return 404 with ${ERROR_CODE.USER_NOT_FOUND}`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, false);
+      // * Simulate User got delete
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      await userService.deleteById(`${auth.data.userId}`);
+      const res = await request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: DTO.email,
+          code: '123456',
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        });
+      expect(res.status).toBe(404);
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.USER_NOT_FOUND);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(404);
+    });
   });
   // * --- End of TEST CASES ---
   afterAll(async () => {

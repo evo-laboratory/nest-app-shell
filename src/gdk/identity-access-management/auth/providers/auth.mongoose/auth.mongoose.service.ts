@@ -324,7 +324,7 @@ export class AuthMongooseService implements AuthService {
       }
       // * STEP 2. Check User Exist
       const user = await this.userService.getById(`${auth.userId}`, {}, true);
-      if (user === null) {
+      if (user.data === null) {
         this.throwHttpError(
           ERROR_CODE.USER_NOT_FOUND,
           `User not exist`,

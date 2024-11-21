@@ -1,5 +1,7 @@
 import {
   IsEnum,
+  IsNotEmpty,
+  IsNotIn,
   IsOptional,
   IsString,
   Length,
@@ -10,11 +12,13 @@ import { AUTH_CODE_USAGE } from '../enums';
 
 export class AuthVerifyDto implements IAuthVerify {
   @IsString()
+  @IsNotEmpty()
   identifier: string;
   @IsString()
   @Length(6)
   code: string;
   @IsEnum(AUTH_CODE_USAGE)
+  @IsNotIn([AUTH_CODE_USAGE.NOT_SET])
   codeUsage: AUTH_CODE_USAGE;
   @IsOptional()
   @IsString()
