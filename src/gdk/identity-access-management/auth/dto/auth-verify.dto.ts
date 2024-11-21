@@ -18,7 +18,7 @@ export class AuthVerifyDto implements IAuthVerify {
   @Length(6)
   code: string;
   @IsEnum(AUTH_CODE_USAGE)
-  @IsNotIn([AUTH_CODE_USAGE.NOT_SET])
+  @IsNotIn([AUTH_CODE_USAGE.NOT_SET, AUTH_CODE_USAGE.FORGOT_PASSWORD])
   codeUsage: AUTH_CODE_USAGE;
   @IsOptional()
   @IsString()

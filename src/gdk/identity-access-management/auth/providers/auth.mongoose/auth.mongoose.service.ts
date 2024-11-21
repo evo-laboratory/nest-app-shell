@@ -340,7 +340,7 @@ export class AuthMongooseService implements AuthService {
         this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED,
           `Identifier: ${dto.identifier} already verified`,
-          401,
+          409,
           'verifyAuth',
         );
       }
@@ -349,7 +349,7 @@ export class AuthMongooseService implements AuthService {
         dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY ||
         dto.codeUsage === AUTH_CODE_USAGE.CHANGE_PASSWORD
       ) {
-        let isMatchUsage = true;
+        let isMatchUsage = false;
         if (dto.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY) {
           isMatchUsage = auth.codeUsage === AUTH_CODE_USAGE.SIGN_UP_VERIFY;
         }

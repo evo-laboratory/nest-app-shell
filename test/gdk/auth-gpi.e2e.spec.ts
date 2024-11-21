@@ -821,6 +821,17 @@ describe('GDK/AuthController', () => {
         })
         .expect(400);
     });
+    it(`Invalid AuthVerifyDto (codeUsage, ${AUTH_CODE_USAGE.FORGOT_PASSWORD}), should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: 'jester_should_not_created@user.com',
+          code: '123456',
+          codeUsage: AUTH_CODE_USAGE.FORGOT_PASSWORD,
+        })
+        .expect(400);
+    });
     it(`Identifier not exist, should return 404 with ${ERROR_CODE.AUTH_NOT_FOUND}`, async () => {
       const res = await request(app.getHttpServer())
         .post(`${VERIFICATION_GPI}`)
@@ -846,7 +857,7 @@ describe('GDK/AuthController', () => {
         displayName: 'displayName',
       };
       await authService.emailSignUp(DTO, false);
-      // * Simulate User got delete
+      // * Simulate User got delete (should not happened)
       const auth = await authService.getByEmail(DTO.email, {}, false);
       await userService.deleteById(`${auth.data.userId}`);
       const res = await request(app.getHttpServer())
@@ -862,6 +873,58 @@ describe('GDK/AuthController', () => {
       expect(res.body.errorCode).toBe(ERROR_CODE.USER_NOT_FOUND);
       expect(res.body.message).toBeDefined();
       expect(res.body.statusCode).toBe(404);
+    });
+    it(`Just signed up, but invalid code usage of ${AUTH_CODE_USAGE.CHANGE_PASSWORD}, should return 400 with ${ERROR_CODE.AUTH_CODE_INVALID}`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, false);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      const res = await request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: DTO.email,
+          code: auth.data.code,
+          codeUsage: AUTH_CODE_USAGE.CHANGE_PASSWORD,
+        });
+      expect(res.status).toBe(400);
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_CODE_INVALID);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(400);
+    });
+    it(`Just signed up, but identifier already verified, should return 409 with ${ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED}`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      const res = await request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: DTO.email,
+          code: auth.data.code,
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        });
+      expect(res.status).toBe(409);
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(
+        ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED,
+      );
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(409);
     });
   });
   // * --- End of TEST CASES ---
