@@ -440,7 +440,7 @@ export class AuthMongooseService implements AuthService {
         isDone: true,
       };
     } catch (error) {
-      if (session.inTransaction()) {
+      if (session && session.inTransaction()) {
         await session.abortTransaction();
         await session.endSession();
       }

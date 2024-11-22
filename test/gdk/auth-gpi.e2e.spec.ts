@@ -36,6 +36,7 @@ import {
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';
 import { MailService } from '@gdk-mail/mail.service';
+import e from 'express';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -926,6 +927,40 @@ describe('GDK/AuthController', () => {
       expect(res.body.message).toBeDefined();
       expect(res.body.statusCode).toBe(409);
     });
+    it(`New signed up, with correct code should return 202`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, false);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      const res = await request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: DTO.email,
+          code: auth.data.code,
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        });
+      expect(res.status).toBe(202);
+      expect(res.body.isDone).toBe(true);
+      // * Validate the database state (USER)
+      const user = await userService.findByEmail(DTO.email);
+      expect(user).toBeDefined();
+      expect(user.isEmailVerified).toBe(true);
+      expect(user.email).toBe(DTO.email);
+      // * Validate the database state (AUTH)
+      const authAfter = await authService.getByEmail(DTO.email, {}, false);
+      expect(authAfter.data).toBeDefined();
+      expect(authAfter.data.isIdentifierVerified).toBe(true);
+      expect(authAfter.data.code).toBe('');
+      expect(authAfter.data.codeExpiredAt).toBe(null);
+      expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.NOT_SET);
+    }, 10000);
   });
   // * --- End of TEST CASES ---
   afterAll(async () => {
