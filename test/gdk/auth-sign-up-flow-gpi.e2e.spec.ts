@@ -3,17 +3,10 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { WinstonService } from '@shared/winston-logger';
 import {
-  BearerHeader,
-  ClientKeyHeader,
-  EmptyBearerHeader,
-  TestSysOwnerData,
-} from 'test/data';
-import {
   ERROR_CODE,
   ERROR_SOURCE,
   UniteHttpException,
 } from '@shared/exceptions';
-import { TestModuleBuilderFixture } from 'test/fixtures';
 import { GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
@@ -31,17 +24,17 @@ import {
 } from '@gdk-iam/auth/enums';
 import { MailService } from '@gdk-mail/mail.service';
 
+import {
+  BearerHeader,
+  ClientKeyHeader,
+  EmptyBearerHeader,
+  TestSysOwnerData,
+} from 'test/data';
+import { TestModuleBuilderFixture } from 'test/fixtures';
+
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
   const TARGET_PATH = `${CONTROLLER_ENDPOINT}/${V1}`;
-  const JESTER01_EMAIL = `jester_${new Date().getTime()}@user.com`;
-  const TEST_USER01 = {
-    email: JESTER01_EMAIL,
-    password: '123456',
-    firstName: 'Jester',
-    lastName: 'Automaticode',
-    displayName: 'Jester Automaticode',
-  };
   let app: INestApplication;
   let authService: AuthService;
   let userService: UserService;
