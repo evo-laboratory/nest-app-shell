@@ -14,12 +14,6 @@ import {
   UniteHttpException,
 } from '@shared/exceptions';
 import { TestModuleBuilderFixture } from 'test/fixtures';
-import {
-  TEST_GENERAL_ROLE,
-  TEST_GENERAL_TWO_ROLE,
-  TEST_SUPER_ROLE,
-  TEST_VALID_MONGODB_OBJECT_ID,
-} from 'test/helpers/js/static';
 import { GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
@@ -36,7 +30,6 @@ import {
   AUTH_PROVIDER,
 } from '@gdk-iam/auth/enums';
 import { MailService } from '@gdk-mail/mail.service';
-import e from 'express';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -54,7 +47,6 @@ describe('GDK/AuthController', () => {
   let userService: UserService;
   let mailService: MailService;
   let sysOwnerAccessToken: string;
-  let generalUserAccessToken: string;
   beforeAll(async () => {
     // * STEP 1. Setup the NestJS application Test Bed
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
@@ -78,13 +70,6 @@ describe('GDK/AuthController', () => {
       password: TestOwner.password,
     });
     sysOwnerAccessToken = accessToken;
-    // * STEP 3. Create a general user for Authorization
-    await authService.emailSignUp(TEST_USER01, true);
-    const { accessToken: generalUserToken } = await authService.emailSignIn({
-      email: JESTER01_EMAIL,
-      password: TEST_USER01.password,
-    });
-    generalUserAccessToken = generalUserToken;
   });
   // * --- TEST CASES ----------
   const EMAIL_SIGN_UP_GPI = `${TARGET_PATH}/${EMAIL_SIGN_UP_PATH}`;
