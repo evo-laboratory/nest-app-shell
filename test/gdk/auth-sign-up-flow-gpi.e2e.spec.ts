@@ -853,6 +853,47 @@ describe('GDK/AuthController', () => {
       expect(res.body.message).toBeDefined();
       expect(res.body.statusCode).toBe(404);
     });
+    it(`UserService.updateEmailVerifiedById failed (should not happened), should return 500`, async () => {
+      const updateEmailVerifiedByIdSpy = jest
+        .spyOn(userService, 'updateEmailVerifiedById')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return null;
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, false);
+      // * Simulate User got delete (should not happened)
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      const res = await request(app.getHttpServer())
+        .post(`${VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          identifier: DTO.email,
+          code: auth.data.code,
+          codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        });
+      // * Restore the original implementation after the test
+      updateEmailVerifiedByIdSpy.mockRestore();
+      expect(res.status).toBe(500);
+      expect(res.body.statusCode).toBe(500);
+      expect(res.body.message).toBe('User EmailVerified Updated');
+      // * Validate the database state (AUTH)
+      const authAfter = await authService.getByEmail(DTO.email, {}, false);
+      expect(authAfter.data).toBeDefined();
+      expect(authAfter.data.isIdentifierVerified).toBe(false);
+      expect(authAfter.data.code).toBe(auth.data.code);
+      expect(authAfter.data.codeExpiredAt).toStrictEqual(
+        auth.data.codeExpiredAt,
+      );
+      expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
+    });
     it(`Just signed up, but invalid code usage of ${AUTH_CODE_USAGE.CHANGE_PASSWORD}, should return 400 with ${ERROR_CODE.AUTH_CODE_INVALID}`, async () => {
       // * Simulate sign up
       const DTO: IEmailSignUp = {
