@@ -69,10 +69,7 @@ import {
   AUTH_PROVIDER,
   AUTH_TOKEN_TYPE,
 } from '@gdk-iam/auth/enums';
-import {
-  AUTH_MODEL_NAME,
-  EMAIL_VERIFICATION_ALLOW_AUTH_USAGE,
-} from '@gdk-iam/auth/statics';
+import { AUTH_MODEL_NAME } from '@gdk-iam/auth/statics';
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 
 import { Auth } from './auth.schema';
@@ -475,27 +472,7 @@ export class AuthMongooseService implements AuthService {
         this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_TYPE_NOT_EMAIL,
           `Identifier of ${dto.email} is not email`,
-          400,
-          'emailVerification',
-        );
-      }
-      if (auth.codeExpiredAt.getTime() > currentTimeStamp) {
-        const EXPIRE_MIN = this.iamConfig.CODE_EXPIRE_MIN || 3;
-        this.throwHttpError(
-          ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT,
-          `Identifier: ${dto.email} cannot send within ${EXPIRE_MIN} minute`,
-          401,
-          'emailVerification',
-        );
-      }
-      if (
-        dto.usage === AUTH_CODE_USAGE.SIGN_UP_VERIFY &&
-        auth.isIdentifierVerified
-      ) {
-        this.throwHttpError(
-          ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED,
-          `Identifier: ${dto.email} already verified`,
-          401,
+          409,
           'emailVerification',
         );
       }
@@ -507,6 +484,26 @@ export class AuthMongooseService implements AuthService {
           ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED,
           `Identifier: ${dto.email} not verified, cannot proceed ${dto.usage}`,
           403,
+          'emailVerification',
+        );
+      }
+      if (
+        dto.usage === AUTH_CODE_USAGE.SIGN_UP_VERIFY &&
+        auth.isIdentifierVerified
+      ) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED,
+          `Identifier: ${dto.email} already verified`,
+          409,
+          'emailVerification',
+        );
+      }
+      if (auth.codeExpiredAt.getTime() > currentTimeStamp) {
+        const EXPIRE_MIN = this.iamConfig.CODE_EXPIRE_MIN || 3;
+        this.throwHttpError(
+          ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT,
+          `Identifier: ${dto.email} cannot send within ${EXPIRE_MIN} minute`,
+          429,
           'emailVerification',
         );
       }
