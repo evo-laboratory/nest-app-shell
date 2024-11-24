@@ -2,16 +2,11 @@ import * as request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { WinstonService } from '@shared/winston-logger';
-import {
-  ClientKeyHeader,
-  EmptyBearerHeader,
-  TestSysOwnerData,
-} from 'test/data';
+import { ClientKeyHeader, EmptyBearerHeader } from 'test/data';
 import { ERROR_CODE } from '@shared/exceptions';
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import { GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
-import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API, EMAIL_VERIFICATION_PATH } from '@gdk-iam/auth/statics';
 import { AUTH_CODE_USAGE } from '@gdk-iam/auth/enums';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
@@ -20,14 +15,6 @@ import { MailService } from '@gdk-mail/mail.service';
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
   const TARGET_PATH = `${CONTROLLER_ENDPOINT}/${V1}`;
-  const JESTER01_EMAIL = `jester_${new Date().getTime()}@user.com`;
-  const TEST_USER01 = {
-    email: JESTER01_EMAIL,
-    password: '123456',
-    firstName: 'Jester',
-    lastName: 'Automaticode',
-    displayName: 'Jester Automaticode',
-  };
   let app: INestApplication;
   let authService: AuthService;
   let mailService: MailService;
@@ -124,10 +111,12 @@ describe('GDK/AuthController', () => {
       expect(res.body.statusCode).toBe(404);
     });
     it(`Identifier already verified, should return 409 with ${ERROR_CODE.AUTH_IDENTIFIER_ALREADY_VERIFIED}`, async () => {
-      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
-        // * We are not testing the real mail service here, will test on MailController
-        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
-      });
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
       // * Simulate sign up
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
@@ -144,6 +133,7 @@ describe('GDK/AuthController', () => {
           email: DTO.email,
           usage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
         });
+      mock.mockRestore();
       expect(res.status).toBe(409);
       expect(res.body.source).toBeDefined();
       expect(res.body.errorCode).toBe(
