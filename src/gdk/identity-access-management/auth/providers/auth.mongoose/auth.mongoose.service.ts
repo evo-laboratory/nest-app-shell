@@ -460,16 +460,7 @@ export class AuthMongooseService implements AuthService {
     }
     try {
       const currentTimeStamp = Date.now();
-      // * STEP 1. Check Usage
-      if (!EMAIL_VERIFICATION_ALLOW_AUTH_USAGE.includes(dto.usage)) {
-        this.throwHttpError(
-          ERROR_CODE.AUTH_CODE_USAGE_NOW_ALLOW,
-          `${dto.usage} not allowed`,
-          400,
-          'emailVerification',
-        );
-      }
-      // * STEP 2. Get Current Auth
+      // * STEP 1. Get Current Auth
       const auth = await this.AuthModel.findOne({ identifier: dto.email });
       if (auth === null) {
         this.throwHttpError(
@@ -479,7 +470,7 @@ export class AuthMongooseService implements AuthService {
           'verifyAuth',
         );
       }
-      // * STEP 3. Check Usage match with auth state
+      // * STEP 2. Check Usage match with auth state
       if (auth.identifierType !== AUTH_IDENTIFIER_TYPE.EMAIL) {
         this.throwHttpError(
           ERROR_CODE.AUTH_IDENTIFIER_TYPE_NOT_EMAIL,
@@ -519,10 +510,10 @@ export class AuthMongooseService implements AuthService {
           'emailVerification',
         );
       }
-      // * STEP 4. Setup Transaction Session
+      // * STEP 3. Setup Transaction Session
       session.startTransaction();
       const generated = this.authUtil.generateAuthCode();
-      // * STEP 5. Send Email
+      // * STEP 4. Send Email
       const mail: ISendMail = {
         to: dto.email,
         subject: `${dto.usage} 驗證碼`,
@@ -531,7 +522,7 @@ export class AuthMongooseService implements AuthService {
       };
       const sent = await this.mailService.send(mail);
       assert.ok(sent, 'Verify Email Sent');
-      // * STEP 6. Update Auth State
+      // * STEP 5. Update Auth State
       const updated = await this.AuthModel.findByIdAndUpdate(
         auth._id,
         {
@@ -545,7 +536,7 @@ export class AuthMongooseService implements AuthService {
         { session: session },
       );
       assert.ok(updated, 'Updated Auth');
-      // * STEP 7. Complete session
+      // * STEP 6. Complete session
       await session.commitTransaction();
       await session.endSession();
       return {
