@@ -143,6 +143,12 @@ describe('GDK/AuthController', () => {
       expect(res.body.statusCode).toBe(409);
     });
     it(`Just sign-up, cannot send again within CODE_EXPIRE_MIN. Should return 429 with ${ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT}`, async () => {
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
       // * Simulate sign up
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
@@ -159,6 +165,7 @@ describe('GDK/AuthController', () => {
           email: DTO.email,
           usage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
         });
+      mock.mockRestore();
       expect(res.status).toBe(429);
       expect(res.body.source).toBeDefined();
       expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_CODE_EMAIL_RATE_LIMIT);
@@ -170,6 +177,12 @@ describe('GDK/AuthController', () => {
       expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
     }, 10000);
     it(`Just sign-up, cannot process ${AUTH_CODE_USAGE.FORGOT_PASSWORD} because Identifier not verified. Return 403 with ${ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED}`, async () => {
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
       // * Simulate sign up
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
@@ -186,6 +199,7 @@ describe('GDK/AuthController', () => {
           email: DTO.email,
           usage: AUTH_CODE_USAGE.FORGOT_PASSWORD,
         });
+      mock.mockRestore();
       expect(res.status).toBe(403);
       expect(res.body.source).toBeDefined();
       expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED);
