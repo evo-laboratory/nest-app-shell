@@ -1,17 +1,18 @@
 import * as request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { WinstonService } from '@shared/winston-logger';
-import { ClientKeyHeader, EmptyBearerHeader } from 'test/data';
-import { ERROR_CODE } from '@shared/exceptions';
-import { TestModuleBuilderFixture } from 'test/fixtures';
-import { GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { AUTH_API, EMAIL_VERIFICATION_PATH } from '@gdk-iam/auth/statics';
 import { AUTH_CODE_USAGE } from '@gdk-iam/auth/enums';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { MailService } from '@gdk-mail/mail.service';
+import { WinstonService } from '@shared/winston-logger';
+import { ERROR_CODE } from '@shared/exceptions';
+import { GPI, V1 } from '@shared/statics';
 import { MinToMilliseconds } from '@shared/helper';
+
+import { ClientKeyHeader, EmptyBearerHeader } from 'test/data';
+import { TestModuleBuilderFixture } from 'test/fixtures';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
