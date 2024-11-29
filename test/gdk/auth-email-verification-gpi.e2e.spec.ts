@@ -212,6 +212,53 @@ describe('GDK/AuthController', () => {
       expect(authAfter.data.isIdentifierVerified).toBe(false);
       expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
     });
+    it(`Auth already verified, using ${AUTH_CODE_USAGE.FORGOT_PASSWORD} (after ${process.env['CODE_EXPIRE_MIN']} min) with MailService error should return 500`, async () => {
+      // * Please check your environment variable for CODE_EXPIRE_MIN, should be 1.
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          return null;
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      // * Wait for CODE_EXPIRE_MIN
+      await new Promise((resolve) => {
+        setTimeout(
+          resolve,
+          MinToMilliseconds(process.env['CODE_EXPIRE_MIN']) + 50,
+        );
+      });
+      const reMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          email: DTO.email,
+          usage: AUTH_CODE_USAGE.FORGOT_PASSWORD,
+        });
+      mock.mockRestore();
+      reMock.mockRestore();
+      expect(res.status).toBe(500);
+      // * Validate the database state (AUTH)
+      const authAfter = await authService.getByEmail(DTO.email, {}, false);
+      expect(authAfter.data).toBeDefined();
+      expect(authAfter.data.isIdentifierVerified).toBe(true);
+      expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
+      expect(authAfter.data.code).toBeDefined();
+      expect(authAfter.data.codeExpiredAt).toBeDefined();
+    }, 90000);
     it(`Sign-up after ${process.env['CODE_EXPIRE_MIN']} min, using ${AUTH_CODE_USAGE.SIGN_UP_VERIFY} should return 202`, async () => {
       // * Please check your environment variable for CODE_EXPIRE_MIN, should be 1.
       const mock = jest
