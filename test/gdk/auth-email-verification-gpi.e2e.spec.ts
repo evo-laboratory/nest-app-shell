@@ -11,6 +11,7 @@ import { AUTH_API, EMAIL_VERIFICATION_PATH } from '@gdk-iam/auth/statics';
 import { AUTH_CODE_USAGE } from '@gdk-iam/auth/enums';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { MailService } from '@gdk-mail/mail.service';
+import { MinToMilliseconds } from '@shared/helper';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -175,7 +176,7 @@ describe('GDK/AuthController', () => {
       const authAfter = await authService.getByEmail(DTO.email, {}, false);
       expect(authAfter.data).toBeDefined();
       expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
-    }, 10000);
+    });
     it(`Just sign-up, cannot process ${AUTH_CODE_USAGE.FORGOT_PASSWORD} because Identifier not verified. Return 403 with ${ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED}`, async () => {
       const mock = jest
         .spyOn(mailService, 'send')
@@ -210,7 +211,103 @@ describe('GDK/AuthController', () => {
       expect(authAfter.data).toBeDefined();
       expect(authAfter.data.isIdentifierVerified).toBe(false);
       expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
-    }, 10000);
+    });
+    it(`Sign-up after ${process.env['CODE_EXPIRE_MIN']} min, using ${AUTH_CODE_USAGE.SIGN_UP_VERIFY} should return 202`, async () => {
+      // * Please check your environment variable for CODE_EXPIRE_MIN, should be 1.
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, false);
+      // * Wait for CODE_EXPIRE_MIN
+      await new Promise((resolve) => {
+        setTimeout(
+          resolve,
+          MinToMilliseconds(process.env['CODE_EXPIRE_MIN']) + 50,
+        );
+      });
+      const reMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          email: DTO.email,
+          usage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
+        });
+      mock.mockRestore();
+      reMock.mockRestore();
+      expect(res.status).toBe(202);
+      // * Validate the database state (AUTH)
+      const authAfter = await authService.getByEmail(DTO.email, {}, false);
+      expect(authAfter.data).toBeDefined();
+      expect(authAfter.data.isIdentifierVerified).toBe(false);
+      expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
+      expect(authAfter.data.code).toBeDefined();
+      expect(authAfter.data.codeExpiredAt).toBeDefined();
+    }, 90000);
+    it(`Auth already verified, using ${AUTH_CODE_USAGE.FORGOT_PASSWORD} (after ${process.env['CODE_EXPIRE_MIN']} min) should return 202`, async () => {
+      // * Please check your environment variable for CODE_EXPIRE_MIN, should be 1.
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      // * Wait for CODE_EXPIRE_MIN
+      await new Promise((resolve) => {
+        setTimeout(
+          resolve,
+          MinToMilliseconds(process.env['CODE_EXPIRE_MIN']) + 50,
+        );
+      });
+      const reMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_VERIFICATION_GPI}`)
+        .set(ClientKeyHeader())
+        .send({
+          email: DTO.email,
+          usage: AUTH_CODE_USAGE.FORGOT_PASSWORD,
+        });
+      mock.mockRestore();
+      reMock.mockRestore();
+      expect(res.status).toBe(202);
+      // * Validate the database state (AUTH)
+      const authAfter = await authService.getByEmail(DTO.email, {}, false);
+      expect(authAfter.data).toBeDefined();
+      expect(authAfter.data.isIdentifierVerified).toBe(true);
+      expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.FORGOT_PASSWORD);
+      expect(authAfter.data.code).toBeDefined();
+      expect(authAfter.data.codeExpiredAt).toBeDefined();
+    }, 90000);
   });
   // * --- End of TEST CASES ---
   afterAll(async () => {
