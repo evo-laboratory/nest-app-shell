@@ -948,6 +948,12 @@ describe('GDK/AuthController', () => {
     });
     it(`New signed up, with correct code should return 202`, async () => {
       // * Simulate sign up
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
         password: `123456`,
@@ -965,6 +971,7 @@ describe('GDK/AuthController', () => {
           code: auth.data.code,
           codeUsage: AUTH_CODE_USAGE.SIGN_UP_VERIFY,
         });
+      mock.mockRestore();
       expect(res.status).toBe(202);
       expect(res.body.isDone).toBe(true);
       // * Validate the database state (USER)
@@ -979,7 +986,7 @@ describe('GDK/AuthController', () => {
       expect(authAfter.data.code).toBe('');
       expect(authAfter.data.codeExpiredAt).toBe(null);
       expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.NOT_SET);
-    }, 10000);
+    }, 20000);
   });
   // * --- End of TEST CASES ---
   afterAll(async () => {

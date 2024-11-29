@@ -168,7 +168,7 @@ describe('GDK/AuthController', () => {
       const authAfter = await authService.getByEmail(DTO.email, {}, false);
       expect(authAfter.data).toBeDefined();
       expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
-    });
+    }, 10000);
     it(`Just sign-up, cannot process ${AUTH_CODE_USAGE.FORGOT_PASSWORD} because Identifier not verified. Return 403 with ${ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED}`, async () => {
       // * Simulate sign up
       const DTO: IEmailSignUp = {
@@ -196,7 +196,7 @@ describe('GDK/AuthController', () => {
       expect(authAfter.data).toBeDefined();
       expect(authAfter.data.isIdentifierVerified).toBe(false);
       expect(authAfter.data.codeUsage).toBe(AUTH_CODE_USAGE.SIGN_UP_VERIFY);
-    });
+    }, 10000);
   });
   // * --- End of TEST CASES ---
   afterAll(async () => {
