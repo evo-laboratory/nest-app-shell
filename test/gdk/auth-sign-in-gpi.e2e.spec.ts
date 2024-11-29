@@ -15,6 +15,9 @@ import { GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API, EMAIL_SIGN_IN_PATH } from '@gdk-iam/auth/statics';
+import e from 'express';
+import { IEmailSignUp } from '@gdk-iam/auth/types';
+import { MailService } from '@gdk-mail/mail.service';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -22,6 +25,7 @@ describe('GDK/AuthController', () => {
   let app: INestApplication;
   let authService: AuthService;
   let userService: UserService;
+  let mailService: MailService;
   beforeAll(async () => {
     // * STEP 1. Setup the NestJS application Test Bed
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
@@ -37,6 +41,7 @@ describe('GDK/AuthController', () => {
     await app.init();
     userService = moduleFixture.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
+    mailService = moduleFixture.get<MailService>(MailService);
   });
   // * --- TEST CASES ----------
   const EMAIL_SIGN_IN_GPI = `${TARGET_PATH}/${EMAIL_SIGN_IN_PATH}`;
@@ -104,6 +109,20 @@ describe('GDK/AuthController', () => {
         })
         .expect(400);
     });
+    it(`Invalid email (not exist), should return 400`, async () => {
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: 'jester_should_not_found@user.com',
+          password: '123456',
+        });
+      expect(res.status).toBe(404);
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_NOT_FOUND);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(404);
+    });
     it(`Invalid password (less than 6), should return 400`, () => {
       return request(app.getHttpServer())
         .post(`${EMAIL_SIGN_IN_GPI}`)
@@ -147,6 +166,36 @@ describe('GDK/AuthController', () => {
           password: { password: '12356788' },
         })
         .expect(400);
+    });
+    it(`Identifier not verified, should return 403 with ${ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED}`, async () => {
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, false);
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: DTO.password,
+        });
+      mock.mockRestore();
+      expect(res.status).toBe(403);
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(403);
     });
   });
   // * --- End of TEST CASES ---
