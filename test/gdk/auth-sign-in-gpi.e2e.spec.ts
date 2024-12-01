@@ -18,6 +18,8 @@ import { AUTH_API, EMAIL_SIGN_IN_PATH } from '@gdk-iam/auth/statics';
 import e from 'express';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { MailService } from '@gdk-mail/mail.service';
+import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
+import exp from 'constants';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -26,6 +28,7 @@ describe('GDK/AuthController', () => {
   let authService: AuthService;
   let userService: UserService;
   let mailService: MailService;
+  let authActivitiesService: AuthActivitiesService;
   beforeAll(async () => {
     // * STEP 1. Setup the NestJS application Test Bed
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
@@ -42,6 +45,9 @@ describe('GDK/AuthController', () => {
     userService = moduleFixture.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
     mailService = moduleFixture.get<MailService>(MailService);
+    authActivitiesService = moduleFixture.get<AuthActivitiesService>(
+      AuthActivitiesService,
+    );
   });
   // * --- TEST CASES ----------
   const EMAIL_SIGN_IN_GPI = `${TARGET_PATH}/${EMAIL_SIGN_IN_PATH}`;
@@ -196,6 +202,260 @@ describe('GDK/AuthController', () => {
       expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_IDENTIFIER_NOT_VERIFIED);
       expect(res.body.message).toBeDefined();
       expect(res.body.statusCode).toBe(403);
+    });
+    it(`Auth deactivated, should return 403 with ${ERROR_CODE.AUTH_INACTIVE}`, async () => {
+      const mock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      await authService.deactivateById(`${auth.data._id}`);
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: DTO.password,
+        });
+      mock.mockRestore();
+      expect(res.status).toBe(403);
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_INACTIVE);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(403);
+    });
+    it(`User not found (should not happen), should return 404 with ${ERROR_CODE.USER_NOT_FOUND}`, async () => {
+      const mailMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const userMock = jest
+        .spyOn(userService, 'findByEmail')
+        .mockImplementationOnce(() => {
+          return null;
+        });
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: DTO.password,
+        });
+      mailMock.mockRestore();
+      userMock.mockRestore();
+      expect(res.status).toBe(404);
+      expect(res.body.errorCode).toBe(ERROR_CODE.USER_NOT_FOUND);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(404);
+    });
+    it(`Invalid password, should return 403 with ${ERROR_CODE.AUTH_PASSWORD_INVALID}`, async () => {
+      const mailMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: 'wrong_password1234',
+        });
+      mailMock.mockRestore();
+      expect(res.status).toBe(403);
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_PASSWORD_INVALID);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(403);
+      // * Validate auth activities
+      const afterAuth = await authService.getByEmail(DTO.email, {}, false);
+      const activities = await authActivitiesService.getByAuthId(
+        `${afterAuth.data._id}`,
+      );
+      expect(activities.signInFailRecordList.length).toEqual(1);
+    });
+    it(`Invalid password with ${process.env['SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT']} times, should return 406 with ${ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT}`, async () => {
+      const mailMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      // * Simulate failed attempts of 5 times (match with SIGN_IN_FAILED_ATTEMPT_PER_HOUR_COUNT)
+      await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: 'wrong_password1234',
+        });
+      await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: 'wrong_password1234',
+        });
+      await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: 'wrong_password1234',
+        });
+      await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: 'wrong_password1234',
+        });
+      await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: 'wrong_password1234',
+        });
+      const finalRes = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: DTO.password,
+        });
+      mailMock.mockRestore();
+      expect(finalRes.status).toBe(406);
+      expect(finalRes.body.errorCode).toBe(
+        ERROR_CODE.AUTH_SIGN_IN_FAILED_PER_HOUR_RATE_LIMIT,
+      );
+      expect(finalRes.body.message).toBeDefined();
+      expect(finalRes.body.statusCode).toBe(406);
+      // * Validate auth activities
+      const afterAuth = await authService.getByEmail(DTO.email, {}, false);
+      const activities = await authActivitiesService.getByAuthId(
+        `${afterAuth.data._id}`,
+      );
+      expect(activities.signInFailRecordList.length).toEqual(5);
+    });
+    it(`Valid email and password but auth activity not working (should not happened), should return 500 `, async () => {
+      const mailMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      const activityMock = jest
+        .spyOn(authActivitiesService, 'pushTokenItemByAuthId')
+        .mockImplementationOnce(() => {
+          return null;
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: DTO.password,
+        });
+      mailMock.mockRestore();
+      activityMock.mockRestore();
+      expect(res.status).toBe(500);
+    });
+    it(`Valid email and password, should return 200 with token`, async () => {
+      const mailMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const res = await request(app.getHttpServer())
+        .post(`${EMAIL_SIGN_IN_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .send({
+          email: DTO.email,
+          password: DTO.password,
+        });
+      mailMock.mockRestore();
+      expect(res.status).toBe(201);
+      expect(res.body.accessToken).toBeDefined();
+      expect(res.body.refreshToken).toBeDefined();
+      const afterAuth = await authService.getByEmail(DTO.email, {}, false);
+      const activities = await authActivitiesService.getByAuthId(
+        `${afterAuth.data._id}`,
+      );
+      expect(activities.signInFailRecordList.length).toEqual(0);
+      expect(activities.accessTokenList.length).toEqual(1);
+      expect(activities.refreshTokenList.length).toEqual(1);
+      expect(activities.lastIssueAccessTokenAt).toBeDefined();
+      expect(activities.lastIssueRefreshTokenAt).toBeDefined();
     });
   });
   // * --- End of TEST CASES ---
