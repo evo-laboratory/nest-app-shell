@@ -1,25 +1,20 @@
 import * as request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { WinstonService } from '@shared/winston-logger';
-import { BearerHeader, ClientKeyHeader, EmptyBearerHeader } from 'test/data';
-import { ERROR_CODE } from '@shared/exceptions';
-import { TestModuleBuilderFixture } from 'test/fixtures';
-import {
-  TEST_GENERAL_ROLE,
-  TEST_GENERAL_TWO_ROLE,
-  TEST_SUPER_ROLE,
-  TEST_VALID_MONGODB_OBJECT_ID,
-} from 'test/helpers/js/static';
-import { GPI, V1 } from '@shared/statics';
+
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API, EMAIL_SIGN_IN_PATH } from '@gdk-iam/auth/statics';
-import e from 'express';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { MailService } from '@gdk-mail/mail.service';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
-import exp from 'constants';
+
+import { WinstonService } from '@shared/winston-logger';
+import { ERROR_CODE } from '@shared/exceptions';
+import { GPI, V1 } from '@shared/statics';
+
+import { TestModuleBuilderFixture } from 'test/fixtures';
+import { ClientKeyHeader, EmptyBearerHeader } from 'test/data';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
