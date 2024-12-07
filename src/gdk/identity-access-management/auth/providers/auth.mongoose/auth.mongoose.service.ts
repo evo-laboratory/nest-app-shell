@@ -643,29 +643,42 @@ export class AuthMongooseService implements AuthService {
         isValid: false,
         message: 'Invalid token',
       };
-      const token = await this.authJwt.verify<IAuthDecodedToken>(
+      const verifyResult = await this.authJwt.verify<IAuthDecodedToken>(
         dto.token,
         AUTH_TOKEN_TYPE.REFRESH,
       );
-      const auth = await this.AuthModel.findById(token.sub);
-      this.authUtil.checkAuthAllowSignIn(token.email, auth, null, true);
+      if (verifyResult.isError) {
+        this.throwHttpError(
+          verifyResult.errorCode,
+          `Invalid token`,
+          401,
+          'verifyRefreshToken',
+        );
+      }
+      const auth = await this.AuthModel.findById(verifyResult.decodedToken.sub);
+      this.authUtil.checkAuthAllowSignIn(
+        verifyResult.decodedToken.email,
+        auth,
+        null,
+        true,
+      );
       if (!this.iamConfig.CHECK_REVOKED_TOKEN) {
         result.isValid = true;
         result.message = 'ok';
         if (returnDecodedToken) {
-          result.decodedToken = token;
+          result.decodedToken = verifyResult.decodedToken;
         }
         return result;
       }
       const notRevoked = await this.revokeService.check(
-        token.sub,
-        token.tokenId,
+        verifyResult.decodedToken.sub,
+        verifyResult.decodedToken.tokenId,
       );
       if (notRevoked) {
         result.isValid = true;
         result.message = 'ok';
         if (returnDecodedToken) {
-          result.decodedToken = token;
+          result.decodedToken = verifyResult.decodedToken;
         }
         return result;
       }
@@ -683,7 +696,6 @@ export class AuthMongooseService implements AuthService {
   ): Promise<IAuthExchangeNewAccessTokenRes> {
     this.Logger.verbose(JsonStringify(dto), 'exchangeAccessToken(dto)');
     try {
-      // TODO ADD checkAuthAllowSignIn
       const validResult = await this.verifyRefreshToken(
         {
           token: dto.token,

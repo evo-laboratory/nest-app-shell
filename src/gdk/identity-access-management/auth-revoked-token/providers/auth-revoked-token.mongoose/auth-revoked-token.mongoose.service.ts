@@ -67,13 +67,13 @@ export class AuthRevokedTokenMongooseService
     }
     try {
       // * Validate refresh token
-      const token = await this.authJwt.verify<IAuthDecodedToken>(
+      const verified = await this.authJwt.verify<IAuthDecodedToken>(
         dto.token,
         AUTH_TOKEN_TYPE.REFRESH,
       );
       await this.insert(
         verifiedToken.sub,
-        token.tokenId,
+        verified.decodedToken.tokenId,
         AUTH_REVOKED_TOKEN_SOURCE.USER_SIGN_OUT,
         AUTH_TOKEN_TYPE.REFRESH,
       );
@@ -215,13 +215,13 @@ export class AuthRevokedTokenMongooseService
     }
     try {
       // * Validate refresh token
-      const token = await this.authJwt.verify<IAuthDecodedToken>(
+      const verified = await this.authJwt.verify<IAuthDecodedToken>(
         dto.token,
         AUTH_TOKEN_TYPE.REFRESH,
       );
       await this.insert(
         verifiedToken.sub,
-        token.tokenId,
+        verified.decodedToken.tokenId,
         source,
         AUTH_TOKEN_TYPE.REFRESH,
       );

@@ -1,7 +1,11 @@
 import * as request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { WinstonService } from '@shared/winston-logger';
+import { AuthService } from '@gdk-iam/auth/auth.service';
+import { UserService } from '@gdk-iam/user/user.service';
+import { ACCESS_TOKEN_PATH, AUTH_API } from '@gdk-iam/auth/statics';
+import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
+
 import {
   BearerHeader,
   ClientKeyHeader,
@@ -9,6 +13,9 @@ import {
   TestSysOwnerData,
 } from 'test/data';
 import { ERROR_CODE } from '@shared/exceptions';
+import { WinstonService } from '@shared/winston-logger';
+import { GPI, V1 } from '@shared/statics';
+
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import {
   TEST_GENERAL_ROLE,
@@ -16,11 +23,6 @@ import {
   TEST_SUPER_ROLE,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
-import { GPI, V1 } from '@shared/statics';
-import { AuthService } from '@gdk-iam/auth/auth.service';
-import { UserService } from '@gdk-iam/user/user.service';
-import { ACCESS_TOKEN_PATH, AUTH_API } from '@gdk-iam/auth/statics';
-import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 
 describe('GDK/{Rename}Controller', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -38,6 +40,7 @@ describe('GDK/{Rename}Controller', () => {
   let userService: UserService;
   let sysOwnerAccessToken: string;
   let generalUserAccessToken: string;
+  let generalUserRefreshToken: string;
   beforeAll(async () => {
     // * STEP 1. Setup the NestJS application Test Bed
     const moduleFixture: TestingModule = await TestModuleBuilderFixture();
@@ -62,11 +65,13 @@ describe('GDK/{Rename}Controller', () => {
     sysOwnerAccessToken = accessToken;
     // * STEP 3. Create a general user for Authorization
     await authService.emailSignUp(TEST_USER01, true);
-    const { accessToken: generalUserToken } = await authService.emailSignIn({
-      email: JESTER01_EMAIL,
-      password: TEST_USER01.password,
-    });
+    const { accessToken: generalUserToken, refreshToken } =
+      await authService.emailSignIn({
+        email: JESTER01_EMAIL,
+        password: TEST_USER01.password,
+      });
     generalUserAccessToken = generalUserToken;
+    generalUserRefreshToken = refreshToken;
   });
   // * --- TEST CASES ----------
   const EXCHANGE_ACCESS_TOKEN_PATH = `${TARGET_PATH}/${ACCESS_TOKEN_PATH}`;
@@ -89,6 +94,36 @@ describe('GDK/{Rename}Controller', () => {
         .set(ClientKeyHeader())
         .set(EmptyBearerHeader())
         .expect(400);
+    });
+    it(`BearerHeader, but empty dto(AuthExchangeNewAccessTokenDto) should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(generalUserAccessToken))
+        .send({})
+        .expect(400);
+    });
+    it(`BearerHeader, invalid dto(token not refresh token) should return 401`, () => {
+      return request(app.getHttpServer())
+        .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(generalUserAccessToken))
+        .send({
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: generalUserAccessToken,
+        })
+        .expect(401);
+    });
+    it(`BearerHeader, valid dto(AuthExchangeNewAccessTokenDto) should return 201`, () => {
+      return request(app.getHttpServer())
+        .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(generalUserAccessToken))
+        .send({
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: generalUserRefreshToken,
+        })
+        .expect(201);
     });
   });
   // const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;

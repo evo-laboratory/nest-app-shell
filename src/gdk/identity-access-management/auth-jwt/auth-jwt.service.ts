@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 import { IAuthSignedResult } from '@gdk-iam/auth/types';
 import { IAuthGenerateCustomTokenResult } from '@gdk-iam/auth/types/auth-generate-custom-token-result.interface';
@@ -12,6 +12,8 @@ import {
   JsonStringify,
 } from '@shared/helper';
 import { MethodLogger } from '@shared/winston-logger';
+import { IAuthJWTVerifyResult } from './types';
+import { ERROR_CODE } from '@shared/exceptions';
 @Injectable()
 export class AuthJwtService {
   private readonly Logger = new Logger(AuthJwtService.name);
@@ -118,7 +120,7 @@ export class AuthJwtService {
   public async verify<T>(
     tokenString: string,
     specificType?: AUTH_TOKEN_TYPE,
-  ): Promise<T> {
+  ): Promise<IAuthJWTVerifyResult<T>> {
     this.Logger.verbose(tokenString, 'verify(tokenString)');
     this.Logger.verbose(tokenString, 'verify(specificType)');
     try {
@@ -129,10 +131,18 @@ export class AuthJwtService {
       });
       if (specificType) {
         if (!token.tokenType || token.tokenType !== specificType) {
-          throw new Error('jwt type not valid');
+          return {
+            decodedToken: token,
+            isError: true,
+            errorCode: ERROR_CODE.AUTH_TOKEN_INVALID,
+          };
         }
       }
-      return token;
+      return {
+        decodedToken: token,
+        isError: false,
+        errorCode: null,
+      };
     } catch (error) {
       throw new Error(error);
     }
