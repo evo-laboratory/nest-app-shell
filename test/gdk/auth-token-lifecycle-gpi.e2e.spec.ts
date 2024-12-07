@@ -21,6 +21,7 @@ import {
   TEST_GENERAL_ROLE,
   TEST_GENERAL_TWO_ROLE,
   TEST_SUPER_ROLE,
+  TEST_VALID_JWT_TOKEN,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
 import exp from 'constants';
@@ -119,6 +120,17 @@ describe('GDK/{Rename}Controller', () => {
           token: generalUserAccessToken,
         })
         .expect(401);
+    });
+    it(`BearerHeader, invalid access token should return 201`, () => {
+      return request(app.getHttpServer())
+        .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(TEST_VALID_JWT_TOKEN))
+        .send({
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: generalUserRefreshToken,
+        })
+        .expect(201);
     });
     it(`BearerHeader, valid dto(AuthExchangeNewAccessTokenDto) should return 201`, async () => {
       const authActivity = jest.spyOn(

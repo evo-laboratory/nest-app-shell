@@ -10,3 +10,5 @@ export const TEST_GENERAL_ROLE = 'GENERAL_USER';
 export const TEST_GENERAL_TWO_ROLE = 'GENERAL_USER_TWO';
 export const TEST_CLIENT_ID = 'e2e-testing-client-id';
 export const TEST_VALID_MONGODB_OBJECT_ID = '66a265d9e0e615ee831b5f1c';
+export const TEST_VALID_JWT_TOKEN =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsImFkbWluIjp0cnVlLCJpYXQiOjE3MDEyMzQ1Njd9.tKKttYtKOV6r6WYrt6lUOFhmQnMFC79ic-PAgeSLMIk';
