@@ -23,6 +23,7 @@ import {
   TEST_SUPER_ROLE,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
+import exp from 'constants';
 
 describe('GDK/{Rename}Controller', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -114,16 +115,18 @@ describe('GDK/{Rename}Controller', () => {
         })
         .expect(401);
     });
-    it(`BearerHeader, valid dto(AuthExchangeNewAccessTokenDto) should return 201`, () => {
-      return request(app.getHttpServer())
+    it(`BearerHeader, valid dto(AuthExchangeNewAccessTokenDto) should return 201`, async () => {
+      const res = await request(app.getHttpServer())
         .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(generalUserAccessToken))
         .send({
           type: AUTH_TOKEN_TYPE.REFRESH,
           token: generalUserRefreshToken,
-        })
-        .expect(201);
+        });
+      expect(res.status).toBe(201);
+      expect(res.body.accessToken).toBeDefined();
+      expect(res.body.refreshToken).toBeUndefined();
     });
   });
   // const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;
