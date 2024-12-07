@@ -22,7 +22,8 @@
     "test-e2e:gpi:user": "NODE_ENV=test-mongodb npx jest test/gdk/user-gpi.e2e.spec.ts --config jest-e2e.config.js",
     "test-e2e:gpi:auth-sign-up-flow": "NODE_ENV=test-mongodb npx jest test/gdk/auth-sign-up-flow-gpi.e2e.spec.ts --config jest-e2e.config.js",
     "test-e2e:gpi:email-verification": "NODE_ENV=test-mongodb npx jest test/gdk/auth-email-verification-gpi.e2e.spec.ts --config jest-e2e.config.js",
-    "test-e2e:gpi:sign-in": "NODE_ENV=test-mongodb npx jest test/gdk/auth-sign-in-gpi.e2e.spec.ts --config jest-e2e.config.js"
+    "test-e2e:gpi:sign-in": "NODE_ENV=test-mongodb npx jest test/gdk/auth-sign-in-gpi.e2e.spec.ts --config jest-e2e.config.js",
+    "test-e2e:gpi:token-lifecycle": "NODE_ENV=test-mongodb npx jest test/gdk/auth-token-lifecycle-gpi.e2e.spec.ts --config jest-e2e.config.js"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.21.1",
