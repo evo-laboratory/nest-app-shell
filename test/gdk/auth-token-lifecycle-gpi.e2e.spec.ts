@@ -24,6 +24,7 @@ import {
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
 import exp from 'constants';
+import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 
 describe('GDK/{Rename}Controller', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -39,6 +40,7 @@ describe('GDK/{Rename}Controller', () => {
   let app: INestApplication;
   let authService: AuthService;
   let userService: UserService;
+  let authActivitiesService: AuthActivitiesService;
   let sysOwnerAccessToken: string;
   let generalUserAccessToken: string;
   let generalUserRefreshToken: string;
@@ -57,6 +59,9 @@ describe('GDK/{Rename}Controller', () => {
     await app.init();
     userService = moduleFixture.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
+    authActivitiesService = moduleFixture.get<AuthActivitiesService>(
+      AuthActivitiesService,
+    );
     // * STEP 2. Create a system owner for Authorization
     const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
     const { accessToken } = await authService.emailSignIn({
@@ -116,6 +121,10 @@ describe('GDK/{Rename}Controller', () => {
         .expect(401);
     });
     it(`BearerHeader, valid dto(AuthExchangeNewAccessTokenDto) should return 201`, async () => {
+      const authActivity = jest.spyOn(
+        authActivitiesService,
+        'pushTokenItemByAuthId',
+      );
       const res = await request(app.getHttpServer())
         .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
         .set(ClientKeyHeader())
@@ -127,6 +136,8 @@ describe('GDK/{Rename}Controller', () => {
       expect(res.status).toBe(201);
       expect(res.body.accessToken).toBeDefined();
       expect(res.body.refreshToken).toBeUndefined();
+      // * Valid auth activities
+      expect(authActivity).toBeCalledTimes(1);
     });
   });
   // const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;
