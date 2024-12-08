@@ -3,7 +3,11 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
-import { ACCESS_TOKEN_PATH, AUTH_API } from '@gdk-iam/auth/statics';
+import {
+  ACCESS_TOKEN_PATH,
+  AUTH_API,
+  REFRESH_TOKEN_PATH,
+} from '@gdk-iam/auth/statics';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 
 import {
@@ -14,7 +18,7 @@ import {
 } from 'test/data';
 import { ERROR_CODE } from '@shared/exceptions';
 import { WinstonService } from '@shared/winston-logger';
-import { GPI, V1 } from '@shared/statics';
+import { CHECK_PATH, GPI, V1 } from '@shared/statics';
 
 import { TestModuleBuilderFixture } from 'test/fixtures';
 import {
@@ -24,8 +28,9 @@ import {
   TEST_VALID_JWT_TOKEN,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
-import exp from 'constants';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
+import { MailService } from '@gdk-mail/mail.service';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
 describe('GDK/{Rename}Controller', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -42,6 +47,8 @@ describe('GDK/{Rename}Controller', () => {
   let authService: AuthService;
   let userService: UserService;
   let authActivitiesService: AuthActivitiesService;
+  let mailService: MailService;
+  let authRevokedTokenService: AuthRevokedTokenService;
   let sysOwnerAccessToken: string;
   let generalUserAccessToken: string;
   let generalUserRefreshToken: string;
@@ -60,6 +67,10 @@ describe('GDK/{Rename}Controller', () => {
     await app.init();
     userService = moduleFixture.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
+    authRevokedTokenService = moduleFixture.get<AuthRevokedTokenService>(
+      AuthRevokedTokenService,
+    );
+    mailService = moduleFixture.get<MailService>(MailService);
     authActivitiesService = moduleFixture.get<AuthActivitiesService>(
       AuthActivitiesService,
     );
@@ -102,7 +113,7 @@ describe('GDK/{Rename}Controller', () => {
         .set(EmptyBearerHeader())
         .expect(400);
     });
-    it(`BearerHeader, but empty dto(AuthExchangeNewAccessTokenDto) should return 400`, () => {
+    it(`BearerHeader, but empty dto should return 400`, () => {
       return request(app.getHttpServer())
         .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
         .set(ClientKeyHeader())
@@ -110,7 +121,7 @@ describe('GDK/{Rename}Controller', () => {
         .send({})
         .expect(400);
     });
-    it(`BearerHeader, invalid dto(token not refresh token) should return 401`, () => {
+    it(`BearerHeader, invalid dto (token not refresh token) should return 401`, () => {
       return request(app.getHttpServer())
         .post(`${EXCHANGE_ACCESS_TOKEN_PATH}`)
         .set(ClientKeyHeader())
@@ -132,7 +143,7 @@ describe('GDK/{Rename}Controller', () => {
         })
         .expect(201);
     });
-    it(`BearerHeader, valid dto(AuthExchangeNewAccessTokenDto) should return 201`, async () => {
+    it(`BearerHeader, valid dto should return 201`, async () => {
       const authActivity = jest.spyOn(
         authActivitiesService,
         'pushTokenItemByAuthId',
@@ -150,6 +161,57 @@ describe('GDK/{Rename}Controller', () => {
       expect(res.body.refreshToken).toBeUndefined();
       // * Valid auth activities
       expect(authActivity).toBeCalledTimes(1);
+    });
+  });
+  const CHECK_REFRESH_TOKEN_PATH = `${TARGET_PATH}/${CHECK_PATH}/${REFRESH_TOKEN_PATH}`;
+  describe(`[POST] ${CHECK_REFRESH_TOKEN_PATH}`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .post(`${CHECK_REFRESH_TOKEN_PATH}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${CHECK_REFRESH_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .expect(400);
+    });
+    it(`EmptyBearerHeader, should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${CHECK_REFRESH_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(400);
+    });
+    it(`BearerHeader, but empty dto should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${CHECK_REFRESH_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .send({})
+        .expect(400);
+    });
+    it(`EmptyBearerHeader, invalid dto (token not refresh token) should return 401`, () => {
+      return request(app.getHttpServer())
+        .post(`${CHECK_REFRESH_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .send({
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: generalUserAccessToken,
+        })
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, valid dto should return 201`, async () => {
+      const res = await request(app.getHttpServer())
+        .post(`${CHECK_REFRESH_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .send({
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: generalUserRefreshToken,
+        });
+      expect(res.status).toBe(201);
+      expect(res.body.isValid).toBe(true);
+      expect(res.body.message).toBeDefined();
     });
   });
   // const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;

@@ -29,7 +29,11 @@ export class AccessTokenGuard implements CanActivate {
         token,
         AUTH_TOKEN_TYPE.ACCESS,
       );
-      req[VERIFIED_JWT_KEY] = payload;
+      if (payload.isError) {
+        this.Logger.error('Token verify failed', 'canActivate');
+        throw new UnauthorizedException();
+      }
+      req[VERIFIED_JWT_KEY] = payload.decodedToken;
       this.Logger.log(`Token verified`, {
         level: WINSTON_LOG_VARIANT_LEVEL.INFO,
         methodName: 'canActivate',
