@@ -7,6 +7,7 @@ import {
   ACCESS_TOKEN_PATH,
   AUTH_API,
   REFRESH_TOKEN_PATH,
+  SIGN_OUT_PATH,
 } from '@gdk-iam/auth/statics';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
 
@@ -205,6 +206,7 @@ describe('GDK/{Rename}Controller', () => {
       const res = await request(app.getHttpServer())
         .post(`${CHECK_REFRESH_TOKEN_PATH}`)
         .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
         .send({
           type: AUTH_TOKEN_TYPE.REFRESH,
           token: generalUserRefreshToken,
@@ -212,6 +214,47 @@ describe('GDK/{Rename}Controller', () => {
       expect(res.status).toBe(201);
       expect(res.body.isValid).toBe(true);
       expect(res.body.message).toBeDefined();
+    });
+  });
+  const POST_SIGN_OUT_PATH = `${TARGET_PATH}/${SIGN_OUT_PATH}`;
+  describe(`[POST] ${POST_SIGN_OUT_PATH}`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .post(`${POST_SIGN_OUT_PATH}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .post(`${POST_SIGN_OUT_PATH}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .post(`${POST_SIGN_OUT_PATH}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it(`Invalid dto(empty), should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${POST_SIGN_OUT_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({})
+        .expect(400);
+    });
+    it(`Invalid dto(type is ${AUTH_TOKEN_TYPE.ACCESS}), should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${POST_SIGN_OUT_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({
+          type: AUTH_TOKEN_TYPE.ACCESS,
+          token: TEST_VALID_JWT_TOKEN,
+        })
+        .expect(400);
     });
   });
   // const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;
