@@ -220,7 +220,7 @@ export class AuthRevokedTokenMongooseService
         AUTH_TOKEN_TYPE.REFRESH,
       );
       await this.insert(
-        verifiedToken.sub,
+        verified.decodedToken.sub,
         verified.decodedToken.tokenId,
         source,
         AUTH_TOKEN_TYPE.REFRESH,

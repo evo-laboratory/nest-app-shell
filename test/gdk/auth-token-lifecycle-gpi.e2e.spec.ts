@@ -32,6 +32,7 @@ import {
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { MailService } from '@gdk-mail/mail.service';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
+import { IEmailSignUp } from '@gdk-iam/auth/types';
 
 describe('GDK/{Rename}Controller', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -255,6 +256,41 @@ describe('GDK/{Rename}Controller', () => {
           token: TEST_VALID_JWT_TOKEN,
         })
         .expect(400);
+    });
+    it(`Valid dto(type is ${AUTH_TOKEN_TYPE.REFRESH}), should return 202`, async () => {
+      // * Simulate new sign up
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const { accessToken, refreshToken } = await authService.emailSignIn({
+        email: DTO.email,
+        password: DTO.password,
+      });
+      const res = await request(app.getHttpServer())
+        .post(`${POST_SIGN_OUT_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: refreshToken,
+        });
+      expect(res.status).toBe(202);
+      // * Check if the refresh token is revoked
+      const check = await authService.verifyRefreshToken({
+        type: AUTH_TOKEN_TYPE.REFRESH,
+        token: refreshToken,
+      });
+      expect(check.isValid).toBe(false);
+      expect(check.message).toBe('Revoked token');
     });
   });
   // const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;
