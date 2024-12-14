@@ -225,8 +225,5 @@ export class AuthController {
   async deleteByIdV1(@Param('id') id: string) {
     return this.authService.deleteById(id, false);
   }
-
-  // TODO 3rd party OAuth Login
-  // TODO E2E testing planning
   // TODO Implement Event(Auth) webhooks / triggers
 }

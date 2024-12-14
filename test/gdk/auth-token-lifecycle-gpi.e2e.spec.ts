@@ -2,11 +2,11 @@ import * as request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { AuthService } from '@gdk-iam/auth/auth.service';
-import { UserService } from '@gdk-iam/user/user.service';
 import {
   ACCESS_TOKEN_PATH,
   AUTH_API,
   REFRESH_TOKEN_PATH,
+  REVOKE_REFRESH_TOKEN_PATH,
   SIGN_OUT_PATH,
 } from '@gdk-iam/auth/statics';
 import { AUTH_TOKEN_TYPE } from '@gdk-iam/auth/enums';
@@ -17,7 +17,6 @@ import {
   EmptyBearerHeader,
   TestSysOwnerData,
 } from 'test/data';
-import { ERROR_CODE } from '@shared/exceptions';
 import { WinstonService } from '@shared/winston-logger';
 import { CHECK_PATH, GPI, V1 } from '@shared/statics';
 
@@ -34,7 +33,7 @@ import { MailService } from '@gdk-mail/mail.service';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 
-describe('GDK/{Rename}Controller', () => {
+describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
   const TARGET_PATH = `${CONTROLLER_ENDPOINT}/${V1}`;
   const JESTER01_EMAIL = `jester_${new Date().getTime()}@user.com`;
@@ -47,7 +46,6 @@ describe('GDK/{Rename}Controller', () => {
   };
   let app: INestApplication;
   let authService: AuthService;
-  let userService: UserService;
   let authActivitiesService: AuthActivitiesService;
   let mailService: MailService;
   let authRevokedTokenService: AuthRevokedTokenService;
@@ -67,7 +65,6 @@ describe('GDK/{Rename}Controller', () => {
       }),
     );
     await app.init();
-    userService = moduleFixture.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
     authRevokedTokenService = moduleFixture.get<AuthRevokedTokenService>(
       AuthRevokedTokenService,
@@ -217,30 +214,30 @@ describe('GDK/{Rename}Controller', () => {
       expect(res.body.message).toBeDefined();
     });
   });
-  const POST_SIGN_OUT_PATH = `${TARGET_PATH}/${SIGN_OUT_PATH}`;
-  describe(`[POST] ${POST_SIGN_OUT_PATH}`, () => {
+  const SELF_SIGN_OUT_PATH = `${TARGET_PATH}/${SIGN_OUT_PATH}`;
+  describe(`[POST] ${SELF_SIGN_OUT_PATH}`, () => {
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_SIGN_OUT_PATH}`)
+        .post(`${SELF_SIGN_OUT_PATH}`)
         .send({})
         .expect(403);
     });
     it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_SIGN_OUT_PATH}`)
+        .post(`${SELF_SIGN_OUT_PATH}`)
         .set(ClientKeyHeader())
         .expect(401);
     });
     it(`EmptyBearerHeader, should return 401`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_SIGN_OUT_PATH}`)
+        .post(`${SELF_SIGN_OUT_PATH}`)
         .set(ClientKeyHeader())
         .set(EmptyBearerHeader())
         .expect(401);
     });
     it(`Invalid dto(empty), should return 400`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_SIGN_OUT_PATH}`)
+        .post(`${SELF_SIGN_OUT_PATH}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({})
@@ -248,7 +245,7 @@ describe('GDK/{Rename}Controller', () => {
     });
     it(`Invalid dto(type is ${AUTH_TOKEN_TYPE.ACCESS}), should return 400`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_SIGN_OUT_PATH}`)
+        .post(`${SELF_SIGN_OUT_PATH}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({
@@ -259,10 +256,12 @@ describe('GDK/{Rename}Controller', () => {
     });
     it(`Valid dto(type is ${AUTH_TOKEN_TYPE.REFRESH}), should return 202`, async () => {
       // * Simulate new sign up
-      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
-        // * We are not testing the real mail service here, will test on MailController
-        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
-      });
+      const mailMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
         password: `123456`,
@@ -276,19 +275,105 @@ describe('GDK/{Rename}Controller', () => {
         password: DTO.password,
       });
       const res = await request(app.getHttpServer())
-        .post(`${POST_SIGN_OUT_PATH}`)
+        .post(`${SELF_SIGN_OUT_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(accessToken))
+        .send({
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: refreshToken,
+        });
+      mailMock.mockRestore();
+      expect(res.status).toBe(202);
+      // * Check if the refresh token is revoked
+      const check = await authService.verifyRefreshToken(
+        {
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: refreshToken,
+        },
+        true,
+      );
+      expect(check.isValid).toBe(false);
+      expect(check.message).toBe('Revoked token');
+    });
+  });
+  const ADMIN_REVOKE_TOKEN_PATH = `${TARGET_PATH}/${REVOKE_REFRESH_TOKEN_PATH}`;
+  describe(`[POST] ${ADMIN_REVOKE_TOKEN_PATH}`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .post(`${ADMIN_REVOKE_TOKEN_PATH}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .post(`${ADMIN_REVOKE_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .post(`${ADMIN_REVOKE_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it(`Invalid dto(empty), should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${ADMIN_REVOKE_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({})
+        .expect(400);
+    });
+    it(`Invalid dto(type is ${AUTH_TOKEN_TYPE.ACCESS}), should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${ADMIN_REVOKE_TOKEN_PATH}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({
+          type: AUTH_TOKEN_TYPE.ACCESS,
+          token: TEST_VALID_JWT_TOKEN,
+        })
+        .expect(400);
+    });
+    it(`Valid dto(type is ${AUTH_TOKEN_TYPE.REFRESH}), should return 202`, async () => {
+      // * Simulate new sign up
+      const mailMock = jest
+        .spyOn(mailService, 'send')
+        .mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const { refreshToken } = await authService.emailSignIn({
+        email: DTO.email,
+        password: DTO.password,
+      });
+      const res = await request(app.getHttpServer())
+        .post(`${ADMIN_REVOKE_TOKEN_PATH}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(sysOwnerAccessToken))
         .send({
           type: AUTH_TOKEN_TYPE.REFRESH,
           token: refreshToken,
         });
+      mailMock.mockRestore();
       expect(res.status).toBe(202);
       // * Check if the refresh token is revoked
-      const check = await authService.verifyRefreshToken({
-        type: AUTH_TOKEN_TYPE.REFRESH,
-        token: refreshToken,
-      });
+      const check = await authService.verifyRefreshToken(
+        {
+          type: AUTH_TOKEN_TYPE.REFRESH,
+          token: refreshToken,
+        },
+        true,
+      );
       expect(check.isValid).toBe(false);
       expect(check.message).toBe('Revoked token');
     });
