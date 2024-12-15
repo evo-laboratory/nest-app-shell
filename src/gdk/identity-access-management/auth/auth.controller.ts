@@ -9,7 +9,7 @@ import {
   HttpCode,
   Query,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   ACTIVATING_PATH,
   CHECK_PATH,
@@ -76,6 +76,9 @@ export class AuthController {
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)
   @ApiResponse({ status: 201, type: EmailSignUpRes })
+  @ApiOperation({
+    summary: 'General user sign-up process',
+  })
   async emailSignUpV1(@Body() dto: EmailSignUpDto) {
     // * General user sign-up process, we don't want it to be isAlreadyVerified
     return await this.authService.emailSignUp(dto, false);
@@ -83,6 +86,9 @@ export class AuthController {
 
   @Post(`${V1}/${VERIFIED_EMAIL_SIGN_UP_PATH}`)
   @ApiResponse({ status: 201, type: EmailSignUpRes })
+  @ApiOperation({
+    summary: 'Verified email sign-up process, commonly using from Admin',
+  })
   async verifiedEmailSignUpV1(@Body() dto: EmailSignUpDto) {
     // * Verified email sign-up process, commonly using from Admin, set isAlreadyVerified = true
     return await this.authService.emailSignUp(dto, true);
@@ -92,6 +98,10 @@ export class AuthController {
   @Post(`${V1}/${VERIFICATION_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthVerifyRes })
+  @ApiOperation({
+    summary:
+      'Verify auth, can be used for verify sign-up and change password after initial forgot password',
+  })
   async authVerificationV1(@Body() dto: AuthVerifyDto) {
     return await this.authService.verifyAuth(dto);
   }
@@ -100,6 +110,10 @@ export class AuthController {
   @Post(`${V1}/${EMAIL_VERIFICATION_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthEmailVerificationRes })
+  @ApiOperation({
+    summary:
+      'Initial email verification, can be used for email verification(email sign-up process) and forgot password',
+  })
   async authEmailVerificationV1(@Body() dto: AuthEmailVerificationDto) {
     return await this.authService.emailVerification(dto);
   }
@@ -107,6 +121,9 @@ export class AuthController {
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_SIGN_IN_PATH}`)
   @ApiResponse({ status: 201, type: AuthSignInRes })
+  @ApiOperation({
+    summary: 'General email sign in process',
+  })
   async emailSignInV1(@Body() dto: AuthEmailSignInDto) {
     return await this.authService.emailSignIn(dto);
   }
@@ -114,6 +131,9 @@ export class AuthController {
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${SOCIAL_SIGN_IN_UP_PATH}`)
   @ApiResponse({ status: 201, type: AuthSignInRes })
+  @ApiOperation({
+    summary: 'Social email sign in process thru oauth2',
+  })
   async socialSignInUpV1(@Body() dto: AuthSocialSignInUpDto) {
     return await this.authService.socialEmailSignInUp(dto);
   }
@@ -121,6 +141,9 @@ export class AuthController {
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${ACCESS_TOKEN_PATH}`)
   @ApiResponse({ type: AuthExchangeNewAccessTokenRes })
+  @ApiOperation({
+    summary: 'Use refresh token to exchange new access token',
+  })
   async exchangeNewAccessTokenV1(@Body() dto: AuthExchangeNewAccessTokenDto) {
     return await this.authService.exchangeAccessToken(dto);
   }
@@ -128,6 +151,9 @@ export class AuthController {
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${CHECK_PATH}/${REFRESH_TOKEN_PATH}`)
   @ApiResponse({ status: 202, type: AuthCheckResult })
+  @ApiOperation({
+    summary: 'Check refresh token state',
+  })
   async checkRefreshTokenStateV1(@Body() dto: AuthCheckRefreshTokenDto) {
     // * We don't want to return decodedToken, force pass second arg false
     return await this.authService.verifyRefreshToken(dto, false);
@@ -137,6 +163,9 @@ export class AuthController {
   @Post(`${V1}/${SIGN_OUT_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthSignOutRes })
+  @ApiOperation({
+    summary: 'Signout auth, revoke refresh token',
+  })
   async signOutV1(
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthSignOutDto,
@@ -152,6 +181,10 @@ export class AuthController {
   @Post(`${V1}/${REVOKE_REFRESH_TOKEN_PATH}`)
   @HttpCode(202)
   @ApiResponse({ status: 202, type: AuthRevokeRefreshTokenRes })
+  @ApiOperation({
+    summary:
+      'Force signout auth, revoke refresh token (normally used by admin)',
+  })
   async revokeRefreshTokenV1(
     @VerifiedToken() token: IAuthDecodedToken,
     @Body() dto: AuthRevokeRefreshTokenDto,
@@ -166,6 +199,9 @@ export class AuthController {
   @Get(`${V1}/${LIST_PATH}`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthListResDto })
+  @ApiOperation({
+    summary: 'Listing all auth',
+  })
   async listAllV1(@Query() listOptions: GetListOptionsDto) {
     console.log(listOptions);
     return await this.authService.listAll(listOptions);
@@ -174,6 +210,9 @@ export class AuthController {
   @Get(`${V1}/${EMAIL_PATH}/:email`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  @ApiOperation({
+    summary: 'Get auth by email',
+  })
   async getByEmailV1(
     @Param('email') email: string,
     @Query() options: GetOptionsDto,
@@ -184,6 +223,9 @@ export class AuthController {
   @Get(`${V1}/${IDENTIFIER_PATH}/:identifier`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  @ApiOperation({
+    summary: 'Get auth by identifier',
+  })
   async getByIdentifierV1(
     @Param('identifier') identifier: string,
     @Query() options: GetOptionsDto,
@@ -194,6 +236,9 @@ export class AuthController {
   @Get(`${V1}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  @ApiOperation({
+    summary: 'Get auth by id',
+  })
   async getByIdV1(@Param('id') id: string, @Query() options: GetOptionsDto) {
     return await this.authService.getById(id, options, false);
   }
@@ -201,6 +246,9 @@ export class AuthController {
   @Patch(`${V1}/${ACTIVATING_PATH}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  @ApiOperation({
+    summary: 'Activate auth by id',
+  })
   async activateByIdV1(@Param('id') id: string) {
     return await this.authService.activateById(id);
   }
@@ -208,6 +256,9 @@ export class AuthController {
   @Patch(`${V1}/${DEACTIVATING_PATH}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  @ApiOperation({
+    summary: 'Deactivate auth by id',
+  })
   async deactivateByIdV1(@Param('id') id: string) {
     return await this.authService.deactivateById(id);
   }
@@ -215,6 +266,9 @@ export class AuthController {
   @Delete(`${V1}/${SELF_PATH}`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  @ApiOperation({
+    summary: 'Self delete auth',
+  })
   async selfDeleteV1(@VerifiedToken() token: IAuthDecodedToken) {
     return this.authService.deleteById(token.sub, true);
   }
@@ -222,6 +276,9 @@ export class AuthController {
   @Delete(`${V1}/:id`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
+  @ApiOperation({
+    summary: 'Delete auth by id',
+  })
   async deleteByIdV1(@Param('id') id: string) {
     return this.authService.deleteById(id, false);
   }
