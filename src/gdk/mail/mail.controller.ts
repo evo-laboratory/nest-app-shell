@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { GPI, V1 } from '@shared/statics';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MailService } from './mail.service';
 import { MAIL_API } from './types';
 import { SendMailDto, SendMailRes } from './dto';
@@ -11,6 +11,9 @@ export class MailController {
 
   @Post(`${V1}`)
   @ApiResponse({ status: 201, type: SendMailRes })
+  @ApiOperation({
+    summary: 'Send mail trough mail service',
+  })
   send(@Body() sendMailDto: SendMailDto) {
     return this.mailService.send(sendMailDto);
   }
