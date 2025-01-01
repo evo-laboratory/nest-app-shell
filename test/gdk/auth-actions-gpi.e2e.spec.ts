@@ -16,13 +16,14 @@ import {
   TEST_SUPER_ROLE,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
-import { ACTIVATING_PATH, GPI, V1 } from '@shared/statics';
+import { ACTIVATING_PATH, DEACTIVATING_PATH, GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API } from '@gdk-iam/auth/statics';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
+import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 
-describe('GDK/{Rename}Controller', () => {
+describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
   const TARGET_PATH = `${CONTROLLER_ENDPOINT}/${V1}`;
   const JESTER01_EMAIL = `jester_${new Date().getTime()}@user.com`;
@@ -36,6 +37,7 @@ describe('GDK/{Rename}Controller', () => {
   let app: INestApplication;
   let authService: AuthService;
   let userService: UserService;
+  let authActivitiesService: AuthActivitiesService;
   let sysOwnerAccessToken: string;
   let generalUserAccessToken: string;
   beforeAll(async () => {
@@ -53,6 +55,9 @@ describe('GDK/{Rename}Controller', () => {
     await app.init();
     userService = moduleFixture.get<UserService>(UserService);
     authService = moduleFixture.get<AuthService>(AuthService);
+    authActivitiesService = moduleFixture.get<AuthActivitiesService>(
+      AuthActivitiesService,
+    );
     // * STEP 2. Create a system owner for Authorization
     const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
     const { accessToken } = await authService.emailSignIn({
@@ -143,6 +148,84 @@ describe('GDK/{Rename}Controller', () => {
       expect(res.status).toBe(200);
       expect(res.body.data).toBeDefined();
       expect(`${res.body.data._id}`).toBe(`${auth.data._id}`);
+      expect(res.body.data.isActivated).toBe(true);
+    });
+  });
+  const DEACTIVATE_GPI = `${TARGET_PATH}/${DEACTIVATING_PATH}`;
+  describe(`[PATCH] ${DEACTIVATE_GPI}/:id`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .patch(`${DEACTIVATE_GPI}/${TEST_VALID_MONGODB_OBJECT_ID}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .patch(`${DEACTIVATE_GPI}/${TEST_VALID_MONGODB_OBJECT_ID}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .patch(`${DEACTIVATE_GPI}/${TEST_VALID_MONGODB_OBJECT_ID}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it(`Not pass in id, should return 404`, () => {
+      return request(app.getHttpServer())
+        .patch(`${DEACTIVATE_GPI}}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(404);
+    });
+    it('Pass in invalid id, should return 403', () => {
+      return request(app.getHttpServer())
+        .patch(`${DEACTIVATE_GPI}/invalid_id`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(generalUserAccessToken))
+        .expect(403);
+    });
+    it(`Pass in Identifier verified and inactivated Auth, should return 400 with ${ERROR_CODE.AUTH_ALREADY_DEACTIVATED}`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      await authService.deactivateById(`${auth.data._id}`);
+      const res = await request(app.getHttpServer())
+        .patch(`${DEACTIVATE_GPI}/${auth.data._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken));
+      expect(res.status).toBe(400);
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_ALREADY_DEACTIVATED);
+      expect(res.body.message).toBeDefined();
+    });
+    it(`Pass in Identifier verified and activated Auth, should return 200`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      const res = await request(app.getHttpServer())
+        .patch(`${DEACTIVATE_GPI}/${auth.data._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken));
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      expect(`${res.body.data._id}`).toBe(`${auth.data._id}`);
+      expect(res.body.data.isActivated).toBe(false);
     });
   });
   // * --- End of TEST CASES ---
