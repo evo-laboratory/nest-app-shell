@@ -16,12 +16,13 @@ import {
   TEST_SUPER_ROLE,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
-import { GPI, V1 } from '@shared/statics';
+import { ACTIVATING_PATH, GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
+import { AUTH_API } from '@gdk-iam/auth/statics';
 
 describe('GDK/{Rename}Controller', () => {
-  const CONTROLLER_ENDPOINT = `/${GPI}/${'?'}`;
+  const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
   const TARGET_PATH = `${CONTROLLER_ENDPOINT}/${V1}`;
   const JESTER01_EMAIL = `jester_${new Date().getTime()}@user.com`;
   const TEST_USER01 = {
@@ -67,88 +68,33 @@ describe('GDK/{Rename}Controller', () => {
     generalUserAccessToken = generalUserToken;
   });
   // * --- TEST CASES ----------
-  const POST_TEST_CASE_PAH = `${TARGET_PATH}/${'?'}`;
-  describe(`[POST] ${POST_TEST_CASE_PAH}`, () => {
+  const ACTIVATE_GPI = `${TARGET_PATH}/${ACTIVATING_PATH}`;
+  describe(`[PATCH] ${ACTIVATE_GPI}/:id`, () => {
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_TEST_CASE_PAH}`)
+        .patch(`${ACTIVATE_GPI}/${TEST_VALID_MONGODB_OBJECT_ID}`)
         .send({})
         .expect(403);
     });
     it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_TEST_CASE_PAH}`)
+        .patch(`${ACTIVATE_GPI}/${TEST_VALID_MONGODB_OBJECT_ID}`)
         .set(ClientKeyHeader())
         .expect(401);
     });
     it(`EmptyBearerHeader, should return 401`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_TEST_CASE_PAH}`)
+        .patch(`${ACTIVATE_GPI}/${TEST_VALID_MONGODB_OBJECT_ID}`)
         .set(ClientKeyHeader())
         .set(EmptyBearerHeader())
         .expect(401);
     });
-  });
-  const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;
-  describe(`[GET] ${GET_TEST_CASE}`, () => {
-    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
-      return request(app.getHttpServer()).get(`${GET_TEST_CASE}`).expect(403);
-    });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+    it(`Not pass in id, should return 404`, () => {
       return request(app.getHttpServer())
-        .get(`${GET_TEST_CASE}`)
-        .set(ClientKeyHeader())
-        .expect(401);
-    });
-    it(`EmptyBearerHeader, should return 401`, () => {
-      return request(app.getHttpServer())
-        .get(`${GET_TEST_CASE}`)
+        .patch(`${ACTIVATE_GPI}}`)
         .set(ClientKeyHeader())
         .set(EmptyBearerHeader())
-        .expect(401);
-    });
-  });
-  const PATCH_TEST_CASE = `${TARGET_PATH}/${'?'}`;
-  describe(`[PATCH] ${PATCH_TEST_CASE}`, () => {
-    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
-      return request(app.getHttpServer())
-        .patch(`${PATCH_TEST_CASE}`)
-        .send({})
-        .expect(403);
-    });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
-      return request(app.getHttpServer())
-        .patch(`${PATCH_TEST_CASE}`)
-        .set(ClientKeyHeader())
-        .expect(401);
-    });
-    it(`EmptyBearerHeader, should return 401`, () => {
-      return request(app.getHttpServer())
-        .patch(`${PATCH_TEST_CASE}`)
-        .set(ClientKeyHeader())
-        .set(EmptyBearerHeader())
-        .expect(401);
-    });
-  });
-  const DELETE_TEST_CASE_PAH = `${TARGET_PATH}/${'?'}`;
-  describe(`[DELETE] ${DELETE_TEST_CASE_PAH}`, () => {
-    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
-      return request(app.getHttpServer())
-        .delete(`${DELETE_TEST_CASE_PAH}`)
-        .expect(403);
-    });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
-      return request(app.getHttpServer())
-        .delete(`${DELETE_TEST_CASE_PAH}`)
-        .set(ClientKeyHeader())
-        .expect(401);
-    });
-    it(`EmptyBearerHeader, should return 401`, () => {
-      return request(app.getHttpServer())
-        .delete(`${DELETE_TEST_CASE_PAH}`)
-        .set(ClientKeyHeader())
-        .set(EmptyBearerHeader())
-        .expect(401);
+        .expect(404);
     });
   });
   // * --- End of TEST CASES ---

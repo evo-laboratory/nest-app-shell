@@ -34,6 +34,7 @@ async function ClearDatabase() {
       await SystemMongoDBModel.deleteMany({});
       await AuthActivitiesMongoDBModel.deleteMany({});
       await mongoose.disconnect();
+      process.kill(process.pid, 'SIGINT');
     } catch (error) {
       console.error(error);
       throw new Error(error);
