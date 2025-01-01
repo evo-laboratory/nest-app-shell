@@ -22,6 +22,7 @@ import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API } from '@gdk-iam/auth/statics';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
+import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -38,6 +39,7 @@ describe('GDK/AuthController', () => {
   let authService: AuthService;
   let userService: UserService;
   let authActivitiesService: AuthActivitiesService;
+  let revokedTokenService: AuthRevokedTokenService;
   let sysOwnerAccessToken: string;
   let generalUserAccessToken: string;
   beforeAll(async () => {
@@ -57,6 +59,9 @@ describe('GDK/AuthController', () => {
     authService = moduleFixture.get<AuthService>(AuthService);
     authActivitiesService = moduleFixture.get<AuthActivitiesService>(
       AuthActivitiesService,
+    );
+    revokedTokenService = moduleFixture.get<AuthRevokedTokenService>(
+      AuthRevokedTokenService,
     );
     // * STEP 2. Create a system owner for Authorization
     const TestOwner = TestSysOwnerData(`${process.env.SYS_OWNER_EMAIL}`);
@@ -218,6 +223,10 @@ describe('GDK/AuthController', () => {
       };
       await authService.emailSignUp(DTO, true);
       const auth = await authService.getByEmail(DTO.email, {}, false);
+      await authService.emailSignIn({
+        email: DTO.email,
+        password: DTO.password,
+      });
       const res = await request(app.getHttpServer())
         .patch(`${DEACTIVATE_GPI}/${auth.data._id}`)
         .set(ClientKeyHeader())
@@ -226,6 +235,17 @@ describe('GDK/AuthController', () => {
       expect(res.body.data).toBeDefined();
       expect(`${res.body.data._id}`).toBe(`${auth.data._id}`);
       expect(res.body.data.isActivated).toBe(false);
+      // * Validate auth activities
+      const activities = await authActivitiesService.getByAuthId(
+        `${auth.data._id}`,
+      );
+      expect(activities.accessTokenList.length).toEqual(1);
+      expect(activities.refreshTokenList.length).toEqual(0);
+      // * Validate revoked tokens
+      const revokedTokens = await revokedTokenService.listByAuthId(
+        `${auth.data._id}`,
+      );
+      expect(revokedTokens.length).toEqual(1);
     });
   });
   // * --- End of TEST CASES ---
