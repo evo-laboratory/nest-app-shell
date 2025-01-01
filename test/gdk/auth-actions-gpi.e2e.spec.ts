@@ -16,13 +16,20 @@ import {
   TEST_SUPER_ROLE,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
-import { ACTIVATING_PATH, DEACTIVATING_PATH, GPI, V1 } from '@shared/statics';
+import {
+  ACTIVATING_PATH,
+  DEACTIVATING_PATH,
+  GPI,
+  SELF_PATH,
+  V1,
+} from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API } from '@gdk-iam/auth/statics';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
+import { MailService } from '@gdk-mail/mail.service';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -38,6 +45,7 @@ describe('GDK/AuthController', () => {
   let app: INestApplication;
   let authService: AuthService;
   let userService: UserService;
+  let mailService: MailService;
   let authActivitiesService: AuthActivitiesService;
   let revokedTokenService: AuthRevokedTokenService;
   let sysOwnerAccessToken: string;
@@ -56,6 +64,7 @@ describe('GDK/AuthController', () => {
     );
     await app.init();
     userService = moduleFixture.get<UserService>(UserService);
+    mailService = moduleFixture.get<MailService>(MailService);
     authService = moduleFixture.get<AuthService>(AuthService);
     authActivitiesService = moduleFixture.get<AuthActivitiesService>(
       AuthActivitiesService,
@@ -115,6 +124,10 @@ describe('GDK/AuthController', () => {
         .expect(403);
     });
     it(`Pass in Identifier verified and activated Auth, should return 400 with ${ERROR_CODE.AUTH_ALREADY_ACTIVATED}`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
       // * Simulate sign up
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
@@ -135,6 +148,10 @@ describe('GDK/AuthController', () => {
       expect(res.body.statusCode).toBe(400);
     });
     it(`Pass in Identifier verified and inactivated Auth, should return 200`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
       // * Simulate sign up
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
@@ -192,6 +209,10 @@ describe('GDK/AuthController', () => {
         .expect(403);
     });
     it(`Pass in Identifier verified and inactivated Auth, should return 400 with ${ERROR_CODE.AUTH_ALREADY_DEACTIVATED}`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
       // * Simulate sign up
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
@@ -213,6 +234,10 @@ describe('GDK/AuthController', () => {
       expect(res.body.message).toBeDefined();
     });
     it(`Pass in Identifier verified and activated Auth, should return 200`, async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
       // * Simulate sign up
       const DTO: IEmailSignUp = {
         email: `jester_${new Date().getTime()}@user.com`,
@@ -244,6 +269,65 @@ describe('GDK/AuthController', () => {
       // * Validate revoked tokens
       const revokedTokens = await revokedTokenService.listByAuthId(
         `${auth.data._id}`,
+      );
+      expect(revokedTokens.length).toEqual(1);
+    });
+  });
+  const SELF_DELETE_API = `${TARGET_PATH}/${SELF_PATH}`;
+  describe(`[DELETE] ${SELF_DELETE_API}`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .delete(`${SELF_DELETE_API}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .delete(`${SELF_DELETE_API}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .delete(`${SELF_DELETE_API}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it('Should delete the auth and user pass in the correct token', async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const { accessToken } = await authService.emailSignIn({
+        email: DTO.email,
+        password: DTO.password,
+      });
+      console.log(accessToken);
+      const res = await request(app.getHttpServer())
+        .delete(`${SELF_DELETE_API}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(accessToken));
+      console.log(res.body);
+      expect(res.status).toBe(200);
+      // * Validate auth activities
+      const activities = await authActivitiesService.getByAuthId(
+        `${res.body.data._id}`,
+      );
+      expect(activities).toBeNull();
+      expect(activities).toBeNull();
+      // * Validate revoked tokens
+      const revokedTokens = await revokedTokenService.listByAuthId(
+        `${res.body.data._id}`,
       );
       expect(revokedTokens.length).toEqual(1);
     });
