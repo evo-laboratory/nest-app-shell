@@ -20,6 +20,7 @@ import { ACTIVATING_PATH, GPI, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API } from '@gdk-iam/auth/statics';
+import { IEmailSignUp } from '@gdk-iam/auth/types';
 
 describe('GDK/{Rename}Controller', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -95,6 +96,53 @@ describe('GDK/{Rename}Controller', () => {
         .set(ClientKeyHeader())
         .set(EmptyBearerHeader())
         .expect(404);
+    });
+    it('Pass in invalid id, should return 403', () => {
+      return request(app.getHttpServer())
+        .patch(`${ACTIVATE_GPI}/invalid_id`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(generalUserAccessToken))
+        .expect(403);
+    });
+    it(`Pass in Identifier verified and activated Auth, should return 400 with ${ERROR_CODE.AUTH_ALREADY_ACTIVATED}`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      const res = await request(app.getHttpServer())
+        .patch(`${ACTIVATE_GPI}/${auth.data._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken));
+      expect(res.body.source).toBeDefined();
+      expect(res.body.errorCode).toBe(ERROR_CODE.AUTH_ALREADY_ACTIVATED);
+      expect(res.body.message).toBeDefined();
+      expect(res.body.statusCode).toBe(400);
+    });
+    it(`Pass in Identifier verified and inactivated Auth, should return 200`, async () => {
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      await authService.deactivateById(`${auth.data._id}`);
+      const res = await request(app.getHttpServer())
+        .patch(`${ACTIVATE_GPI}/${auth.data._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken));
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      expect(`${res.body.data._id}`).toBe(`${auth.data._id}`);
     });
   });
   // * --- End of TEST CASES ---
