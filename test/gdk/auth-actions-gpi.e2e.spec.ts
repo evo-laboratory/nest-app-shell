@@ -312,12 +312,10 @@ describe('GDK/AuthController', () => {
         email: DTO.email,
         password: DTO.password,
       });
-      console.log(accessToken);
       const res = await request(app.getHttpServer())
         .delete(`${SELF_DELETE_API}`)
         .set(ClientKeyHeader())
         .set(BearerHeader(accessToken));
-      console.log(res.body);
       expect(res.status).toBe(200);
       // * Validate auth activities
       const activities = await authActivitiesService.getByAuthId(
