@@ -263,6 +263,7 @@ export class AuthController {
     return await this.authService.deactivateById(id);
   }
 
+  @AuthZType(AUTHZ_TYPE.USER)
   @Delete(`${V1}/${SELF_PATH}`)
   @HttpCode(200)
   @ApiResponse({ status: 200, type: AuthDataResponseDto })
