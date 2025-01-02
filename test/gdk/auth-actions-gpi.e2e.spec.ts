@@ -330,6 +330,67 @@ describe('GDK/AuthController', () => {
       expect(revokedTokens.length).toEqual(1);
     });
   });
+  const DELETE_API = `${TARGET_PATH}`;
+  describe(`[DELETE] ${DELETE_API}/:id`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .delete(`${DELETE_API}/${TEST_VALID_MONGODB_OBJECT_ID}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
+      return request(app.getHttpServer())
+        .delete(`${DELETE_API}/${TEST_VALID_MONGODB_OBJECT_ID}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .delete(`${DELETE_API}/${TEST_VALID_MONGODB_OBJECT_ID}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it(`Not pass id params, should return 404`, () => {
+      return request(app.getHttpServer())
+        .delete(`${DELETE_API}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
+        .expect(404);
+    });
+    it('Should delete the auth and user pass in id params', async () => {
+      jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+        // * We are not testing the real mail service here, will test on MailController
+        return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+      });
+      // * Simulate sign up
+      const DTO: IEmailSignUp = {
+        email: `jester_${new Date().getTime()}@user.com`,
+        password: `123456`,
+        firstName: 'fstName',
+        lastName: 'lstName',
+        displayName: 'displayName',
+      };
+      await authService.emailSignUp(DTO, true);
+      const auth = await authService.getByEmail(DTO.email, {}, false);
+      const res = await request(app.getHttpServer())
+        .delete(`${DELETE_API}/${auth.data._id}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken));
+      expect(res.status).toBe(200);
+      // * Validate auth activities
+      const activities = await authActivitiesService.getByAuthId(
+        `${res.body.data._id}`,
+      );
+      expect(activities).toBeNull();
+      expect(activities).toBeNull();
+      // * Validate revoked tokens
+      const revokedTokens = await revokedTokenService.listByAuthId(
+        `${res.body.data._id}`,
+      );
+      expect(revokedTokens.length).toEqual(0);
+    });
+  });
   // * --- End of TEST CASES ---
   afterAll(async () => {
     await app.close();
