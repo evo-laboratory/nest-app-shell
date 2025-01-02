@@ -2,20 +2,7 @@ import * as request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { WinstonService } from '@shared/winston-logger';
-import {
-  BearerHeader,
-  ClientKeyHeader,
-  EmptyBearerHeader,
-  TestSysOwnerData,
-} from 'test/data';
 import { ERROR_CODE } from '@shared/exceptions';
-import { TestModuleBuilderFixture } from 'test/fixtures';
-import {
-  TEST_GENERAL_ROLE,
-  TEST_GENERAL_TWO_ROLE,
-  TEST_SUPER_ROLE,
-  TEST_VALID_MONGODB_OBJECT_ID,
-} from 'test/helpers/js/static';
 import {
   ACTIVATING_PATH,
   DEACTIVATING_PATH,
@@ -23,13 +10,22 @@ import {
   SELF_PATH,
   V1,
 } from '@shared/statics';
+
 import { AuthService } from '@gdk-iam/auth/auth.service';
-import { UserService } from '@gdk-iam/user/user.service';
 import { AUTH_API } from '@gdk-iam/auth/statics';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';
 import { MailService } from '@gdk-mail/mail.service';
+
+import {
+  BearerHeader,
+  ClientKeyHeader,
+  EmptyBearerHeader,
+  TestSysOwnerData,
+} from 'test/data';
+import { TestModuleBuilderFixture } from 'test/fixtures';
+import { TEST_VALID_MONGODB_OBJECT_ID } from 'test/helpers/js/static';
 
 describe('GDK/AuthController', () => {
   const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
@@ -44,7 +40,6 @@ describe('GDK/AuthController', () => {
   };
   let app: INestApplication;
   let authService: AuthService;
-  let userService: UserService;
   let mailService: MailService;
   let authActivitiesService: AuthActivitiesService;
   let revokedTokenService: AuthRevokedTokenService;
@@ -63,7 +58,6 @@ describe('GDK/AuthController', () => {
       }),
     );
     await app.init();
-    userService = moduleFixture.get<UserService>(UserService);
     mailService = moduleFixture.get<MailService>(MailService);
     authService = moduleFixture.get<AuthService>(AuthService);
     authActivitiesService = moduleFixture.get<AuthActivitiesService>(
