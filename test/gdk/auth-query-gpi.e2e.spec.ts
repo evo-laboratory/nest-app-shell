@@ -16,12 +16,14 @@ import {
   TEST_SUPER_ROLE,
   TEST_VALID_MONGODB_OBJECT_ID,
 } from 'test/helpers/js/static';
-import { GPI, V1 } from '@shared/statics';
+import { GPI, LIST_PATH, V1 } from '@shared/statics';
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
+import { AUTH_API } from '@gdk-iam/auth/statics';
+import e from 'express';
 
-describe('GDK/{Rename}Controller', () => {
-  const CONTROLLER_ENDPOINT = `/${GPI}/${'?'}`;
+describe('GDK/AuthController', () => {
+  const CONTROLLER_ENDPOINT = `/${GPI}/${AUTH_API}`;
   const TARGET_PATH = `${CONTROLLER_ENDPOINT}/${V1}`;
   const JESTER01_EMAIL = `jester_${new Date().getTime()}@user.com`;
   const TEST_USER01 = {
@@ -67,88 +69,79 @@ describe('GDK/{Rename}Controller', () => {
     generalUserAccessToken = generalUserToken;
   });
   // * --- TEST CASES ----------
-  const POST_TEST_CASE_PAH = `${TARGET_PATH}/${'?'}`;
-  describe(`[POST] ${POST_TEST_CASE_PAH}`, () => {
+  const LIST_API = `${TARGET_PATH}/${LIST_PATH}`;
+  describe(`[GET] ${LIST_API}`, () => {
     it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer()).get(`${LIST_API}`).expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
       return request(app.getHttpServer())
-        .post(`${POST_TEST_CASE_PAH}`)
+        .get(`${LIST_API}`)
+        .set(ClientKeyHeader())
+        .expect(401);
+    });
+    it(`EmptyBearerHeader, should return 401`, () => {
+      return request(app.getHttpServer())
+        .get(`${LIST_API}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(401);
+    });
+    it('BearerHeader (system-owner), should return 200', () => {
+      return request(app.getHttpServer())
+        .get(`${LIST_API}`)
+        .set(ClientKeyHeader())
+        .set(BearerHeader(sysOwnerAccessToken))
         .send({})
-        .expect(403);
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.data).toBeDefined();
+          expect(res.body.data).toBeInstanceOf(Array);
+        });
     });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
-      return request(app.getHttpServer())
-        .post(`${POST_TEST_CASE_PAH}`)
+    it('Query with field selections (positive)', async () => {
+      // * Below should be one of the fields in the IAuth
+      const positiveSelect = [
+        'identifier',
+        'identifierType',
+        'userId',
+        'createdAt',
+      ];
+      const res = await request(app.getHttpServer())
+        .get(`${LIST_API}`)
+        .query({ fieldSelection: positiveSelect.join(',') })
         .set(ClientKeyHeader())
-        .expect(401);
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({});
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      const fstData = res.body.data[0];
+      Object.keys(fstData).forEach((key) => {
+        expect(fstData[key]).toBeDefined();
+      });
+      // * Expecting the length of the object to be the same as the positiveSelect, + 1 for the _id
+      expect(Object.keys(fstData).length).toBe(positiveSelect.length + 1);
     });
-    it(`EmptyBearerHeader, should return 401`, () => {
-      return request(app.getHttpServer())
-        .post(`${POST_TEST_CASE_PAH}`)
+    it('Query with field selections (negative)', async () => {
+      // * Below should be one of the fields in the IAuth
+      const negativeSelection = [
+        '-identifier',
+        '-identifierType',
+        '-userId',
+        '-createdAt',
+      ];
+      const res = await request(app.getHttpServer())
+        .get(`${LIST_API}`)
+        .query({ fieldSelection: negativeSelection.join(',') })
         .set(ClientKeyHeader())
-        .set(EmptyBearerHeader())
-        .expect(401);
-    });
-  });
-  const GET_TEST_CASE = `${TARGET_PATH}/${'?'}`;
-  describe(`[GET] ${GET_TEST_CASE}`, () => {
-    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
-      return request(app.getHttpServer()).get(`${GET_TEST_CASE}`).expect(403);
-    });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
-      return request(app.getHttpServer())
-        .get(`${GET_TEST_CASE}`)
-        .set(ClientKeyHeader())
-        .expect(401);
-    });
-    it(`EmptyBearerHeader, should return 401`, () => {
-      return request(app.getHttpServer())
-        .get(`${GET_TEST_CASE}`)
-        .set(ClientKeyHeader())
-        .set(EmptyBearerHeader())
-        .expect(401);
-    });
-  });
-  const PATCH_TEST_CASE = `${TARGET_PATH}/${'?'}`;
-  describe(`[PATCH] ${PATCH_TEST_CASE}`, () => {
-    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
-      return request(app.getHttpServer())
-        .patch(`${PATCH_TEST_CASE}`)
-        .send({})
-        .expect(403);
-    });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
-      return request(app.getHttpServer())
-        .patch(`${PATCH_TEST_CASE}`)
-        .set(ClientKeyHeader())
-        .expect(401);
-    });
-    it(`EmptyBearerHeader, should return 401`, () => {
-      return request(app.getHttpServer())
-        .patch(`${PATCH_TEST_CASE}`)
-        .set(ClientKeyHeader())
-        .set(EmptyBearerHeader())
-        .expect(401);
-    });
-  });
-  const DELETE_TEST_CASE_PAH = `${TARGET_PATH}/${'?'}`;
-  describe(`[DELETE] ${DELETE_TEST_CASE_PAH}`, () => {
-    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
-      return request(app.getHttpServer())
-        .delete(`${DELETE_TEST_CASE_PAH}`)
-        .expect(403);
-    });
-    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 401`, () => {
-      return request(app.getHttpServer())
-        .delete(`${DELETE_TEST_CASE_PAH}`)
-        .set(ClientKeyHeader())
-        .expect(401);
-    });
-    it(`EmptyBearerHeader, should return 401`, () => {
-      return request(app.getHttpServer())
-        .delete(`${DELETE_TEST_CASE_PAH}`)
-        .set(ClientKeyHeader())
-        .set(EmptyBearerHeader())
-        .expect(401);
+        .set(BearerHeader(sysOwnerAccessToken))
+        .send({});
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      const fstData = res.body.data[0];
+      negativeSelection.forEach((key) => {
+        expect(fstData[key.replace('-', '')]).not.toBeDefined();
+      });
     });
   });
   // * --- End of TEST CASES ---
