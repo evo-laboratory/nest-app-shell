@@ -21,13 +21,7 @@ import { WinstonService } from '@shared/winston-logger';
 import { CHECK_PATH, GPI, V1 } from '@shared/statics';
 
 import { TestModuleBuilderFixture } from 'test/fixtures';
-import {
-  TEST_GENERAL_ROLE,
-  TEST_GENERAL_TWO_ROLE,
-  TEST_SUPER_ROLE,
-  TEST_VALID_JWT_TOKEN,
-  TEST_VALID_MONGODB_OBJECT_ID,
-} from 'test/helpers/js/static';
+import { TEST_VALID_JWT_TOKEN } from 'test/helpers/js/static';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
 import { MailService } from '@gdk-mail/mail.service';
 import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoked-token.service';

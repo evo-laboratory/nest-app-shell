@@ -147,6 +147,42 @@ describe('GDK/AuthController', () => {
         expect(fstData[key.replace('-', '')]).not.toBeDefined();
       });
     });
+    if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+      it('Populate relationFields(userId), should return User in response', async () => {
+        const res = await request(app.getHttpServer())
+          .get(`${LIST_API}`)
+          .query({ relationFields: 'userId' })
+          .set(ClientKeyHeader())
+          .set(BearerHeader(sysOwnerAccessToken))
+          .send({});
+        expect(res.status).toBe(200);
+        expect(res.body.data).toBeDefined();
+        const fstData = res.body.data[0];
+        console.log(fstData);
+        expect(fstData.userId).toBeDefined();
+        expect(fstData.userId).toBeInstanceOf(Object);
+        expect(fstData.userId._id).toBeDefined();
+        expect(fstData.userId.email).toBeDefined();
+        expect(fstData.userId.roleList).toBeDefined();
+        expect(fstData.userId.roleList).toBeInstanceOf(Array);
+        expect(fstData.userId.firstName).toBeDefined();
+        expect(fstData.userId.lastName).toBeDefined();
+        expect(fstData.userId.displayName).toBeDefined();
+        expect(fstData.userId.isEmailVerified).toBeDefined();
+        expect(fstData.userId.isSelfDeleted).toBeDefined();
+        expect(fstData.userId.backupAuth).toBeDefined();
+        expect(fstData.userId.selfDeletedAt).toBeDefined();
+        expect(fstData.userId.createdAt).toBeDefined();
+        expect(fstData.userId.updatedAt).toBeDefined();
+      });
+    } else {
+      // * Please Test your own database provider
+      it('[LIST_API] Populate relationFields(userId), should return User in response', () => {
+        expect(true).toBe(
+          'FORCE THROW ERROR, PLEASE UPDATE THIS TEST CASE [RES]',
+        );
+      });
+    }
   });
   const GET_BY_EMAIL_API = `${TARGET_PATH}/${EMAIL_PATH}`;
   describe(`[GET] ${GET_BY_EMAIL_API}/:email`, () => {
@@ -226,6 +262,41 @@ describe('GDK/AuthController', () => {
         expect(testData[key.replace('-', '')]).not.toBeDefined();
       });
     });
+    if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+      it('Populate relationFields(userId), should return User in response', async () => {
+        const res = await request(app.getHttpServer())
+          .get(`${GET_BY_EMAIL_API}/${JESTER01_EMAIL}`)
+          .query({ relationFields: 'userId' })
+          .set(ClientKeyHeader())
+          .set(BearerHeader(sysOwnerAccessToken))
+          .send({});
+        expect(res.status).toBe(200);
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data.userId).toBeDefined();
+        expect(res.body.data.userId).toBeInstanceOf(Object);
+        expect(res.body.data.userId._id).toBeDefined();
+        expect(res.body.data.userId.email).toBe(JESTER01_EMAIL);
+        expect(res.body.data.userId.roleList).toBeDefined();
+        expect(res.body.data.userId.roleList).toBeInstanceOf(Array);
+        expect(res.body.data.userId.roleList).toContainEqual(TEST_GENERAL_ROLE);
+        expect(res.body.data.userId.firstName).toBeDefined();
+        expect(res.body.data.userId.lastName).toBeDefined();
+        expect(res.body.data.userId.displayName).toBeDefined();
+        expect(res.body.data.userId.isEmailVerified).toBeDefined();
+        expect(res.body.data.userId.isSelfDeleted).toBeDefined();
+        expect(res.body.data.userId.backupAuth).toBeDefined();
+        expect(res.body.data.userId.selfDeletedAt).toBeDefined();
+        expect(res.body.data.userId.createdAt).toBeDefined();
+        expect(res.body.data.userId.updatedAt).toBeDefined();
+      });
+    } else {
+      // * Please Test your own database provider
+      it('[LIST_API] Populate relationFields(userId), should return User in response', () => {
+        expect(true).toBe(
+          'FORCE THROW ERROR, PLEASE UPDATE THIS TEST CASE [RES]',
+        );
+      });
+    }
   });
   const GET_BY_IDENTIFIER_API = `${TARGET_PATH}/${IDENTIFIER_PATH}`;
   describe(`[GET] ${GET_BY_IDENTIFIER_API}/:email`, () => {
@@ -305,6 +376,41 @@ describe('GDK/AuthController', () => {
         expect(testData[key.replace('-', '')]).not.toBeDefined();
       });
     });
+    if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+      it('Populate relationFields(userId), should return User in response', async () => {
+        const res = await request(app.getHttpServer())
+          .get(`${GET_BY_IDENTIFIER_API}/${JESTER01_EMAIL}`)
+          .query({ relationFields: 'userId' })
+          .set(ClientKeyHeader())
+          .set(BearerHeader(sysOwnerAccessToken))
+          .send({});
+        expect(res.status).toBe(200);
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data.userId).toBeDefined();
+        expect(res.body.data.userId).toBeInstanceOf(Object);
+        expect(res.body.data.userId._id).toBeDefined();
+        expect(res.body.data.userId.email).toBe(JESTER01_EMAIL);
+        expect(res.body.data.userId.roleList).toBeDefined();
+        expect(res.body.data.userId.roleList).toBeInstanceOf(Array);
+        expect(res.body.data.userId.roleList).toContainEqual(TEST_GENERAL_ROLE);
+        expect(res.body.data.userId.firstName).toBeDefined();
+        expect(res.body.data.userId.lastName).toBeDefined();
+        expect(res.body.data.userId.displayName).toBeDefined();
+        expect(res.body.data.userId.isEmailVerified).toBeDefined();
+        expect(res.body.data.userId.isSelfDeleted).toBeDefined();
+        expect(res.body.data.userId.backupAuth).toBeDefined();
+        expect(res.body.data.userId.selfDeletedAt).toBeDefined();
+        expect(res.body.data.userId.createdAt).toBeDefined();
+        expect(res.body.data.userId.updatedAt).toBeDefined();
+      });
+    } else {
+      // * Please Test your own database provider
+      it('[GET_BY_IDENTIFIER_API] Populate relationFields(userId), should return User in response', () => {
+        expect(true).toBe(
+          'FORCE THROW ERROR, PLEASE UPDATE THIS TEST CASE [RES]',
+        );
+      });
+    }
   });
   const GET_BY_ID_API = `${TARGET_PATH}`;
   describe(`[GET] ${GET_BY_ID_API}/:id`, () => {
@@ -429,6 +535,55 @@ describe('GDK/AuthController', () => {
         expect(testData[key.replace('-', '')]).not.toBeDefined();
       });
     });
+    if (process.env.DATABASE_PROVIDER === 'MONGODB') {
+      it('Populate relationFields(userId), should return User in response', async () => {
+        // * Usually with MailService
+        jest.spyOn(mailService, 'send').mockImplementationOnce(() => {
+          // * We are not testing the real mail service here, will test on MailController
+          return Promise.resolve({ mailId: 'mailId', statusText: '202' });
+        });
+        // * Simulate sign up
+        const DTO: IEmailSignUp = {
+          email: `jester_${new Date().getTime()}@user.com`,
+          password: `123456`,
+          firstName: 'fstName',
+          lastName: 'lstName',
+          displayName: 'displayName',
+        };
+        await authService.emailSignUp(DTO, false);
+        const auth = await authService.getByEmail(DTO.email, {}, false);
+        const res = await request(app.getHttpServer())
+          .get(`${GET_BY_ID_API}/${auth.data._id}`)
+          .query({ relationFields: 'userId' })
+          .set(ClientKeyHeader())
+          .set(BearerHeader(sysOwnerAccessToken))
+          .send({});
+        expect(res.status).toBe(200);
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data.userId).toBeDefined();
+        expect(res.body.data.userId).toBeInstanceOf(Object);
+        expect(res.body.data.userId._id).toBeDefined();
+        expect(res.body.data.userId.email).toBe(DTO.email);
+        expect(res.body.data.userId.roleList).toBeDefined();
+        expect(res.body.data.userId.roleList).toBeInstanceOf(Array);
+        expect(res.body.data.userId.firstName).toBeDefined();
+        expect(res.body.data.userId.lastName).toBeDefined();
+        expect(res.body.data.userId.displayName).toBeDefined();
+        expect(res.body.data.userId.isEmailVerified).toBeDefined();
+        expect(res.body.data.userId.isSelfDeleted).toBeDefined();
+        expect(res.body.data.userId.backupAuth).toBeDefined();
+        expect(res.body.data.userId.selfDeletedAt).toBeDefined();
+        expect(res.body.data.userId.createdAt).toBeDefined();
+        expect(res.body.data.userId.updatedAt).toBeDefined();
+      });
+    } else {
+      // * Please Test your own database provider
+      it('[GET_BY_IDENTIFIER_API] Populate relationFields(userId), should return User in response', () => {
+        expect(true).toBe(
+          'FORCE THROW ERROR, PLEASE UPDATE THIS TEST CASE [RES]',
+        );
+      });
+    }
   });
   // * --- End of TEST CASES ---
   afterAll(async () => {

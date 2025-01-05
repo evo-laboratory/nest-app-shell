@@ -67,6 +67,9 @@ async function SimulateAuthEmailSignUp(email) {
         displayName: 'Sys Owner', // * Check TestSysOwnerData from test-sys-owner-data.ts
         isEmailVerified: true,
         roleList: [TEST_SUPER_ROLE],
+        isSelfDeleted: false,
+        backupAuth: null,
+        selfDeletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       }).save();

@@ -196,6 +196,12 @@ describe('GDK/SystemController', () => {
           .send({})
           .expect(400);
       });
+    } else {
+      it('BearerHeader (system-owner), but id(1234) not a valid id  should return 404', () => {
+        expect(true).toBe(
+          'FORCE THROW ERROR, PLEASE UPDATE THIS TEST CASE [RES]',
+        );
+      });
     }
     it(`BearerHeader (system-owner), but id(${TEST_VALID_MONGODB_OBJECT_ID}) not exist should return 404`, () => {
       return request(app.getHttpServer())
