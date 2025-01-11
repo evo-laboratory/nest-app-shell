@@ -4,7 +4,11 @@ import { TestingModule } from '@nestjs/testing';
 
 import { AuthService } from '@gdk-iam/auth/auth.service';
 import { UserService } from '@gdk-iam/user/user.service';
-import { AUTH_API, EMAIL_SIGN_IN_PATH } from '@gdk-iam/auth/statics';
+import {
+  AUTH_API,
+  EMAIL_SIGN_IN_PATH,
+  SOCIAL_SIGN_IN_UP_PATH,
+} from '@gdk-iam/auth/statics';
 import { IEmailSignUp } from '@gdk-iam/auth/types';
 import { MailService } from '@gdk-mail/mail.service';
 import { AuthActivitiesService } from '@gdk-iam/auth-activities/auth-activities.service';
@@ -451,6 +455,28 @@ describe('GDK/AuthController', () => {
       expect(activities.refreshTokenList.length).toEqual(1);
       expect(activities.lastIssueAccessTokenAt).toBeDefined();
       expect(activities.lastIssueRefreshTokenAt).toBeDefined();
+    });
+  });
+  const SOCIAL_SIGN_IN_UP_GPI = `${TARGET_PATH}/${SOCIAL_SIGN_IN_UP_PATH}`;
+  describe(`[POST] ${SOCIAL_SIGN_IN_UP_GPI}`, () => {
+    it(`ClientGuarded: ${process.env.CLIENT_KEY_NAME}, should return 403`, () => {
+      return request(app.getHttpServer())
+        .post(`${SOCIAL_SIGN_IN_UP_GPI}`)
+        .send({})
+        .expect(403);
+    });
+    it(`Pass in ${process.env.CLIENT_KEY_NAME}, should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${SOCIAL_SIGN_IN_UP_GPI}`)
+        .set(ClientKeyHeader())
+        .expect(400);
+    });
+    it(`EmptyBearerHeader, should return 400`, () => {
+      return request(app.getHttpServer())
+        .post(`${SOCIAL_SIGN_IN_UP_GPI}`)
+        .set(ClientKeyHeader())
+        .set(EmptyBearerHeader())
+        .expect(400);
     });
   });
   // * --- End of TEST CASES ---
