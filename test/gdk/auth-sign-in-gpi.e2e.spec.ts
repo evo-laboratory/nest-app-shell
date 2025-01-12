@@ -574,7 +574,7 @@ describe('GDK/AuthController', () => {
     });
     it(`Valid dto (auth method - google sign in), already sign up before should return 201 ( with googleAuthenticate mock )`, async () => {
       const jesterEmail = `jester_${new Date().getTime()}@user.com`;
-      jest
+      const googleOAuthMock = jest
         .spyOn(oauthClientService, 'googleAuthenticate')
         .mockImplementation(() => {
           return Promise.resolve(GoogleUnifiedOAuthUserMock(jesterEmail));
@@ -591,6 +591,7 @@ describe('GDK/AuthController', () => {
           method: AUTH_METHOD.GOOGLE_SIGN_IN,
           token: TEST_VALID_JWT_TOKEN,
         });
+      googleOAuthMock.mockRestore();
       expect(res.status).toBe(201);
       expect(res.body.accessToken).toBeDefined();
       expect(res.body.refreshToken).toBeDefined();
@@ -620,7 +621,7 @@ describe('GDK/AuthController', () => {
         displayName: 'displayName',
       };
       await authService.emailSignUp(DTO, true);
-      jest
+      const googleOAuthMock = jest
         .spyOn(oauthClientService, 'googleAuthenticate')
         .mockImplementation(() => {
           return Promise.resolve(GoogleUnifiedOAuthUserMock(DTO.email));
@@ -633,6 +634,8 @@ describe('GDK/AuthController', () => {
           method: AUTH_METHOD.GOOGLE_SIGN_IN,
           token: TEST_VALID_JWT_TOKEN,
         });
+      mailMock.mockRestore();
+      googleOAuthMock.mockRestore();
       expect(res.status).toBe(201);
       expect(res.body.accessToken).toBeDefined();
       expect(res.body.refreshToken).toBeDefined();
