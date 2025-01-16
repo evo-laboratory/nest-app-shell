@@ -189,6 +189,14 @@ export class AuthMongooseService implements AuthService {
       session = await this.connection.startSession();
     }
     try {
+      if (!dto.token) {
+        this.throwHttpError(
+          ERROR_CODE.AUTH_TOKEN_INVALID,
+          `Invalid token`,
+          400,
+          'socialEmailSignInUp',
+        );
+      }
       // * STEP 1. Verify from OAuthClient
       const oauthUser = await this.oauthClientService.socialAuthenticate(dto);
       this.Logger.verbose(
