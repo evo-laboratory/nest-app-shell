@@ -12,6 +12,7 @@ import {
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   ACTIVATING_PATH,
+  BATCH_PATH,
   CHECK_PATH,
   DEACTIVATING_PATH,
   GPI,
@@ -24,6 +25,7 @@ import { AuthRevokedTokenService } from '@gdk-iam/auth-revoked-token/auth-revoke
 import { AUTH_REVOKED_TOKEN_SOURCE } from '@gdk-iam/auth-revoked-token/enums';
 import { AuthService } from './auth.service';
 import {
+  AuthBatchCreateDto,
   AuthCheckRefreshTokenDto,
   AuthCheckResult,
   AuthDataResponseDto,
@@ -72,6 +74,15 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly authRevokedTokenService: AuthRevokedTokenService,
   ) {}
+
+  @AuthType(AUTH_TYPE.PUBLIC)
+  @Post(`${V1}/${BATCH_PATH}`)
+  @ApiOperation({
+    summary: 'Batch create auths and users',
+  })
+  async batchSignUpV1(@Body() dto: AuthBatchCreateDto) {
+    return dto;
+  }
 
   @AuthType(AUTH_TYPE.PUBLIC)
   @Post(`${V1}/${EMAIL_SIGN_UP_PATH}`)

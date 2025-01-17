@@ -1,3 +1,4 @@
+export * from './auth-batch-create.dto';
 export * from './auth-check-refresh-token.dto';
 export * from './auth-data-response.dto';
 export * from './auth-check-result.dto';
@@ -10,6 +11,7 @@ export * from './auth-sign-in-res.dto';
 export * from './auth-sign-out-res.dto';
 export * from './auth-sign-out.dto';
 export * from './auth-social-sign-in-up.dto';
+export * from './auth-with-user-item.dto';
 export * from './auth-verify.dto';
 export * from './auth.dto';
 export * from './change-password.dto';

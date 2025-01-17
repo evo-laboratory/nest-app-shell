@@ -1,3 +1,4 @@
+export * from './auth-batch-sign-up.interface';
 export * from './auth-check-refresh-token.interface';
 export * from './auth-check-result.interface';
 export * from './auth-create-auth-with-user.interface';
@@ -21,6 +22,7 @@ export * from './auth-sign-out.interface';
 export * from './auth-signed-result.interface';
 export * from './auth-social-sign-in-up.interface';
 export * from './auth-verify.interface';
+export * from './auth-with-user-item.interface';
 export * from './auth-email-verification.interface';
 export * from './auth.interface';
 export * from './auth.sign-in-response.interface';
