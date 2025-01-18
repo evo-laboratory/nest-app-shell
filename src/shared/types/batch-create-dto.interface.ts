@@ -1,3 +1,5 @@
 export type IBatchCreateDto<T> = {
-  batchDataList: T[];
+  jsonData: T[];
+  csvString: string;
+  isUseCSV: boolean;
 };
