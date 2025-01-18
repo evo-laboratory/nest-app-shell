@@ -9,6 +9,7 @@ import {
   AuthCheckRefreshTokenDto,
   AuthExchangeNewAccessTokenDto,
   AuthSocialSignInUpDto,
+  AuthBatchCreateDto,
 } from './dto';
 import {
   IEmailSignUpRes,
@@ -23,6 +24,7 @@ import {
 
 @Injectable()
 export abstract class AuthService {
+  abstract batch(dto: AuthBatchCreateDto): Promise<any>;
   abstract emailSignUp(
     dto: EmailSignUpDto,
     isManualVerified: boolean,

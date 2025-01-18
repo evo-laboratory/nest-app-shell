@@ -28,6 +28,7 @@ import {
   IAuthDataResponse,
 } from '@gdk-iam/auth/types';
 import {
+  AuthBatchCreateDto,
   AuthCheckRefreshTokenDto,
   AuthEmailSignInDto,
   AuthEmailVerificationDto,
@@ -94,6 +95,17 @@ export class AuthMongooseService implements AuthService {
     private readonly revokeService: AuthRevokedTokenService,
     private readonly oauthClientService: OauthClientService,
   ) {}
+
+  @MethodLogger()
+  public async batch(dto: AuthBatchCreateDto) {
+    this.Logger.verbose(dto.isUseCSV, 'batch(isUseCSV)');
+    let batchInput = [];
+    if (!dto.isUseCSV) {
+      batchInput = dto.jsonData;
+      this.Logger.verbose(batchInput.length, 'batch.batchInput.length');
+    }
+    return batchInput;
+  }
 
   @MethodLogger()
   public async emailSignUp(
