@@ -19,6 +19,18 @@ export class AuthWithUserItemDto implements IAuthWithUserItem {
   @IsString()
   @MinLength(6)
   password: string;
+  @IsString()
+  googleSignInId: string;
+  @IsString()
+  appleSignInId: string;
+  @IsString()
+  facebookSignId: string;
+  @IsString()
+  githubSignId: string;
+  @IsString()
+  gitlabSignId: string;
+  @IsString()
+  microsoftSignId: string;
   @IsBoolean()
   isIdentifierVerified: boolean;
   @IsEmail()

@@ -1,15 +1,31 @@
-import { AUTH_IDENTIFIER_TYPE, AUTH_METHOD } from '../enums';
+import { IUser } from '@gdk-iam/user/types';
+import { IAuth } from './auth.interface';
 
-export interface IAuthWithUserItem {
-  identifier: string;
-  identifierType: AUTH_IDENTIFIER_TYPE;
-  signUpMethodList: AUTH_METHOD[];
-  password: string;
-  isIdentifierVerified: boolean;
-  email: string;
-  firstName: string;
-  lastName: string;
-  displayName: string;
-  isEmailVerified: boolean;
-  roleList: string[];
-}
+export type IAuthPropsOfAuthWithUser = Omit<
+  IAuth,
+  | '_id'
+  | 'provider'
+  | 'userId'
+  | 'code'
+  | 'codeUsage'
+  | 'codeExpiredAt'
+  | 'isActivated'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'inactivatedAt'
+  | 'lastChangedPasswordAt'
+>;
+
+export type IUserPropsOfAuthWithUserProps = Omit<
+  IUser,
+  | '_id'
+  | 'isSelfDeleted'
+  | 'backupAuth'
+  | 'selfDeletedAt'
+  | 'createdAt'
+  | 'updatedAt'
+>;
+
+export interface IAuthWithUserItem
+  extends IAuthPropsOfAuthWithUser,
+    IUserPropsOfAuthWithUserProps {}
