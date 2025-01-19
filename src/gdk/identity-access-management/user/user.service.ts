@@ -13,6 +13,10 @@ export abstract class UserService {
   abstract listAll(
     opt: GetListOptionsDto,
   ): Promise<IGetResponseWrapper<IUser[]>>;
+  abstract listByEmails(
+    emails: string[],
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IUser[]>>;
   abstract getById(
     id: string,
     opt: GetListOptionsDto,

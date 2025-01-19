@@ -84,6 +84,36 @@ export class UserMongooseService implements UserService {
   }
 
   @MethodLogger()
+  public async listByEmails(
+    emails: string[],
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IUser[]>> {
+    try {
+      const mappedOpts = ListOptionsMongooseQueryMapper(opt);
+      const findQueries = {
+        ...mappedOpts.filterObjs,
+        email: {
+          $in: emails,
+        },
+      };
+      this.Logger.verbose(
+        JsonStringify(findQueries),
+        'listByEmails.findQueries',
+      );
+      const data = await this.UserModel.find(findQueries)
+        .sort(mappedOpts.sortObjs)
+        .populate(mappedOpts.populateFields)
+        .select(mappedOpts.selectedFields)
+        .skip(mappedOpts.skip)
+        .limit(mappedOpts.limit)
+        .lean();
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
+  @MethodLogger()
   public async getById(
     id: string,
     opt: GetOptionsDto,

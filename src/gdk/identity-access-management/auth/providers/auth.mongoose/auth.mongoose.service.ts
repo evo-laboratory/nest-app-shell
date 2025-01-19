@@ -26,6 +26,7 @@ import {
   IAuthGenerateCustomTokenResult,
   IAuthFlexUpdate,
   IAuthDataResponse,
+  IAuthWithUserItem,
 } from '@gdk-iam/auth/types';
 import {
   AuthBatchCreateDto,
@@ -99,11 +100,49 @@ export class AuthMongooseService implements AuthService {
   @MethodLogger()
   public async batch(dto: AuthBatchCreateDto) {
     this.Logger.verbose(dto.isUseCSV, 'batch(isUseCSV)');
-    let batchInput = [];
+    let batchInput: IAuthWithUserItem[] = [];
     if (!dto.isUseCSV) {
       batchInput = dto.jsonData;
       this.Logger.verbose(batchInput.length, 'batch.batchInput.length');
     }
+    // * STEP 1. Check if all None Exists
+    const allIdentifiers = batchInput.map((item) => item.identifier);
+    const authCheckResult = await this.listByIdentifiers(allIdentifiers, {});
+    this.Logger.verbose(
+      authCheckResult.data.length,
+      'batch.authCheckResult.data.length',
+    );
+    if (authCheckResult.data.length > 0) {
+      this.throwHttpError(
+        ERROR_CODE.AUTH_BATCH_CREATE_INCLUDED_EXISTED_IDENTIFIERS,
+        `${authCheckResult.data
+          .map((authItem: IAuth) => authItem.identifier)
+          .join(',')}`,
+        400,
+        'batch',
+      );
+    }
+    // * Assume current identifiers are using Email
+    const userCheckResult = await this.userService.listByEmails(
+      allIdentifiers,
+      {},
+    );
+    if (userCheckResult.data.length > 0) {
+      this.throwHttpError(
+        ERROR_CODE.AUTH_BATCH_CREATE_INCLUDED_EXISTED_USER_EMAILS,
+        `${userCheckResult.data
+          .map((userItem: IUser) => userItem.email)
+          .join(',')}`,
+        400,
+        'batch',
+      );
+    }
+    this.Logger.verbose(
+      userCheckResult.data.length,
+      'batch.userCheckResult.data.length',
+    );
+    // * STEP 2. Batch Create Users
+    // * STEP 3. Batch Create Auths
     return batchInput;
   }
 
@@ -792,6 +831,37 @@ export class AuthMongooseService implements AuthService {
       return Promise.reject(MongoDBErrorHandler(error));
     }
   }
+
+  @MethodLogger()
+  public async listByIdentifiers(
+    identifiers: string[],
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IAuth[]>> {
+    try {
+      const mappedOpts = ListOptionsMongooseQueryMapper(opt);
+      const findQueries = {
+        ...mappedOpts.filterObjs,
+        identifier: {
+          $in: identifiers,
+        },
+      };
+      this.Logger.verbose(
+        JsonStringify(findQueries),
+        'listByIdentifiers.findQueries',
+      );
+      const data = await this.AuthModel.find(findQueries)
+        .sort(mappedOpts.sortObjs)
+        .populate(mappedOpts.populateFields)
+        .select(mappedOpts.selectedFields)
+        .skip(mappedOpts.skip)
+        .limit(mappedOpts.limit)
+        .lean();
+      return GetResponseWrap(data);
+    } catch (error) {
+      return Promise.reject(MongoDBErrorHandler(error));
+    }
+  }
+
   @MethodLogger()
   public async getById(
     id: string,

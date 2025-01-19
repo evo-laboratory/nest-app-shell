@@ -47,6 +47,10 @@ export abstract class AuthService {
   abstract listAll(
     opt: GetListOptionsDto,
   ): Promise<IGetResponseWrapper<IAuth[]>>;
+  abstract listByIdentifiers(
+    identifiers: string[],
+    opt: GetListOptionsDto,
+  ): Promise<IGetResponseWrapper<IAuth[]>>;
   abstract getById(
     id: string,
     dto: GetOptionsDto,
