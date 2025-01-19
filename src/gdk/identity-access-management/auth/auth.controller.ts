@@ -75,7 +75,7 @@ export class AuthController {
     private readonly authRevokedTokenService: AuthRevokedTokenService,
   ) {}
 
-  @AuthType(AUTH_TYPE.PUBLIC)
+  @AuthType(AUTH_TYPE.PUBLIC) // TODO Remove this
   @Post(`${V1}/${BATCH_PATH}`)
   @ApiOperation({
     summary: 'Batch create auths and users',
